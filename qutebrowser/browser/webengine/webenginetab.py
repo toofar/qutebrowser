@@ -26,7 +26,8 @@ import html as html_utils
 import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QTimer, QObject)
+                          QTimer, QObject, QFile, QIODevice)
+from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
@@ -1163,6 +1164,14 @@ class _WebEngineScripts(QObject):
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
+        # XXX: When opening a new url in the current tab the first load
+        # has no qt object available when the webchannel script runs.
+        # Opening in a new tab doesn't seem to have this problem. Need
+        # to look into WebEngineView.load(url) and see what that does.
+        # Not sure how we could do anything better on our side but a
+        # minimal test case would probably help.
+        self._greasemonkey.register_webchannel(self._widget.page())
+        self._init_webchannel()
 
         # The Greasemonkey metadata block support in QtWebEngine only starts at
         # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
@@ -1314,6 +1323,30 @@ class _WebEngineScripts(QObject):
             src = utils.read_file("javascript/{}.user.js".format(filename))
             script.setSourceCode(src)
             page_scripts.insert(script)
+
+    def _init_webchannel(self):
+        wc_script = QWebEngineScript()
+        wc_script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        wc_script.setWorldId(QWebEngineScript.MainWorld)
+        qwebchannel_js = QFile(":/qtwebchannel/qwebchannel.js")
+        #qwebchannel_js = QFile("/tmp/qwebchannel.js")
+        if qwebchannel_js.open(QIODevice.ReadOnly):
+            js_src = bytes(qwebchannel_js.readAll()).decode('utf-8')
+            ## XXX: Sometimes get Uncaught ReferenceError: qt is not defined
+            #INFO: [:441] Attaching to qt.webChannelTransport
+            #ERROR:[:442] Uncaught ReferenceError: qt is not defined
+            js_src += """\n
+                    console.log("Attaching to qt.webChannelTransport");
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                    console.log("MADE A NEW QUTEEEEE!!");
+                      window.qute = channel.objects.qute; });"""
+            wc_script.setSourceCode(js_src)
+        else:
+            wc_script = None
+            log.greasemonkey.error('Failed to load qwebchannel.js with error: '
+                                   '%s' % qwebchannel_js.errorString())
+        scripts = self._widget.page().scripts()
+        if wc_script: scripts.insert(wc_script)
 
 
 class WebEngineTabPrivate(browsertab.AbstractTabPrivate):

@@ -148,6 +148,17 @@ class GreasemonkeyManager(QObject):
         super().__init__(parent)
         self.load_scripts()
 
+        # For offering to dl *.user.js URLs we have two cases
+        # - it is served as something that the backend decides to render
+        #   get notification of url changed? Would have to connect to new tabs
+        #   so would have to listen for new windows...
+        # - it is served with a download content-disposition attachment
+        #   have to hook into the download manager signals, or add a signal to
+        #   the dwnoload model because there are two download models.
+        #   qtnetwork-download-manager and webengine-download-manager so
+        #   would have to listen to both
+        # Or the qnam?
+
     @cmdutils.register(name='greasemonkey-reload',
                        instance='greasemonkey')
     def load_scripts(self):

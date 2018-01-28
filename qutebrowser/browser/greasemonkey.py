@@ -573,7 +573,13 @@ class GreasemonkeyBridge(QObject):
         # unicodes
         if 'headers' in details:
             for k, v in details['headers'].items():
-                request.setRawHeader(k.encode('ascii'), v.encode('ascii'))
+                # With this script: https://raw.githubusercontent.com/evazion/translate-pixiv-tags/master/translate-pixiv-tags.user.js
+                # One of the headers it 'X-Twitter-Polling': True, which was
+                # causing the below to error out because v is a bool. Not sure
+                # where that is coming from or what value twitter expects.
+                # That script is patching jquery so try with unpatched jquery
+                # and see what it does.
+                request.setRawHeader(k.encode('ascii'), str(v).encode('ascii'))
 
         # TODO: Should we allow xhr to set user-agent?
         if not request.header(QNetworkRequest.UserAgentHeader):

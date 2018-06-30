@@ -954,6 +954,8 @@ class CommandDispatcher:
         window = tabbed_browser.widget.window()
         mainwindow.raise_window(window)
         tabbed_browser.widget.setCurrentWidget(tab)
+        if not tab.loaded:
+            tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'],

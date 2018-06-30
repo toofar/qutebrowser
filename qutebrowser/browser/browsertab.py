@@ -646,6 +646,7 @@ class AbstractHistory:
         self._history = typing.cast(
             typing.Union['QWebHistory', 'QWebEngineHistory'], None)
         self.private_api = AbstractHistoryPrivate(tab)
+        self._to_load = []
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -1126,6 +1127,12 @@ class AbstractTab(QWidget):
 
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
+
+    def load(self):
+        raise NotImplementedError
+
+    def load_history_entries(self, entries):
+        raise NotImplementedError
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:

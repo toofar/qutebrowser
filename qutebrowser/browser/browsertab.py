@@ -620,6 +620,7 @@ class AbstractHistory:
         self._tab = tab
         self._history = None
         self.private_api = AbstractHistoryPrivate(tab)
+        self._to_load = []
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -888,6 +889,7 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
+        self.loaded = False
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1054,6 +1056,12 @@ class AbstractTab(QWidget):
 
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
+
+    def load(self):
+        raise NotImplementedError
+
+    def load_history_entries(self, entries):
+        raise NotImplementedError
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:

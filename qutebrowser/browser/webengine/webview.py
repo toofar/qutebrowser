@@ -65,10 +65,6 @@ class WebEngineView(QWebEngineView):
                              parent=self)
         self.setPage(page)
 
-    def focusInEvent(self, event):
-        super().focusInEvent(event)
-        print('focusIn', self)
-
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view."""
         return self.focusProxy()

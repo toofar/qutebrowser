@@ -638,6 +638,36 @@ class AbstractHistoryPrivate:
         """Deserialize from a list of WebHistoryItems."""
         raise NotImplementedError
 
+class TabHistoryItem:
+
+    """A single item in the tab history.
+
+    Attributes:
+        url: The QUrl of this item.
+        original_url: The QUrl of this item which was originally requested.
+        title: The title as string of this item.
+        active: Whether this item is the item currently navigated to.
+        user_data: The user data for this item.
+    """
+
+    def __init__(self, url, title, *, original_url=None, active=False,
+                 user_data=None, last_visited=None):
+        self.url = url
+        if original_url is None:
+            self.original_url = url
+        else:
+            self.original_url = original_url
+        self.title = title
+        self.active = active
+        self.user_data = user_data
+        self.last_visited = last_visited
+
+    def __repr__(self):
+        return utils.get_repr(self, constructor=True, url=self.url,
+                              original_url=self.original_url, title=self.title,
+                              active=self.active, user_data=self.user_data,
+                              last_visited=self.last_visited)
+
 
 class AbstractHistory:
 
@@ -1140,6 +1170,9 @@ class AbstractTab(QWidget):
         return self._load_status
 
     def load(self):
+        raise NotImplementedError
+
+    def unload(self):
         raise NotImplementedError
 
     def load_history_entries(self, entries):

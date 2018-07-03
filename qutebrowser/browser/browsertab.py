@@ -917,7 +917,7 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
-        self.loaded = False
+        self.loaded = True
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False

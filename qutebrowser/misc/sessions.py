@@ -166,7 +166,7 @@ class SessionManager(QObject):
         Args:
             tab: The tab to save.
             idx: The index of the current history item.
-            item: TheHistoryItem.
+            item: The TabHistoryItem.
 
         Return:
             A dict with the saved data for this item.
@@ -345,7 +345,6 @@ class SessionManager(QObject):
 
     def _save_autosave(self):
         """Save the autosave session."""
-        return
         try:
             self.save('_autosave')
         except SessionError as e:

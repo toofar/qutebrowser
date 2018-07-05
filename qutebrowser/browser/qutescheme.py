@@ -29,7 +29,6 @@ import json
 import os
 import time
 import textwrap
-import urllib
 import collections
 import secrets
 from typing import TypeVar, Callable, Dict, List, Optional, Union, Sequence, Tuple

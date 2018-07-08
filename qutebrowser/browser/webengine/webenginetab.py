@@ -606,6 +606,11 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._history = cast(QWebEngineHistory, None)
 
     def serialize(self):
+        if self._tab.history.to_load:
+            _stream, data, _cur_data = tabhistory.serialize(
+                self._tab.history.to_load
+            )
+            return data
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
@@ -675,15 +680,11 @@ class WebEngineHistory(browsertab.AbstractHistory):
 
     def current_idx(self):
         if self.to_load:
-            idx = next(
-                (i for i, item in enumerate(self.to_load)
-                 if item.active
-                ),
-                None
-            )
-            if idx is None:
-                idx = len(self.to_load)-1
-            return idx
+            for i, item in enumerate(self.to_load):
+                if item.active:
+                    return i
+            return len(self.to_load) - 1
+
         return self._history.currentItemIndex()
 
     def can_go_back(self):
@@ -1303,6 +1304,10 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
+        if not self.loaded and self.history.to_load:
+            idx = self.history.current_idx()
+            return self.history.to_load[idx].url
+
         page = self._widget.page()
         if requested:
             return page.requestedUrl()

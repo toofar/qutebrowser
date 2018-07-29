@@ -96,6 +96,16 @@ class BrowserPage(QWebPage):
             functools.partial(self._inject_userjs, self.mainFrame()))
         self.frameCreated.connect(  # type: ignore[attr-defined]
             self._connect_userjs_signals)
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        self.features.update({
+            QWebPage.Notifications: shared.Feature(
+                'content.notifications', 'show notifications'),
+            QWebPage.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+        })
 
     @pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
@@ -338,14 +348,6 @@ class BrowserPage(QWebPage):
                            "{!r}!".format(frame))
             return
 
-        options = {
-            QWebPage.Notifications: 'content.notifications',
-            QWebPage.Geolocation: 'content.geolocation',
-        }
-        messages = {
-            QWebPage.Notifications: 'show notifications',
-            QWebPage.Geolocation: 'access your location',
-        }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionGrantedByUser)
@@ -360,8 +362,10 @@ class BrowserPage(QWebPage):
                                                QUrl.RemoveFragment))
         question = shared.feature_permission(
             url=url,
-            option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=yes_action,
+            no_action=no_action,
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:

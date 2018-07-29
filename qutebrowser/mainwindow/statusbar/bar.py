@@ -32,7 +32,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase)
+                                              tabindex, textbase, settings)
 
 
 @dataclasses.dataclass
@@ -144,6 +144,7 @@ class StatusBar(QWidget):
         url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
         cmd: The Command widget in the statusbar.
+        settings: The BooleanSetting widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
@@ -200,6 +201,7 @@ class StatusBar(QWidget):
         self.tabindex = tabindex.TabIndex()
         self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
+        self.settings = settings.BooleanSettings(self, self._win_id)
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
@@ -216,14 +218,14 @@ class StatusBar(QWidget):
             self._set_hbox_padding()
         elif option == 'statusbar.widgets':
             self._draw_widgets()
+        self.settings.on_config_changed(option)
 
-    def _draw_widgets(self):
+    def _draw_widgets(self):  # noqa: C901 pragma: no mccabe
         """Draw statusbar widgets."""
         # Start with widgets hidden and show them when needed
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
-                       self.keystring, self.prog]:
-            assert isinstance(widget, QWidget)
+                       self.keystring, self.prog, self.settings]:
             widget.hide()
             self._hbox.removeWidget(widget)
 
@@ -257,6 +259,11 @@ class StatusBar(QWidget):
                 self.prog.enabled = True
                 if tab:
                     self.prog.on_tab_changed(tab)
+            elif segment == 'settings':
+                self._hbox.addWidget(self.settings)
+                self.settings.show()
+                if tab:
+                    self.settings.on_tab_changed(tab)
 
     @pyqtSlot()
     def maybe_hide(self):
@@ -396,6 +403,7 @@ class StatusBar(QWidget):
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
+        self.settings.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 

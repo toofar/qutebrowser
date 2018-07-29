@@ -25,6 +25,7 @@ import html
 import enum
 import netrc
 import tempfile
+import dataclasses
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
 from PyQt5.QtCore import QUrl, pyqtBoundSignal
@@ -38,6 +39,15 @@ from qutebrowser.misc import guiprocess, objects
 
 class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
+
+
+@dataclasses.dataclass
+class Feature:
+    """A web api that the user can interactively grant permission to."""
+
+    setting_name: str
+    requesting_message: str
+    enabled: bool = False
 
 
 def custom_headers(url):

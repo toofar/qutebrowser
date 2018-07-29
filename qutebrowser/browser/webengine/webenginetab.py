@@ -829,36 +829,35 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
-    # Using 0 as WORKAROUND for:
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
-
-    _options = {
-        0: 'content.notifications.enabled',
-        QWebEnginePage.Geolocation: 'content.geolocation',
-        QWebEnginePage.MediaAudioCapture: 'content.media.audio_capture',
-        QWebEnginePage.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        QWebEnginePage.MouseLock: 'content.mouse_lock',
-        QWebEnginePage.DesktopVideoCapture: 'content.desktop_capture',
-        QWebEnginePage.DesktopAudioVideoCapture: 'content.desktop_capture',
-    }
-
-    _messages = {
-        0: 'show notifications',
-        QWebEnginePage.Geolocation: 'access your location',
-        QWebEnginePage.MediaAudioCapture: 'record audio',
-        QWebEnginePage.MediaVideoCapture: 'record video',
-        QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        QWebEnginePage.MouseLock: 'hide your mouse pointer',
-        QWebEnginePage.DesktopVideoCapture: 'capture your desktop',
-        QWebEnginePage.DesktopAudioVideoCapture: 'capture your desktop and audio',
-    }
-
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(QWidget, None)
-        assert self._options.keys() == self._messages.keys()
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        # Using 0 as WORKAROUND for:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
+
+        self.features.update({
+            0: shared.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebEnginePage.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+            QWebEnginePage.MediaAudioCapture: shared.Feature(
+                'content.media.audio_capture', 'record audio'),
+            QWebEnginePage.MediaVideoCapture: shared.Feature(
+                'content.media.video_capture', 'record video'),
+            QWebEnginePage.MediaAudioVideoCapture: shared.Feature(
+                'content.media.audio_video_capture', 'record audio/video'),
+            QWebEnginePage.MouseLock: shared.Feature(
+                'content.mouse_lock', 'hide your mouse pointer'),
+            QWebEnginePage.DesktopVideoCapture: shared.Feature(
+                'content.desktop_capture', 'capture your desktop'),
+            QWebEnginePage.DesktopAudioVideoCapture: shared.Feature(
+                'content.desktop_capture', 'capture your desktop and audio'),
+        })
 
     def connect_signals(self):
         """Connect related signals from the QWebEnginePage."""
@@ -891,10 +890,10 @@ class _WebEnginePermissions(QObject):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
         grant_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
+            page.set_feature_permission, url, feature,
             QWebEnginePage.PermissionGrantedByUser)
         deny_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
+            page.set_feature_permission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
         permission_str = debug.qenum_key(QWebEnginePage, feature)
@@ -912,7 +911,7 @@ class _WebEnginePermissions(QObject):
             deny_permission()
             return
 
-        if feature not in self._options:
+        if feature not in self.features:
             log.webview.error("Unhandled feature permission {}".format(
                 permission_str))
             deny_permission()
@@ -932,9 +931,12 @@ class _WebEnginePermissions(QObject):
 
         question = shared.feature_permission(
             url=url.adjusted(QUrl.RemovePath),
-            option=self._options[feature], msg=self._messages[feature],
-            yes_action=grant_permission, no_action=deny_permission,
-            abort_on=[self._tab.abort_questions])
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=grant_permission,
+            no_action=deny_permission,
+            abort_on=[self._tab.abort_questions]
+        )
 
         if question is not None:
             page.featurePermissionRequestCanceled.connect(

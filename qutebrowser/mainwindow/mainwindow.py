@@ -540,6 +540,8 @@ class MainWindow(QWidget):
             self.status.url.on_load_status_changed)
         self.tabbed_browser.cur_load_status_changed.connect(
             self.status.settings.on_load_status_changed)
+        self.tabbed_browser.cur_feature_permission_changed.connect(
+            self.status.settings.on_feature_permission_changed)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(
             self.status.on_caret_selection_toggled)

@@ -285,6 +285,7 @@
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.settings,statusbar.settings>>|Which boolean settings to display in the statusbar settings widget.
 |<<statusbar.show,statusbar.show>>|When to show the statusbar.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
@@ -3707,6 +3708,7 @@ Valid values:
 
 Default: +pass:[bottom]+
 
+<<<<<<< HEAD
 [[statusbar.show]]
 === statusbar.show
 When to show the statusbar.
@@ -3721,6 +3723,18 @@ Valid values:
 
 Default: +pass:[always]+
 
+||||||| parent of 01f9e2961f52... Add statusbar widget to show boolean settings
+=======
+[[statusbar.settings]]
+=== statusbar.settings
+Which boolean settings to display in the statusbar settings widget.
+Specified in the form indicator-string|setting.name where the indicator-string will be displayed when the setting is true.
+
+Type: <<types,List of String>>
+
+Default: empty
+
+>>>>>>> 01f9e2961f52... Add statusbar widget to show boolean settings
 [[statusbar.widgets]]
 === statusbar.widgets
 List of widgets displayed in the statusbar.
@@ -3736,6 +3750,7 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+ * +settings+: Boolean settings state for the current page.
 
 Default: 
 

@@ -40,6 +40,7 @@ from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+from qutebrowser.extensions import interceptors
 
 
 gm_manager = typing.cast('GreasemonkeyManager', None)
@@ -560,11 +561,16 @@ class GreasemonkeyBridge(QObject):
                                     "without nonce, skipping."))
             return;
 
-        if objreg.get('host-blocker').is_blocked(QUrl(details['url'])):
-            return;
+        request_url = QUrl(details['url'])
+        first_party_url = QUrl(details['_qute_first_party_url'])
+
+        intercept_request = interceptors.Request(first_party_url, request_url)
+        interceptors.run(intercept_request)
+        if intercept_request.is_blocked:
+            return
 
         # TODO: url might be relative, need to fix on the JS side.
-        request = QNetworkRequest(QUrl(details['url']))
+        request = QNetworkRequest(request_url)
         request.setOriginatingObject(self)
         # The C++ docs say the default is to not follow any redirects.
         request.setAttribute(QNetworkRequest.RedirectionTargetAttribute,

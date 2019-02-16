@@ -101,6 +101,7 @@
             // could also move the index to be part of the bridge?
             const nonce = Math.random()+qute_gm_reqs_ind;
             details['_qute_gm_request_index'] = nonce;
+            details['_qute_first_party_url'] = window.location.toString();
             qute_gm_reqs[nonce] = details;
             qute_gm_reqs_ind++;
             return window.qute.GM_xmlhttpRequest(details);

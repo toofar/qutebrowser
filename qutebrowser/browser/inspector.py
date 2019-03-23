@@ -99,6 +99,7 @@ class AbstractWebInspector(QWidget):
         """Show/hide the inspector."""
         if self._widget.isVisible():
             self.hide()
+            self._inspect(None)
         else:
             self._inspect(self._page)
             self.show()

@@ -21,7 +21,7 @@
 
 import os
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QTimer
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 from qutebrowser.browser import inspector
@@ -31,8 +31,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, page, parent=None):
+        super().__init__(page, parent)
         self.port = None
         view = QWebEngineView()
         settings = view.settings()
@@ -58,7 +58,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         """Set up the inspector for Qt >= 5.11."""
         self._widget.page().setInspectedPage(page)
 
-    def inspect(self, page):
+    def _inspect(self, page):
         try:
             self._inspect_new(page)
         except AttributeError:

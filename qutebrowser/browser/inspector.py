@@ -60,6 +60,7 @@ class AbstractWebInspector(QWidget):
         self._layout = miscwidgets.WrapperLayout(self)
         self._load_state_geometry()
         self._page = page
+        page.destroyed.connect(lambda _obj: self.deleteLater())
 
     def _set_widget(self, widget):
         self._widget = widget

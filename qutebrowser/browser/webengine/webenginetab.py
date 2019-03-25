@@ -26,7 +26,7 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
+from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QPointF, QUrl, QObject
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
@@ -1210,14 +1210,7 @@ class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
 
 class WebEngineTab(browsertab.AbstractTab):
 
-    """A QtWebEngine tab in the browser.
-
-    Signals:
-        abort_questions: Emitted when a new load started or we're shutting
-            down.
-    """
-
-    abort_questions = pyqtSignal()
+    """A QtWebEngine tab in the browser."""
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id,
@@ -1667,9 +1660,6 @@ class WebEngineTab(browsertab.AbstractTab):
         except AttributeError:
             # Added in Qt 5.15.0
             pass
-
-        self.shutting_down.connect(self.abort_questions)
-        self.load_started.connect(self.abort_questions)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

@@ -515,7 +515,7 @@ class CookieJarWrapper(QNetworkCookieJar):
         self.cookieStore.loadAllCookies()
 
     def onCookieAdded(self, cookie):
-        self.cookies.append(cookie)
+        self.cookies.append(QNetworkCookie(cookie))
         return
 
     def onCookieRemoved(self, cookie):

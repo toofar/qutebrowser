@@ -145,6 +145,14 @@ def walk_extensions() -> typing.Iterator[ExtensionInfo]:
     else:
         return
 
+    if any(os.listdir(ext_dir)):
+        log.extensions.warning(
+            "Loading EXTENSIONS in {}: this in an "
+            "EXPERIMENTAL FEATURE.".format(ext_dir)
+        )
+    else:
+        return
+
     prefix = 'qutebrowser.extensions.third_party.'
     for finder, name, _ispkg in pkgutil.walk_packages(
             path=[ext_dir],

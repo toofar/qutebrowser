@@ -41,6 +41,7 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           PYQT_VERSION_STR, QFileDevice, QObject)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QColor
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover

@@ -107,6 +107,10 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             interceptors.ResourceType.unknown,
     }
 
+    def __init__(self, parent=None, tab=None):
+        super().__init__(parent)
+        self._tab = tab
+
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
         try:
@@ -180,7 +184,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             first_party_url=first_party,
             request_url=url,
             resource_type=resource_type,
-            webengine_info=info)
+            webengine_info=info,
+            originating_tab=self._tab,
+        )
 
         interceptors.run(request)
         if request.is_blocked:

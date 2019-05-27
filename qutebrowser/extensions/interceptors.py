@@ -26,6 +26,11 @@ import attr
 
 from PyQt5.QtCore import QUrl
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.browser import browsertab
+
 
 class ResourceType(enum.Enum):
     """Possible request types that can be received.
@@ -85,6 +90,9 @@ class Request:
 
     #: The resource type of the request. None if not supported on this backend.
     resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
+
+    #: The tab where the request originated.
+    originating_tab = attr.ib(None)  # type: typing.Optional[browsertab.AbstractTab]
 
     def block(self) -> None:
         """Block this request."""

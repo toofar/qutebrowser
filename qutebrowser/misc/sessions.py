@@ -413,10 +413,14 @@ class SessionManager(QObject):
                                     window=window.win_id)
         tab_to_focus = None
         for i, tab in enumerate(win['tabs']):
-            new_tab = tabbed_browser.tabopen(background=False)
-            self._load_tab(new_tab, tab)
             if tab.get('active', False):
                 tab_to_focus = i
+            background = tab_to_focus != i
+            new_tab = tabbed_browser.tabopen(background=background)
+            self._load_tab(new_tab, tab)
+            new_tab.show()
+            if background:
+                new_tab.hide()
             if new_tab.data.pinned:
                 tabbed_browser.widget.set_tab_pinned(new_tab,
                                                      new_tab.data.pinned)

@@ -508,7 +508,6 @@ class TabbedBrowser(QWidget):
 
         if url is not None:
             tab.load_url(url)
-        tab.show()
 
         if background is None:
             background = config.val.tabs.background
@@ -521,6 +520,7 @@ class TabbedBrowser(QWidget):
                                                self.widget.count())
             # Refocus webview in case we lost it by spawning a bg tab
             self.widget.currentWidget().setFocus()
+            tab.show()
             tab.hide()
         else:
             self.widget.setCurrentWidget(tab)

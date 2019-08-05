@@ -145,7 +145,7 @@ def pytest_collection_modifyitems(config, items):
 
             module_root_dir = module_path.split(os.sep)[0]
             assert module_root_dir in ['end2end', 'unit', 'helpers',
-                                       'test_conftest.py']
+                                       'test_conftest.py', 'integration']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
 

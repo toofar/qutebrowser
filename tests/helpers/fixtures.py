@@ -50,6 +50,7 @@ from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
+from qutebrowser.mainwindow import tabbedbrowser
 
 
 _qute_scheme_handler = None
@@ -368,6 +369,16 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
     yield stubs
     objreg.delete('tabbed-browser', scope='window', window=0)
     objreg.delete('tabbed-browser', scope='window', window=1)
+
+
+@pytest.fixture
+def real_tabbed_browser(qtbot, config_stub, mode_manager, tab_registry,
+                        web_tab_setup, web_history):
+    tb = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
+    qtbot.add_widget(tb)
+    objreg.register('tabbed-browser', tb, scope='window', window=0)
+    yield tb
+    objreg.delete('tabbed-browser', scope='window', window=0)
 
 
 @pytest.fixture

@@ -517,6 +517,22 @@ class WebKitScroller(browsertab.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
+class WebKitTabHistoryItem(browsertab.AbstractTabHistoryItem):
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a TabHistoryItem from a Qt history item.
+        """
+        qtutils.ensure_valid(qt_item)
+
+        return WebKitTabHistoryItem(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            active=active,
+            user_data=qt_item.userData()
+        )
+
+
 class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
@@ -559,22 +575,16 @@ class WebKitHistory(browsertab.AbstractHistory):
         self.private_api = WebKitHistoryPrivate(tab)
 
     def __len__(self):
-        return len(self._history)
+        return len(self.to_load)
 
     def __iter__(self):
-        if self.to_load:
-            return iter(self.to_load)
-        else:
-            return iter(self._history.items())
+        return iter(self.to_load)
 
     def current_idx(self):
-        if self.to_load:
-            for i, item in enumerate(self.to_load):
-                if item.active:
-                    return i
-            return len(self.to_load) - 1
-
-        return self._history.currentItemIndex()
+        for i, item in enumerate(self.to_load):
+            if item.active:
+                return i
+        return len(self.to_load) - 1
 
     def can_go_back(self):
         return self._history.canGoBack()
@@ -795,6 +805,21 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
+
+    def tab_history_item_from_qt(self, qt_item, active=False):
+        return WebKitTabHistoryItem.from_qt(qt_item, active)
+
+    def make_tab_history_item(
+            self, url, title, original_url=None,
+            active=False, user_data=None
+    ):
+        return WebKitTabHistoryItem(
+            url=url,
+            original_url=url,
+            title=title,
+            active=active,
+            user_data=user_data
+        )
 
     @pyqtSlot()
     def _on_history_trigger(self):

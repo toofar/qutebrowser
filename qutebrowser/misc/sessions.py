@@ -135,7 +135,7 @@ class SessionManager(QObject):
         Args:
             tab: The tab to save.
             idx: The index of the current history item.
-            item: The TabHistoryItem.
+            item: The history item.
 
         Return:
             A dict with the saved data for this item.
@@ -191,18 +191,10 @@ class SessionManager(QObject):
         data = {'history': []}  # type: _JsonType
         if active:
             data['active'] = True
-        for idx, item in enumerate(tab.history):
-            if not isinstance(item, browsertab.TabHistoryItem):
-                item = browsertab.TabHistoryItem.from_qt(item, active=active)
 
+        for idx, item in enumerate(tab.history):
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
-
-        # check active
-        if (data['history'] and not
-                any(i.get('active') for i in data['history'])):
-            log.sessions.warning('no active item for {}'.format(tab))
-            data['history'][-1]['active'] = True
 
         return data
 
@@ -365,20 +357,21 @@ class SessionManager(QObject):
             else:
                 orig_url = url
 
-            entry = browsertab.TabHistoryItem(
+            entry = new_tab.make_tab_history_item(
                 url=url,
                 original_url=orig_url,
                 title=histentry['title'],
                 active=active,
-                user_data=user_data)
-            history_items.append(entry)
+                user_data=user_data
+            )
+            entries.append(entry)
 
             if active:
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
             new_tab.loaded = False
-            new_tab.load_history_items(history_items)
+            new_tab.load_history_items(entries)
         except ValueError as e:
             raise SessionError(e)
 

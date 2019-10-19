@@ -612,7 +612,7 @@ class AbstractHistoryPrivate:
         raise NotImplementedError
 
 
-class TabHistoryItem:
+class AbstractTabHistoryItem:
 
     """A single item in the tab history.
 
@@ -636,30 +636,15 @@ class TabHistoryItem:
         self.user_data = user_data
 
     def __repr__(self):
-        return utils.get_repr(self, constructor=True, url=self.url,
-                              original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data)
-
-    @classmethod
-    def from_qt(cls, qt_item, active=False):
-        """Construct a TabHistoryItem from a Qt history item.
-
-        Args:
-            qt_item: a QWebEngineHistoryItem or QWebKitHistoryItem
-        """
-        qtutils.ensure_valid(qt_item)
-
-        try:
-            user_data = qt_item.userData()
-        except AttributeError:
-            user_data = None
-
-        return TabHistoryItem(
-            qt_item.url(),
-            qt_item.title(),
-            original_url=qt_item.originalUrl(),
-            active=active,
-            user_data=user_data)
+        return utils.get_repr(
+            self,
+            constructor=True,
+            url=self.url,
+            original_url=self.original_url,
+            title=self.title,
+            active=self.active,
+            user_data=self.user_data
+        )
 
 
 class AbstractHistory:
@@ -722,9 +707,10 @@ class AbstractHistory:
         """Unload the history and store it in to_load."""
         self.to_load = []
         current_idx = self.current_idx()
-        for idx, item in enumerate(self):
-            item = TabHistoryItem.from_qt(
-                item, active=idx == current_idx)
+        for idx, item in enumerate(self._history.items()):
+            item = self._tab.tab_history_item_from_qt(
+                item, active=idx == current_idx
+            )
             self.to_load.append(item)
         self._history.clear()
 
@@ -1169,15 +1155,24 @@ class AbstractTab(QWidget):
             self.load()
 
     def load_history_items(self, entries):
-        """Add a list of TabHistoryItems to the tab's history.
+        """Add a list of history items to the tab's history.
 
         Args:
-            entries: a list of TabHistoryItems
+            entries: a list of history items
         """
         if self.loaded:
             self.history.private_api.load_items(entries)
         else:
             self.history.to_load.extend(entries)
+
+    def tab_history_item_from_qt(self, item):
+        raise NotImplementedError
+
+    def make_tab_history_item(
+            self, url, title, original_url=None,
+            active=False, user_data=None
+    ):
+        raise NotImplementedError
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:

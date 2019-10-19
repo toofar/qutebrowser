@@ -537,6 +537,22 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._at_bottom
 
 
+class WebEngineTabHistoryItem(browsertab.AbstractTabHistoryItem):
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a TabHistoryItem from a Qt history item.
+        """
+        qtutils.ensure_valid(qt_item)
+
+        return WebEngineTabHistoryItem(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            active=active,
+            user_data=None
+        )
+
+
 class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
@@ -591,27 +607,19 @@ class WebEngineHistory(browsertab.AbstractHistory):
         self.private_api = WebEngineHistoryPrivate(tab)
 
     def __len__(self):
-        return len(self._history)
+        return len(self.to_load)
 
     def __iter__(self):
-        if self.to_load:
-            return iter(self.to_load)
-        else:
-            return iter(self._history.items())
+        return iter(self.to_load)
 
     def current_idx(self):
-        if self.to_load:
-            for i, item in enumerate(self.to_load):
-                if item.active:
-                    return i
-            return len(self.to_load) - 1
-
-        return self._history.currentItemIndex()
+        for i, item in enumerate(self.to_load):
+            if item.active:
+                return i
+        return len(self.to_load) - 1
 
     def can_go_back(self):
-        if self.to_load:
-            return self.current_idx() > 0
-        return self._history.canGoBack()
+        return self.current_idx() > 0
 
     def can_go_forward(self):
         return self._history.canGoForward()
@@ -1272,6 +1280,21 @@ class WebEngineTab(browsertab.AbstractTab):
             title="Error loading page: {}".format(url_string),
             url=url_string, error=error)
         self.set_html(error_page)
+
+    def tab_history_item_from_qt(self, qt_item, active=False):
+        return WebEngineTabHistoryItem.from_qt(qt_item, active)
+
+    def make_tab_history_item(
+            self, url, title, original_url=None,
+            active=False, user_data=None
+    ):
+        return WebEngineTabHistoryItem(
+            url=url,
+            original_url=original_url,
+            title=title,
+            active=active,
+            user_data=user_data
+        )
 
     @pyqtSlot()
     def _on_history_trigger(self):

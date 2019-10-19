@@ -657,8 +657,8 @@ class AbstractHistory:
         self._history = None
         self.private_api = AbstractHistoryPrivate(tab)
         self.to_load = []
-        self.load_on_focus = False
-        self.loaded = True
+        self.load_on_focus = True
+        self.loaded = False
 
     def __len__(self):
         return len(self.to_load)
@@ -709,7 +709,7 @@ class AbstractHistory:
     def _go_to_item(self, item: typing.Any) -> None:
         raise NotImplementedError
 
-    def lazy_load(self):
+    def load(self):
         if self.loaded:
             return
 
@@ -720,23 +720,24 @@ class AbstractHistory:
 
     def unload_items(self):
         """Unload the history and store it in to_load."""
-        self.to_load = []
-        current_idx = self.current_idx()
-        for idx, item in enumerate(self._history.items()):
-            item = self._tab.tab_history_item_from_qt(
-                item, active=idx == current_idx
-            )
-            self.to_load.append(item)
-        self._history.clear()
-
         self.loaded = False
         self.load_on_focus = True
 
-    def load_history_items(self, entries):
-        if self.loaded:
-            self.private_api.load_items(entries)
-        else:
-            self.to_load.extend(entries)
+        self.to_load = []
+        for idx, item in enumerate(self._history.items()):
+            item = self._tab.tab_history_item_from_qt(item)
+            self.to_load.append(item)
+        self._history.clear()
+
+    def load_history_items(self, entries, lazy=False):
+        """Add a list of history items to the tab's history.
+
+        Args:
+            entries: a list of history items
+        """
+        self.to_load.extend(entries)
+        if not lazy:
+            self.load()
 
 
 class AbstractElements:
@@ -1128,7 +1129,7 @@ class AbstractTab(QWidget):
 
     def load(self):
         """Load the tab history."""
-        self.history.lazy_load()
+        self.history.load()
 
     def unload(self):
         """Unload the tab."""
@@ -1157,14 +1158,6 @@ class AbstractTab(QWidget):
         self._widget.setHtml(
             page_template.render(title=self.title(), icon_url=icon_url),
             self._widget.url())
-
-    def load_history_items(self, entries):
-        """Add a list of history items to the tab's history.
-
-        Args:
-            entries: a list of history items
-        """
-        self.history.load_history_items(entries)
 
     def tab_history_item_from_qt(self, item):
         raise NotImplementedError
@@ -1259,8 +1252,5 @@ class AbstractTab(QWidget):
         Args:
             event: QShowEvent
         """
-        if event.spontaneous():
-            return
-
-        if self.history.load_on_focus:
+        if self.history.load_on_focus and not self.url().isEmpty():
             self.load()

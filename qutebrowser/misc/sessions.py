@@ -355,7 +355,10 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.load_history_items(history_items)
+            new_tab.history.load_history_items(
+                history_items,
+                lazy=not data.get('active', False)
+            )
         except ValueError as e:
             raise SessionError(e)
 

@@ -606,22 +606,10 @@ class WebEngineHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self.private_api = WebEngineHistoryPrivate(tab)
 
-    def __len__(self):
-        return len(self.to_load)
-
-    def __iter__(self):
-        return iter(self.to_load)
-
-    def current_idx(self):
-        for i, item in enumerate(self.to_load):
-            if item.active:
-                return i
-        return len(self.to_load) - 1
-
-    def can_go_back(self):
+    def _can_go_back(self):
         return self.current_idx() > 0
 
-    def can_go_forward(self):
+    def _can_go_forward(self):
         return self._history.canGoForward()
 
     def _item_at(self, i):

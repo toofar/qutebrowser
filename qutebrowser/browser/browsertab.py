@@ -660,19 +660,22 @@ class AbstractHistory:
         self.load_on_focus = False
         self.loaded = True
 
-    def __len__(self) -> int:
-        raise NotImplementedError
+    def __len__(self):
+        return len(self.to_load)
 
-    def __iter__(self) -> typing.Iterable:
-        raise NotImplementedError
+    def __iter__(self):
+        return iter(self.to_load)
 
     def _check_count(self, count: int) -> None:
         """Check whether the count is positive."""
         if count < 0:
             raise WebTabError("count needs to be positive!")
 
-    def current_idx(self) -> int:
-        raise NotImplementedError
+    def current_idx(self):
+        for i, item in enumerate(self.to_load):
+            if item.active:
+                return i
+        return len(self.to_load) - 1
 
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""
@@ -695,10 +698,10 @@ class AbstractHistory:
             raise WebTabError("At end of history.")
 
     def can_go_back(self) -> bool:
-        raise NotImplementedError
+        return self._can_go_back()
 
     def can_go_forward(self) -> bool:
-        raise NotImplementedError
+        return self._can_go_forward()
 
     def _item_at(self, i: int) -> typing.Any:
         raise NotImplementedError

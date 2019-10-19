@@ -308,19 +308,9 @@ class SessionManager(QObject):
 
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
-        entries = []
-        lazy_load = []  # type: typing.MutableSequence[_JsonType]
-        # use len(data['history'])
-        # -> dropwhile empty if not session.lazy_session
-        lazy_index = len(data['history'])
-        gen = itertools.chain(
-            itertools.takewhile(lambda _: not lazy_load,
-                                enumerate(data['history'])),
-            enumerate(lazy_load),
-            itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                enumerate(data['history'])))
+        history_items = []
 
-        for i, histentry in gen:
+        for histentry in data['history']:
             user_data = {}
 
             if 'zoom' in data:
@@ -359,14 +349,13 @@ class SessionManager(QObject):
                 active=active,
                 user_data=user_data
             )
-            entries.append(entry)
+            history_items.append(entry)
 
             if active:
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.loaded = False
-            new_tab.load_history_items(entries)
+            new_tab.load_history_items(history_items)
         except ValueError as e:
             raise SessionError(e)
 

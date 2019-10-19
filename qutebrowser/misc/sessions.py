@@ -160,12 +160,7 @@ class SessionManager(QObject):
         if tab.history.current_idx() == idx:
             data['active'] = True
 
-        try:
-            user_data = item.user_data
-        except AttributeError:
-            # QtWebEngine
-            user_data = None
-
+        user_data = item.user_data
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
             data['zoom'] = tab.zoom.factor()

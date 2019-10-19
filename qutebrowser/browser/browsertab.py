@@ -656,6 +656,8 @@ class AbstractHistory:
         self._history = None
         self.private_api = AbstractHistoryPrivate(tab)
         self.to_load = []
+        self.load_on_focus = False
+        self.loaded = True
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -703,6 +705,15 @@ class AbstractHistory:
     def _go_to_item(self, item: typing.Any) -> None:
         raise NotImplementedError
 
+    def lazy_load(self):
+        if self.loaded:
+            return
+
+        self.private_api.load_items(self.to_load)
+        self.to_load = []
+        self.loaded = True
+        self.load_on_focus = False
+
     def unload_items(self):
         """Unload the history and store it in to_load."""
         self.to_load = []
@@ -713,6 +724,9 @@ class AbstractHistory:
             )
             self.to_load.append(item)
         self._history.clear()
+
+        self.loaded = False
+        self.load_on_focus = True
 
 
 class AbstractElements:
@@ -935,8 +949,6 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
-        self.load_on_focus = False
-        self.loaded = True
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1106,21 +1118,12 @@ class AbstractTab(QWidget):
 
     def load(self):
         """Load the tab history."""
-        if self.loaded:
-            return
-
-        self.history.private_api.load_items(self.history.to_load)
-        self.history.to_load = []
-        self.loaded = True
-        self.load_on_focus = False
+        self.history.lazy_load()
 
     def unload(self):
         """Unload the tab."""
-        if not self.loaded:
+        if not self.history.loaded:
             return
-
-        self.loaded = False
-        self.load_on_focus = True
 
         self.history.unload_items()
 
@@ -1151,7 +1154,7 @@ class AbstractTab(QWidget):
     def setFocus(self):
         """Load the tab when it gets focused."""
         super().setFocus()
-        if self.load_on_focus:
+        if self.history.load_on_focus:
             self.load()
 
     def load_history_items(self, entries):
@@ -1160,7 +1163,7 @@ class AbstractTab(QWidget):
         Args:
             entries: a list of history items
         """
-        if self.loaded:
+        if self.history.loaded:
             self.history.private_api.load_items(entries)
         else:
             self.history.to_load.extend(entries)

@@ -729,6 +729,12 @@ class AbstractHistory:
         self.loaded = False
         self.load_on_focus = True
 
+    def load_history_items(self, entries):
+        if self.loaded:
+            self.private_api.load_items(entries)
+        else:
+            self.to_load.extend(entries)
+
 
 class AbstractElements:
 
@@ -1161,10 +1167,7 @@ class AbstractTab(QWidget):
         Args:
             entries: a list of history items
         """
-        if self.history.loaded:
-            self.history.private_api.load_items(entries)
-        else:
-            self.history.to_load.extend(entries)
+        self.history.load_history_items(entries)
 
     def tab_history_item_from_qt(self, item):
         raise NotImplementedError

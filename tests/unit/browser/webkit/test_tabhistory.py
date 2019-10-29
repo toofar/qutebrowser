@@ -28,8 +28,10 @@ from PyQt5.QtCore import QUrl, QPoint
 from PyQt5.QtWebKit import QWebHistory
 
 from qutebrowser.browser.webkit import tabhistory
-from qutebrowser.browser.browsertab import TabHistoryItem as Item
+from qutebrowser.browser.browsertab import AbstractHistoryItem as Item
 from qutebrowser.utils import qtutils
+
+tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
 
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')

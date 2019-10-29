@@ -166,7 +166,7 @@ class SessionManager(QObject):
         Args:
             tab: The tab to save.
             idx: The index of the current history item.
-            item: The TabHistoryItem.
+            item: The AbstractHistoryItem.
 
         Return:
             A dict with the saved data for this item.
@@ -225,8 +225,8 @@ class SessionManager(QObject):
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
-            if not isinstance(item, browsertab.TabHistoryItem):
-                item = browsertab.TabHistoryItem.from_qt(item, active=active)
+            if not isinstance(item, browsertab.AbstractHistoryItem):
+                item = tab.history_item_from_qt(item, active=active)
 
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
@@ -400,7 +400,7 @@ class SessionManager(QObject):
             else:
                 last_visited = None
 
-            entry = browsertab.TabHistoryItem(
+            entry = new_tab.new_history_item(
                 url=url,
                 original_url=orig_url,
                 title=histentry['title'],

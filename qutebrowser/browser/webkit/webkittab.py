@@ -618,6 +618,27 @@ class WebKitScroller(browsertab.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
+class WebKitHistoryItem(browsertab.AbstractHistoryItem):
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a WebKitHistoryItem from a Qt history item.
+
+        Args:
+            qt_item: a QWebKitHistoryItem
+        """
+        qtutils.ensure_valid(qt_item)
+
+        return cls(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            active=active,
+            user_data=qt_item.userData(),
+            last_visited=qt_item.lastVisited(),
+        )
+
+
+
 class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
@@ -909,6 +930,20 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
+
+    def history_item_from_qt(self, qt_item, active=False):
+        return WebKitHistoryItem.from_qt(qt_item, active)
+
+    def new_history_item(self, url, original_url, title, active, user_data,
+                         last_visited):
+        return WebKitHistoryItem(
+            url=url,
+            original_url=original_url,
+            title=title,
+            active=active,
+            user_data=user_data,
+            last_visited=last_visited,
+        )
 
     @pyqtSlot()
     def _on_history_trigger(self):

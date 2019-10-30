@@ -21,6 +21,7 @@
 
 import re
 import functools
+import typing
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
 
@@ -30,6 +31,9 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings, QWebHistory, QWebElement
 from PyQt5.QtPrintSupport import QPrinter
+
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistoryItem
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
@@ -616,6 +620,8 @@ class WebKitScroller(browsertab.AbstractScroller):
 
 
 class WebKitHistoryItem(browsertab.AbstractHistoryItem):
+    """History item data derived from QWebHistoryItem."""
+
     @classmethod
     def from_qt(cls, qt_item, active=False):
         """Construct a WebKitHistoryItem from a Qt history item.
@@ -900,11 +906,16 @@ class WebKitTab(browsertab.AbstractTab):
     def renderer_process_pid(self) -> Optional[int]:
         return None
 
-    def history_item_from_qt(self, qt_item, active=False):
-        return WebKitHistoryItem.from_qt(qt_item, active)
+    def history_item_from_qt(self, item: browsertab.TypeHistoryItem,
+                             active: bool = False) -> WebKitHistoryItem:
+        return WebKitHistoryItem.from_qt(item, active)
 
-    def new_history_item(self, url, original_url, title, active, user_data,
-                         last_visited):
+    def new_history_item(
+            self, url: QUrl, original_url: QUrl,
+            title: str, active: bool,
+            user_data: typing.Dict[str, typing.Any],
+            last_visited: typing.Optional[QDateTime],
+    ) -> WebKitHistoryItem:
         return WebKitHistoryItem(
             url=url,
             original_url=original_url,

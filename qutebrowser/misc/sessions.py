@@ -181,13 +181,11 @@ class SessionManager(QObject):
         if tab.history.current_idx() == idx:
             data['active'] = True
 
-        try:
-            user_data = item.user_data
-        except AttributeError:
-            # QtWebEngine
-            user_data = None
+        user_data = item.user_data
 
-        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
+        data['last_visited'] = None
+        if item.last_visited:
+            data['last_visited'] = item.last_visited.toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -217,12 +215,6 @@ class SessionManager(QObject):
         for idx, item in enumerate(tab.history):
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
-
-        # check active
-        if (data['history'] and not
-                any(i.get('active') for i in data['history'])):
-            log.sessions.warning('no active item for {}'.format(tab))
-            data['history'][-1]['active'] = True
 
         return data
 

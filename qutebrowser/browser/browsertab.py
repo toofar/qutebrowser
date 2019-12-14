@@ -695,6 +695,8 @@ class AbstractHistory:
         """Go back in the tab's history."""
         self._check_count(count)
         idx = self.current_idx() - count
+        if not self.loaded:
+            self.load()
         if idx >= 0:
             self._go_to_item(self._item_at(idx))
         else:
@@ -705,6 +707,8 @@ class AbstractHistory:
         """Go forward in the tab's history."""
         self._check_count(count)
         idx = self.current_idx() + count
+        if not self.loaded:
+            self.load()
         if idx < len(self):
             self._go_to_item(self._item_at(idx))
         else:

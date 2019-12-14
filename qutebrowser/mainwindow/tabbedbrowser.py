@@ -360,8 +360,6 @@ class TabbedBrowser(QWidget):
         if not self.is_private:
             web_history = objreg.get('web-history')
             tab.history_item_triggered.connect(web_history.add_from_tab)
-            tab.history_item_triggered.connect(
-                functools.partial(self._on_new_history_item, tab))
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -940,12 +938,6 @@ class TabbedBrowser(QWidget):
             self._remove_tab(tab, crashed=True)
             if self.widget.count() == 0:
                 self.tabopen(QUrl('about:blank'))
-
-    def _on_new_history_item(self, tab, url, requested_url, title):
-        history_item = tab.make_tab_history_item(
-            url, title, requested_url, True, None)
-
-        tab.history.to_load.append(history_item)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -610,7 +610,7 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self.current_idx() > 0
 
     def _can_go_forward(self):
-        return self._history.canGoForward()
+        return self.current_idx() < len(self) - 1
 
     def _item_at(self, i):
         return self._history.itemAt(i)

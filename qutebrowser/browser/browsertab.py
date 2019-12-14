@@ -724,8 +724,11 @@ class AbstractHistory:
         self.load_on_focus = True
 
         self.to_load = []
+        current_idx = self.current_idx()
         for idx, item in enumerate(self._history.items()):
-            item = self._tab.tab_history_item_from_qt(item)
+            item = self._tab.tab_history_item_from_qt(
+                item, active=idx==current_idx,
+            )
             self.to_load.append(item)
         self._history.clear()
 
@@ -1165,7 +1168,7 @@ class AbstractTab(QWidget):
         if self.history.load_on_focus:
             self.load()
 
-    def tab_history_item_from_qt(self, item):
+    def tab_history_item_from_qt(self, item, active=False):
         raise NotImplementedError
 
     def make_tab_history_item(

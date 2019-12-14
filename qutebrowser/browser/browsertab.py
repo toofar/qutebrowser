@@ -661,10 +661,21 @@ class AbstractHistory:
         self.loaded = False
 
     def __len__(self):
-        return len(self.to_load)
+        if self.to_load:
+            return len(self.to_load)
+        else:
+            return len(self._history)
 
     def __iter__(self):
-        return iter(self.to_load)
+        if self.to_load:
+            return iter(self.to_load)
+        else:
+            current_idx = self.current_idx()
+            return (
+                self._tab.tab_history_item_from_qt(item, idx==current_idx)
+                for idx, item in
+                enumerate(self._history.items())
+            )
 
     def _check_count(self, count: int) -> None:
         """Check whether the count is positive."""
@@ -672,10 +683,13 @@ class AbstractHistory:
             raise WebTabError("count needs to be positive!")
 
     def current_idx(self):
-        for i, item in enumerate(self.to_load):
-            if item.active:
-                return i
-        return len(self.to_load) - 1
+        if self.to_load:
+            for i, item in enumerate(self.to_load):
+                if item.active:
+                    return i
+            return len(self.to_load) - 1
+        else:
+            return self._history.currentItemIndex()
 
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""

@@ -179,3 +179,24 @@ def window(*, info):
     model.add_category(listcategory.ListCategory("Windows", windows))
 
     return model
+
+
+def undo(*, info):
+    """A model to complete on closed tabs in the current window."""
+    model = completionmodel.CompletionModel(column_widths=(6, 79, 15))
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=info.win_id)
+    entries = []
+    for idx, entry in enumerate(tabbed_browser._undo_stack):
+        entries.append((
+            str(idx),
+            "{}".format(entry[0].url.toDisplayString()),
+            "{} more items".format(len(entry)) if len(entry) > 1 else "",
+        ))
+
+    model.add_category(listcategory.ListCategory(
+        "Entries",
+        reversed(entries),
+        sort=False,
+    ))
+    return model

@@ -187,7 +187,7 @@ def undo(*, info):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=info.win_id)
     entries = []
-    for idx, entry in enumerate(tabbed_browser._undo_stack):
+    for idx, entry in enumerate(tabbed_browser.undo_stack):
         entries.append((
             str(idx),
             "{}".format(entry[0].url.toDisplayString()),

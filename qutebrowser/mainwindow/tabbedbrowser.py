@@ -1037,3 +1037,7 @@ class TabbedBrowser(QWidget):
             tab.scroller.to_point(point)
         else:
             message.error("Mark {} is not set".format(key))
+
+    @property
+    def undo_stack(self):
+        return collections.deque(self._undo_stack)

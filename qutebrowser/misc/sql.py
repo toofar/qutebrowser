@@ -372,6 +372,34 @@ class SqlTable(QObject):
         q.run_batch(values)
         self.changed.emit()
 
+    def _update_query(self, filter_values, new_values):
+        filter_params = ', '.join(
+            ':filter{}'.format(key) for key in filter_values)
+        new_params = ', '.join(':new{}'.format(key) for key in new_values)
+        return Query("UPDATE {table} SET ({new_columns}) = ({new_params}) "
+                     "WHERE ({filter_columns}) = ({filter_params})".format(
+                         table=self._name,
+                         new_columns=', '.join(new_values),
+                         new_params=new_params,
+                         filter_columns=', '.join(filter_values),
+                         filter_params=filter_params))
+
+    def update(self, filter_values, new_values):
+        """Append a row to the table.
+
+        Args:
+            filter_values: A dict of (field name : value) pairs to filter by.
+            new_values: A dict of (filed name : value) pairs to update.
+            replace: If set, replace existing values.
+        """
+        q = self._update_query(filter_values, new_values)
+        values = {
+            "filter" + key: value for (key, value) in filter_values.items()}
+        values.update({
+            "new"+key: value for (key, value) in new_values.items()})
+        q.run(**values)
+        self.changed.emit()
+
     def delete_all(self):
         """Remove all rows from the table."""
         Query("DELETE FROM {table}".format(table=self._name)).run()

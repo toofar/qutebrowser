@@ -23,6 +23,7 @@ import enum
 import itertools
 import functools
 import typing
+import time
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
@@ -915,7 +916,7 @@ class AbstractTab(QWidget):
     # Signal emitted before shutting down
     shutting_down = pyqtSignal()
     # Signal emitted when a history item should be added
-    history_item_triggered = pyqtSignal(QUrl, QUrl, str)
+    history_item_triggered = pyqtSignal(QUrl, str, int, bool, bool)
     # Signal emitted when the underlying renderer process terminated.
     # arg 0: A TerminationStatus member.
     # arg 1: The exit code.
@@ -952,6 +953,11 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None  # type: typing.Optional[usertypes.Backend]
+
+        self._last_history_url = None
+        self._last_history_atime = None
+        self._last_history_title = None
+        self._last_history_requested_url = None
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1109,9 +1115,64 @@ class AbstractTab(QWidget):
         self._set_load_status(loadstatus)
 
     @pyqtSlot()
-    def _on_history_trigger(self) -> None:
-        """Emit history_item_triggered based on backend-specific signal."""
-        raise NotImplementedError
+    def _on_history_trigger(self, force_entry=True):
+        """Add or update a history entry when required."""
+        url = self.url()
+        requested_url = self.url(requested=True)
+
+        # Don't save the title if it's generated from the URL
+        title = self.title()
+        title_url = QUrl(url)
+        title_url.setScheme('')
+        title_url_str = title_url.toDisplayString(
+            QUrl.RemoveScheme)  # type: ignore[arg-type]
+        if title == title_url_str.strip('/'):
+            title = ""
+
+        # Don't add history entry if the URL is invalid anyways
+        if not url.isValid():
+            log.misc.debug("Ignoring invalid URL being added to history")
+            return
+
+        if url == self._last_history_url:
+            # Same page, but title might have changed
+            if title != self._last_history_title:
+                atime = self._last_history_atime
+                self.history_item_triggered.emit(url, title, atime,
+                                                 False, True)
+                self._last_history_title = title
+
+            # Update this in case it changed.
+            self._last_history_requested_url = requested_url
+        elif force_entry or title != self._last_history_title:
+            # Don't add an entry if only the url has changed.
+            # This hopefully filters out unimportant url changes
+
+            atime = time.time()
+
+            no_formatting = QUrl.UrlFormattingOption(0)
+            if requested_url.isValid() and \
+                    not requested_url.matches(url, no_formatting):
+                # If the url of the page is different than the url of the link
+                # originally clicked, save them both.
+
+                update = any(requested_url.matches(u, no_formatting)
+                             for u in (self._last_history_requested_url,
+                                       self._last_history_url))
+
+                if update:
+                    # This isn't a new request, so get old atime
+                    atime = self._last_history_atime
+
+                self.history_item_triggered.emit(self._last_history_url, title,
+                                                 atime, True, update)
+
+            self.history_item_triggered.emit(url, title, atime, False, False)
+
+            self._last_history_atime = atime
+            self._last_history_requested_url = requested_url
+            self._last_history_url = url
+            self._last_history_title = title
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:

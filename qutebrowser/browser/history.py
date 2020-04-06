@@ -150,8 +150,6 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
-        # Store the last saved url to avoid duplicate immedate saves.
-        self._last_url = None
 
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
@@ -268,7 +266,6 @@ class WebHistory(sql.SqlTable):
             self.delete_all()
             self.completion.delete_all()
         self.history_cleared.emit()
-        self._last_url = None
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -280,39 +277,31 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
-        if self._last_url == url:
-            self._last_url = None
         self.url_cleared.emit(qurl)
 
-    @pyqtSlot(QUrl, QUrl, str)
-    def add_from_tab(self, url, requested_url, title):
+    @pyqtSlot(QUrl, str, int, bool, bool)
+    def add_from_tab(self, url, title, atime=None, redirect=False,
+                     update=False):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if any(url.scheme() in ('data', 'view-source') or
-               (url.scheme(), url.host()) == ('qute', 'back')
-               for url in (url, requested_url)):
+        if url.scheme() in ('data', 'view-source') or \
+                (url.scheme(), url.host()) == ('qute', 'back'):
             return
         if url.isEmpty():
             # things set via setHtml
             return
+        self.add_url(url, title, atime, redirect=redirect, update=update)
 
-        no_formatting = QUrl.UrlFormattingOption(0)
-        if (requested_url.isValid() and
-                not requested_url.matches(url, no_formatting)):
-            # If the url of the page is different than the url of the link
-            # originally clicked, save them both.
-            self.add_url(requested_url, title, redirect=True)
-        if url != self._last_url:
-            self.add_url(url, title)
-            self._last_url = url
-
-    def add_url(self, url, title="", *, redirect=False, atime=None):
+    def add_url(self, url, title="", atime=None, *, redirect=False,
+                update=False):
         """Called via add_from_tab when a URL should be added to the history.
 
         Args:
             url: A url (as QUrl) to add to the history.
+            title: The title of the referenced page.
+            atime: Override the atime used to add the entry
             redirect: Whether the entry was redirected to another URL
                       (hidden in completion)
-            atime: Override the atime used to add the entry
+            update: Whether this is an update to a previous history entry
         """
         if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
@@ -324,10 +313,21 @@ class WebHistory(sql.SqlTable):
         atime = int(atime) if (atime is not None) else int(time.time())
 
         with self._handle_sql_errors():
-            self.insert({'url': self._format_url(url),
-                         'title': title,
-                         'atime': atime,
-                         'redirect': redirect})
+            if update:
+                self.update({'url': self._format_url(url), 'atime': atime},
+                            {'title': title, 'redirect': redirect})
+            else:
+                self.insert({'url': self._format_url(url),
+                             'title': title,
+                             'atime': atime,
+                             'redirect': redirect})
+
+            if redirect and update:
+                try:
+                    self.delete('url', self._format_completion_url(url))
+                except KeyError:
+                    # This is fine - probably it was deleted by another tab.
+                    pass
 
             if redirect or self._is_excluded(url):
                 return

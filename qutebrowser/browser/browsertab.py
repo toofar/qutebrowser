@@ -954,10 +954,10 @@ class AbstractTab(QWidget):
             self, parent=self)
         self.backend = None  # type: typing.Optional[usertypes.Backend]
 
-        self._last_history_url = None
-        self._last_history_atime = None
-        self._last_history_title = None
-        self._last_history_requested_url = None
+        self._last_history_url = None  # type: typing.Optional[QUrl]
+        self._last_history_atime = None  # type: typing.Optional[int]
+        self._last_history_title = None  # type: typing.Optional[str]
+        self._last_history_requested_url = None  # type: typing.Optional[QUrl]
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1115,8 +1115,17 @@ class AbstractTab(QWidget):
         self._set_load_status(loadstatus)
 
     @pyqtSlot()
-    def _on_history_trigger(self, force_entry=True):
+    def _on_history_trigger(self, force_entry: bool = True) -> None:
         """Add or update a history entry when required."""
+        try:
+            self._widget.page()
+        except RuntimeError:
+            # Looks like this slot can be triggered on destroyed tabs:
+            # https://crashes.qutebrowser.org/view/3abffbed (Qt 5.9.1)
+            # wrapped C/C++ object of type WebEngineView has been deleted
+            log.misc.debug("Ignoring history trigger for destroyed tab")
+            return
+
         url = self.url()
         requested_url = self.url(requested=True)
 
@@ -1148,15 +1157,17 @@ class AbstractTab(QWidget):
             # Don't add an entry if only the url has changed.
             # This hopefully filters out unimportant url changes
 
-            atime = time.time()
+            atime = int(time.time())
 
-            no_formatting = QUrl.UrlFormattingOption(0)
+            no_formatting = typing.cast(QUrl.FormattingOptions,
+                                        QUrl.UrlFormattingOption(0))
             if requested_url.isValid() and \
                     not requested_url.matches(url, no_formatting):
                 # If the url of the page is different than the url of the link
                 # originally clicked, save them both.
 
-                update = any(requested_url.matches(u, no_formatting)
+                update = any(u is not None and
+                             requested_url.matches(u, no_formatting)
                              for u in (self._last_history_requested_url,
                                        self._last_history_url))
 

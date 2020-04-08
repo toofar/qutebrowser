@@ -324,7 +324,8 @@ class WebHistory(sql.SqlTable):
 
             if redirect and update:
                 try:
-                    self.delete('url', self._format_completion_url(url))
+                    self.completion.delete(
+                        'url', self._format_completion_url(url))
                 except KeyError:
                     # This is fine - probably it was deleted by another tab.
                     pass

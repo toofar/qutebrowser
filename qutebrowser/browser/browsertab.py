@@ -916,6 +916,11 @@ class AbstractTab(QWidget):
     # Signal emitted before shutting down
     shutting_down = pyqtSignal()
     # Signal emitted when a history item should be added
+    # arg 0: Url accessed
+    # arg 1: Page title
+    # arg 2: Access time
+    # arg 3: Was this redirected to another url?
+    # arg 4: Is this an amendment to an existing entry?
     history_item_triggered = pyqtSignal(QUrl, str, int, bool, bool)
     # Signal emitted when the underlying renderer process terminated.
     # arg 0: A TerminationStatus member.
@@ -1147,6 +1152,7 @@ class AbstractTab(QWidget):
             # Same page, but title might have changed
             if title != self._last_history_title:
                 atime = self._last_history_atime
+                # redirect=False, update=True
                 self.history_item_triggered.emit(url, title, atime,
                                                  False, True)
                 self._last_history_title = title
@@ -1173,12 +1179,15 @@ class AbstractTab(QWidget):
                     # This isn't a new request, so get old atime and mark
                     # previous url as a redirect
                     atime = self._last_history_atime
+                    # redirect=True, update=True
                     self.history_item_triggered.emit(self._last_history_url,
                                                      title, atime, True, True)
                 else:
+                    # redirect=True, update=False
                     self.history_item_triggered.emit(requested_url,
                                                      title, atime, True, False)
 
+            # redirect=False, update=False
             self.history_item_triggered.emit(url, title, atime, False, False)
 
             self._last_history_atime = atime

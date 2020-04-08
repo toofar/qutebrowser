@@ -1166,17 +1166,18 @@ class AbstractTab(QWidget):
                 # If the url of the page is different than the url of the link
                 # originally clicked, save them both.
 
-                update = any(u is not None and
-                             requested_url.matches(u, no_formatting)
-                             for u in (self._last_history_requested_url,
-                                       self._last_history_url))
-
-                if update:
-                    # This isn't a new request, so get old atime
+                if any(u is not None and
+                       requested_url.matches(u, no_formatting)
+                       for u in (self._last_history_requested_url,
+                                 self._last_history_url)):
+                    # This isn't a new request, so get old atime and mark
+                    # previous url as a redirect
                     atime = self._last_history_atime
-
-                self.history_item_triggered.emit(self._last_history_url, title,
-                                                 atime, True, update)
+                    self.history_item_triggered.emit(self._last_history_url,
+                                                     title, atime, True, True)
+                else:
+                    self.history_item_triggered.emit(requested_url,
+                                                     title, atime, True, False)
 
             self.history_item_triggered.emit(url, title, atime, False, False)
 

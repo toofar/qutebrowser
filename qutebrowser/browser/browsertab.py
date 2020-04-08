@@ -1167,10 +1167,13 @@ class AbstractTab(QWidget):
 
             no_formatting = typing.cast(QUrl.FormattingOptions,
                                         QUrl.UrlFormattingOption(0))
-            if requested_url.isValid() and \
-                    not requested_url.matches(url, no_formatting):
+            if requested_url.isValid() \
+                    and not requested_url.matches(url, no_formatting) \
+                    and not url.scheme() == 'view-source':
                 # If the url of the page is different than the url of the link
                 # originally clicked, save them both.
+                # Check for 'view-source' here because WebEngine sets
+                # requested_url to the url of the original page.
 
                 if any(u is not None and
                        requested_url.matches(u, no_formatting)

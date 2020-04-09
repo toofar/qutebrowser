@@ -373,16 +373,15 @@ class SqlTable(QObject):
         self.changed.emit()
 
     def _update_query(self, filter_values, new_values):
-        filter_params = ', '.join(
-            ':filter{}'.format(key) for key in filter_values)
         assignments = ', '.join(
             '{key} = :new{key}'.format(key=key) for key in new_values)
+        tests = ' AND '.join(
+            '{key} = :filter{key}'.format(key=key) for key in filter_values)
         return Query("UPDATE {table} SET {assignments} "
-                     "WHERE ({filter_columns}) = ({filter_params})".format(
+                     "WHERE {tests}".format(
                          table=self._name,
                          assignments=assignments,
-                         filter_columns=', '.join(filter_values),
-                         filter_params=filter_params))
+                         tests=tests))
 
     def update(self, filter_values, new_values):
         """Append a row to the table.

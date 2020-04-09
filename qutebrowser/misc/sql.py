@@ -375,12 +375,12 @@ class SqlTable(QObject):
     def _update_query(self, filter_values, new_values):
         filter_params = ', '.join(
             ':filter{}'.format(key) for key in filter_values)
-        new_params = ', '.join(':new{}'.format(key) for key in new_values)
-        return Query("UPDATE {table} SET ({new_columns}) = ({new_params}) "
+        assignments = ', '.join(
+            '{key} = :new{key}'.format(key=key) for key in new_values)
+        return Query("UPDATE {table} SET {assignments} "
                      "WHERE ({filter_columns}) = ({filter_params})".format(
                          table=self._name,
-                         new_columns=', '.join(new_values),
-                         new_params=new_params,
+                         assignments=assignments,
                          filter_columns=', '.join(filter_values),
                          filter_params=filter_params))
 

@@ -267,6 +267,14 @@ class TestAdd:
         assert list(web_history) == expected
         assert not list(web_history.completion)
 
+    def test_add_interleaved_redirects(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(url, 'title', 12345, False, False)
+        web_history.add_from_tab(url, 'title', 12345, False, False)
+        web_history.add_from_tab(url, 'title', 12345, True, True)
+        web_history.add_from_tab(url, 'title', 12345, True, True)
+        assert not list(web_history.completion)
+
 
 class TestHistoryInterface:
 

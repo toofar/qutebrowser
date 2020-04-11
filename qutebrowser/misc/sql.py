@@ -404,7 +404,7 @@ class SqlTable(QObject):
         Query("DELETE FROM {table}".format(table=self._name)).run()
         self.changed.emit()
 
-    def select(self, sort_by, sort_order, limit=-1):
+    def select(self, sort_by, sort_order, limit=-1, filter_values=None):
         """Prepare, run, and return a select statement on this table.
 
         Args:
@@ -414,9 +414,17 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
-        q = Query("SELECT * FROM {table} ORDER BY {sort_by} {sort_order} "
-                  "LIMIT :limit"
-                  .format(table=self._name, sort_by=sort_by,
+        where = ""
+        values = {"limitparam": limit}
+
+        if filter_values is not None:
+            where = " WHERE " + " AND ".join(
+                '{key} = :{key}'.format(key=key) for key in filter_values)
+            values.update(filter_values)
+
+        q = Query("SELECT * FROM {table}{where} "
+                  "ORDER BY {sort_by} {sort_order} LIMIT :limitparam"
+                  .format(table=self._name, where=where, sort_by=sort_by,
                           sort_order=sort_order))
-        q.run(limit=limit)
+        q.run(**values)
         return q

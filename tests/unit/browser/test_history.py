@@ -275,6 +275,15 @@ class TestAdd:
         web_history.add_from_tab(url, 'title', 12345, True, True)
         assert not list(web_history.completion)
 
+    def test_redirect_restores_old_completion(self, web_history):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(url, 'title1', 12345, False, False)
+        web_history.add_from_tab(url, 'title2', 12346, False, False)
+        web_history.add_from_tab(url, 'title3', 12347, False, False)
+        web_history.add_from_tab(url, 'title4', 12347, True, True)
+        expected = [("http://example.com", 'title2', 12346)]
+        assert list(web_history.completion) == expected
+
 
 class TestHistoryInterface:
 

@@ -329,6 +329,21 @@ class WebHistory(sql.SqlTable):
                 except KeyError:
                     # This is fine - probably it was deleted by another tab.
                     pass
+                else:
+                    # Check if we've over-writtent a non-redirected entry
+                    previous = self.select(
+                        sort_by='atime',
+                        sort_order='desc',
+                        limit=1,
+                        filter_values={"url": self._format_url(url),
+                                       "redirect": 0})
+                    for entry in previous:
+                        # This runs either 0 or 1 times
+                        self.completion.insert({
+                            'url': self._format_completion_url(url),
+                            'title': entry.title,
+                            'last_atime': entry.atime
+                        }, replace=True)
 
             if redirect or self._is_excluded(url):
                 return

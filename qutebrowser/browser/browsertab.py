@@ -1167,28 +1167,26 @@ class AbstractTab(QWidget):
 
             no_formatting = typing.cast(QUrl.FormattingOptions,
                                         QUrl.UrlFormattingOption(0))
-            if requested_url.isValid() \
+            if any(u is not None and
+                   requested_url.matches(u, no_formatting)
+                   for u in (self._last_history_requested_url,
+                             self._last_history_url)):
+                # This isn't a new request, so get old atime and mark
+                # previous url as a redirect
+                atime = self._last_history_atime
+                # redirect=True, update=True
+                self.history_item_triggered.emit(self._last_history_url,
+                                                 title, atime, True, True)
+            elif requested_url.isValid() \
                     and not requested_url.matches(url, no_formatting) \
                     and not url.scheme() == 'view-source':
                 # If the url of the page is different than the url of the link
                 # originally clicked, save them both.
                 # Check for 'view-source' here because WebEngine sets
                 # requested_url to the url of the original page.
-
-                if any(u is not None and
-                       requested_url.matches(u, no_formatting)
-                       for u in (self._last_history_requested_url,
-                                 self._last_history_url)):
-                    # This isn't a new request, so get old atime and mark
-                    # previous url as a redirect
-                    atime = self._last_history_atime
-                    # redirect=True, update=True
-                    self.history_item_triggered.emit(self._last_history_url,
-                                                     title, atime, True, True)
-                else:
-                    # redirect=True, update=False
-                    self.history_item_triggered.emit(requested_url,
-                                                     title, atime, True, False)
+                # redirect=True, update=False
+                self.history_item_triggered.emit(requested_url,
+                                                 title, atime, True, False)
 
             # redirect=False, update=False
             self.history_item_triggered.emit(url, title, atime, False, False)

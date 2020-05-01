@@ -691,6 +691,23 @@ class WebEngineHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self.private_api = WebEngineHistoryPrivate(tab)
 
+    def load(self) -> None:
+        """Load the tab history."""
+        super().load()
+
+        if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
+
+    def unload(self) -> None:
+        super().unload()
+       
+        if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
+            return
+
+        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
+
 
 class WebEngineZoom(browsertab.AbstractZoom):
 
@@ -1351,6 +1368,12 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+        return self._widget.page().lifecycleState()
+
+    def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> None:
+        self._widget.page().setLifecycleState(state)
+
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
@@ -1698,3 +1721,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.search.connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
+
+    def unload(self) -> None:
+        """Unload the tab."""
+        self.history.unload()

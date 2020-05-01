@@ -1368,6 +1368,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
+    def recommended_lifecycle_state(self) -> QWebEnginePage.LifecycleState:
+        return self._widget.page().recommendedState()
+
     def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
         return self._widget.page().lifecycleState()
 
@@ -1558,6 +1561,32 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
+    @pyqtSlot(QWebEnginePage.LifecycleState)
+    def _check_recommended_lifecycle_state(
+            self,
+            state: QWebEnginePage.LifecycleState
+    ) -> None:
+        log.webview.debug(
+            "Recommended lifecycle state changed to {}. Current state".format(
+                recommended_state,
+                self.lifecycle_state()
+            ))
+
+        delay = 0
+        if recommended_state == QWebEnginePage.LifecycleState.Active:
+            return
+        elif recommended_state == QWebEnginePage.LifecycleState.Frozen:
+            delay = config.val.tabs.lifecycle_freeze_delay
+        elif recommended_state == QWebEnginePage.LifecycleState.Discarded:
+            delay = config.val.tabs.lifecycle_discard_delay
+
+        if delay == 0:
+            return
+
+        QTimer.singleShot(freeze_delay, functools.partial(
+            self.set_lifecycle_state, recommended_state
+        ))
+
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         url = error.url()
@@ -1715,6 +1744,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self.shutting_down.connect(self.abort_questions)
         self.load_started.connect(self.abort_questions)
+        page.recommendedStateChanged.connect(self._check_recommended_lifecycle_state)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message, jinja)
+                               urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip

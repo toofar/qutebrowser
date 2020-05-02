@@ -1561,16 +1561,17 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
-    @pyqtSlot(QWebEnginePage.LifecycleState)
-    def _check_recommended_lifecycle_state(
-            self,
-            state: QWebEnginePage.LifecycleState
-    ) -> None:
-        log.webview.debug(
-            "Recommended lifecycle state changed to {}. Current state".format(
-                recommended_state,
-                self.lifecycle_state()
-            ))
+        timer = QTimer()
+        timer.timeout.connect(self._check_recommended_lifecycle_state)   # assuming that move_towards is the handler
+        timer.start(1000)
+        self.check_lifecycle_state_timer = timer
+
+    def _check_recommended_lifecycle_state(self) -> None:
+        recommended_state = self.recommended_lifecycle_state()
+        current_state = self.lifecycle_state()
+
+        if recommended_state == current_state:
+            return
 
         delay = 0
         if recommended_state == QWebEnginePage.LifecycleState.Active:
@@ -1583,7 +1584,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if delay == 0:
             return
 
-        QTimer.singleShot(freeze_delay, functools.partial(
+        QTimer.singleShot(delay, functools.partial(
             self.set_lifecycle_state, recommended_state
         ))
 
@@ -1744,7 +1745,6 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self.shutting_down.connect(self.abort_questions)
         self.load_started.connect(self.abort_questions)
-        page.recommendedStateChanged.connect(self._check_recommended_lifecycle_state)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

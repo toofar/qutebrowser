@@ -1510,6 +1510,10 @@ class WebEngineTab(browsertab.AbstractTab):
         return self._widget.page().lifecycleState()
 
     def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> None:
+        if self._widget.page().isVisible():
+            log.misc.debug("Skipped lifecycle update. Page is visible")
+            return
+       
         self._widget.page().setLifecycleState(state)
 
     def set_html(self, html, base_url=QUrl()):

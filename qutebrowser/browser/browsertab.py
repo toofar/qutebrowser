@@ -41,8 +41,8 @@ if TYPE_CHECKING:
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
+from qutebrowser.utils import (utils, objreg, usertypes, log, jinja,
+                               qtutils, urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter, inspector
 from qutebrowser.qt import sip
@@ -1254,8 +1254,33 @@ class AbstractTab(QWidget):
         return self._load_status
 
     def unload(self) -> None:
-        raise NotImplementedError
+        """Unload the tab."""
+        if not self.history.loaded:
+            return
 
+        self.history.unload()
+
+        try:
+            icon_url = self._widget.iconUrl().toDisplayString(
+                QUrl.EncodeUnicode
+            )
+        except AttributeError:
+            # QtWebkit doesn't have the iconUrl property
+            icon_url = ''
+
+        page_template = jinja.environment.from_string(
+            '<html><head>'
+            '{% if icon_url %}'
+            '<link rel="shortcut icon" href="{{icon_url}}"/>'
+            '{% endif %}'
+            '<title>{{title}}</title>'
+            '</head></html>'
+        )
+
+        self._widget.setHtml(
+            page_template.render(title=self.title(), icon_url=icon_url),
+            self._widget.url())
+  
     def _load_url_prepare(self, url: QUrl) -> None:
         qtutils.ensure_valid(url)
         self.before_load_started.emit(url)

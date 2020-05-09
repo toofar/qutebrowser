@@ -776,18 +776,20 @@ class WebEngineHistory(browsertab.AbstractHistory):
         """Load the tab history."""
         super().load()
 
-        if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
-            return
+        if qtutils.version_check("5.14"):
+            if self._tab.lifecycle_state == QWebEnginePage.LifecycleState.Active:
+                return
 
-        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
+            self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Active)
 
     def unload(self) -> None:
         super().unload()
-       
-        if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
-            return
 
-        self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
+        if qtutils.version_check("5.14"):
+            if self._tab.lifecycle_state() != QWebEnginePage.LifecycleState.Active:
+                return
+
+            self._tab.set_lifecycle_state(QWebEnginePage.LifecycleState.Frozen)
 
 
 class WebEngineZoom(browsertab.AbstractZoom):
@@ -1509,10 +1511,10 @@ class WebEngineTab(browsertab.AbstractTab):
     def lifecycle_state(self) -> QWebEnginePage.LifecycleState:
         return self._widget.page().lifecycleState()
 
-    def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> bool:
+    def set_lifecycle_state(self, state: QWebEnginePage.LifecycleState) -> None:
         if self._widget.page().isVisible():
             log.misc.debug("Skipped lifecycle update. Page is visible")
-            return False
+            return
         current_state = self.lifecycle_state()
 
         is_legal_transition = (
@@ -1538,10 +1540,9 @@ class WebEngineTab(browsertab.AbstractTab):
         )
 
         if not is_legal_transition:
-            return False
+            return
 
         self._widget.page().setLifecycleState(state)
-        return True
 
     def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
@@ -1750,10 +1751,12 @@ class WebEngineTab(browsertab.AbstractTab):
                 emit_before_load_started=False))
             self._reload_url = None
 
-        timer = QTimer()
-        timer.timeout.connect(self._check_recommended_lifecycle_state)   # assuming that move_towards is the handler
-        timer.start(1000)
-        self.check_lifecycle_state_timer = timer
+        if qtutils.version_check("5.14"):
+            self._check_lifecycle_state_timer = QTimer()
+            self._check_lifecycle_state_timer.timeout.connect(
+                self._check_recommended_lifecycle_state
+            )
+            self._check_lifecycle_state_timer.start(1000)
 
     def _check_recommended_lifecycle_state(self) -> None:
         recommended_state = self.recommended_lifecycle_state()
@@ -1976,4 +1979,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def unload(self) -> None:
         """Unload the tab."""
-        self.history.unload()
+        if qtutils.version_check("5.14"):
+            self.history.unload()
+            return
+
+        super().unload()

@@ -37,7 +37,7 @@ if typing.TYPE_CHECKING:
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug, jinja
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
@@ -1020,30 +1020,3 @@ class WebKitTab(browsertab.AbstractTab):
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
 
-    def unload(self) -> None:
-        """Unload the tab."""
-        if not self.history.loaded:
-            return
-
-        self.history.unload()
-
-        try:
-            icon_url = self._widget.iconUrl().toDisplayString(
-                QUrl.EncodeUnicode
-            )
-        except AttributeError:
-            # QtWebkit doesn't have the iconUrl property
-            icon_url = ''
-
-        page_template = jinja.environment.from_string(
-            '<html><head>'
-            '{% if icon_url %}'
-            '<link rel="shortcut icon" href="{{icon_url}}"/>'
-            '{% endif %}'
-            '<title>{{title}}</title>'
-            '</head></html>'
-        )
-
-        self._widget.setHtml(
-            page_template.render(title=self.title(), icon_url=icon_url),
-            self._widget.url())

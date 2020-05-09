@@ -1409,4 +1409,3 @@ class AbstractTab(QWidget):
 
         if self.history.load_on_focus:
             self.history.load()
-

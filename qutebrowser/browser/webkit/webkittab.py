@@ -1025,4 +1025,3 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
-

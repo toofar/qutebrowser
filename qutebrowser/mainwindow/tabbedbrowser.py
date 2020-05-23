@@ -629,6 +629,8 @@ class TabbedBrowser(QWidget):
                                                self.widget.count())
             # Refocus webview in case we lost it by spawning a bg tab
             self.widget.currentWidget().setFocus()
+            tab.show()
+            tab.hide()
         else:
             self.widget.setCurrentWidget(tab)
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
@@ -643,7 +645,6 @@ class TabbedBrowser(QWidget):
             if prev_focus is not None:
                 prev_focus.setFocus()
 
-        tab.show()
         self.new_tab.emit(tab, idx)
         return tab
 

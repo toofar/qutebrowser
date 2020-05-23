@@ -221,7 +221,7 @@ class Values:
           With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(url)
-        if url is None:
+        if url is None or not url.isValid():
             return self._get_fallback(fallback)
         qtutils.ensure_valid(url)
 

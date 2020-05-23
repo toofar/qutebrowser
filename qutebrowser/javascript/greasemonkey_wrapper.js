@@ -56,8 +56,9 @@
 
     let qute_gm_reqs_ind = 1;
     let qute_gm_reqs = {};
+    let qute_gm_reqs_connected = false;
     // connect to requestFinished signal and hadle GM_xhr responses
-    if (window.qute) {
+    function _connect_to_xmlhr_finished() {
         window.qute.requestFinished.connect(function(ret) {
             if (ret['_qute_gm_request_index'] == null) {
                 return;
@@ -95,6 +96,10 @@
     // Almost verbatim copy from Eric
     function GM_xmlhttpRequest(/* object */ details) {
         if (window.qute) {
+            if (!qute_gm_reqs_connected) {
+                qute_gm_reqs_connected = true;
+                _connect_to_xmlhr_finished()
+            }
             // We only use one QT object for multiple javascript environments,
             // so use a (shitty) nonce + index on the off chance that will
             // help us avoid conflicts

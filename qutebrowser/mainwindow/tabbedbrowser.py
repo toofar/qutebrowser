@@ -634,6 +634,10 @@ class TabbedBrowser(QWidget):
                                                self.widget.count())
             # Refocus webview in case we lost it by spawning a bg tab
             self.widget.currentWidget().setFocus()
+            # WORKAROUND to get widget and page visibility state in sync
+            # for background tabs after page load on Qt < 5.12
+            # and to make the the render viewport size match the widget size on
+            # 5.13, see https://github.com/qutebrowser/qutebrowser/issues/4881
             tab.show()
             tab.hide()
         else:

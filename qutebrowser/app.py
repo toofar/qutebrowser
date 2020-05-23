@@ -75,7 +75,7 @@ from qutebrowser.misc import utilcmds
 q_app = typing.cast(QApplication, None)
 
 
-def run(args):
+def run(args, no_mainloop=False):
     """Initialize everything and run the application."""
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
@@ -120,9 +120,10 @@ def run(args):
                                 process_pos_args(args, cwd=cwd, via_ipc=True,
                                                  target_arg=target_arg))
 
-    init(args=args)
-    ret = qt_mainloop()
-    return ret
+    init(args=args))
+    if no_mainloop:
+        return 0
+    return qt_mainloop()
 
 
 def qt_mainloop():

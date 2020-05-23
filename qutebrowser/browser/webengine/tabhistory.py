@@ -95,9 +95,15 @@ def _serialize_item(item, stream):
     stream.writeBool(False)
 
     ## static_cast<qint64>(entry->GetTimestamp().ToInternalValue());
+    if item.last_visited is None:
+        unix_msecs = 0
+    else:
+        unix_msecs = item.last_visited.toMSecsSinceEpoch()
+    # 11644516800000 is the number of milliseconds from
+    # 1601-01-01T00:00 (Windows NT Epoch) to 1970-01-01T00:00 (UNIX Epoch)
+    nt_usecs = (unix_msecs + 11644516800000) * 1000
     # \x00\x00\x00\x00^\x97$\xe7
-    stream.writeInt64(int(time.time()))
-
+    stream.writeInt64(nt_usecs)
     ## entry->GetHttpStatusCode();
     # \x00\x00\x00\xc8
     stream.writeInt(200)

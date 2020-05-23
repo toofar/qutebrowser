@@ -27,7 +27,8 @@ import typing
 import glob
 import shutil
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
+from PyQt5.QtCore import (Qt, QUrl, QObject, QPoint, QTimer, QDateTime,
+                          pyqtSlot)
 from PyQt5.QtWidgets import QApplication
 import yaml
 
@@ -108,7 +109,7 @@ class TabHistoryItem:
     """
 
     def __init__(self, url, title, *, original_url=None, active=False,
-                 user_data=None):
+                 user_data=None, last_visited=None):
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -117,11 +118,13 @@ class TabHistoryItem:
         self.title = title
         self.active = active
         self.user_data = user_data
+        self.last_visited = last_visited
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, url=self.url,
                               original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data)
+                              active=self.active, user_data=self.user_data,
+                              last_visited=self.last_visited)
 
 
 class SessionManager(QObject):
@@ -210,6 +213,8 @@ class SessionManager(QObject):
         except AttributeError:
             # QtWebEngine
             user_data = None
+
+        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -420,9 +425,17 @@ class SessionManager(QObject):
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
+            if histentry.get("last_visited"):
+                last_visited = QDateTime.fromString(
+                    histentry.get("last_visited"),
+                    Qt.ISODate,
+                )
+            else:
+                last_visited = None
             entry = TabHistoryItem(url=url, original_url=orig_url,
                                    title=histentry['title'], active=active,
-                                   user_data=user_data)
+                                   user_data=user_data,
+                                   last_visited=last_visited)
             entries.append(entry)
             if active:
                 new_tab.title_changed.emit(histentry['title'])

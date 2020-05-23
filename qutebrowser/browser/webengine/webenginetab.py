@@ -64,9 +64,11 @@ def init():
 
     log.init.debug("Initializing request interceptor...")
     req_interceptor = interceptor.RequestInterceptor(parent=app)
-    req_interceptor.install(webenginesettings.default_profile)
-    if webenginesettings.private_profile:
-        req_interceptor.install(webenginesettings.private_profile)
+    if not qtutils.version_check('5.13', compiled=False):
+        print("INSTALLING OLD INTERCEPTOR")
+        req_interceptor.install(webenginesettings.default_profile)
+        if webenginesettings.private_profile:
+            req_interceptor.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing QtWebEngine downloads...")
     download_manager = webenginedownloads.DownloadManager(parent=app)
@@ -1339,6 +1341,13 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         super()._set_widget(widget)
         self._scripts._widget = widget
+        if qtutils.version_check('5.13'):
+            app = QApplication.instance()
+            req_interceptor = interceptor.RequestInterceptor(
+                parent=app,
+                tab=self,
+            )
+            self._widget.page().setUrlRequestInterceptor(req_interceptor)
 
     def _install_event_filter(self):
         fp = self._widget.focusProxy()

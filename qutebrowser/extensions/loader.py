@@ -92,6 +92,8 @@ def load_components(*, skip_hooks: bool = False) -> None:
     """Load everything from qutebrowser.components."""
     for info in walk_components():
         _load_component(info, skip_hooks=skip_hooks)
+    for info in walk_extensions():
+        _load_component(info, skip_hooks=skip_hooks)
 
 
 def load_extensions(*, skip_hooks: bool = False) -> None:
@@ -243,7 +245,6 @@ def _on_config_changed(changed_name: str) -> None:
                         changed_name, mod_info.module.__file__,
                     )
                 )
-
 
 def init() -> None:
     config.instance.changed.connect(_on_config_changed)

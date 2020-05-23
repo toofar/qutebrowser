@@ -1784,3 +1784,31 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_load(self, count=None):
+        """Load the current tab.
+
+        Args:
+            count: The tab index to load, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
+        tab.load()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_unload(self, count=None):
+        """Unload the current tab.
+
+        Args:
+            count: The tab index to load, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
+        tab.unload()

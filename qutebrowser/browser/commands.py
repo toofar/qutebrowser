@@ -1254,11 +1254,8 @@ class CommandDispatcher:
 
         try:
             if tab.data.inspector is None:
-                tab.data.inspector = inspector.create()
-                tab.data.inspector.inspect(page)
-                tab.data.inspector.show()
-            else:
-                tab.data.inspector.toggle(page)
+                tab.data.inspector = inspector.create(page)
+            tab.data.inspector.toggle()
         except inspector.WebInspectorError as e:
             raise cmdutils.CommandError(e)
 

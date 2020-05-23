@@ -32,8 +32,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, page, parent=None):
+        super().__init__(page, parent)
         self.port = None
         view = QWebEngineView()
         self._settings = webenginesettings.WebEngineSettings(view.settings())
@@ -63,7 +63,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         inspector_page.setInspectedPage(page)
         self._settings.update_for_url(inspector_page.requestedUrl())
 
-    def inspect(self, page):
+    def _inspect(self, page):
         try:
             self._inspect_new(page)
         except AttributeError:

@@ -29,12 +29,12 @@ class WebKitInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebKit."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, page, parent=None):
+        super().__init__(page, parent)
         qwebinspector = QWebInspector()
         self._set_widget(qwebinspector)
 
-    def inspect(self, page):
+    def _inspect(self, page):
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)

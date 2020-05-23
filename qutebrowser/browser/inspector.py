@@ -30,7 +30,7 @@ from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
 
 
-def create(parent=None):
+def create(page, parent=None):
     """Get a WebKitInspector/WebEngineInspector.
 
     Args:
@@ -40,10 +40,10 @@ def create(parent=None):
     # argument and to avoid circular imports.
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
-        return webengineinspector.WebEngineInspector(parent)
+        return webengineinspector.WebEngineInspector(page, parent)
     else:
         from qutebrowser.browser.webkit import webkitinspector
-        return webkitinspector.WebKitInspector(parent)
+        return webkitinspector.WebKitInspector(page, parent)
 
 
 class WebInspectorError(Exception):
@@ -55,11 +55,13 @@ class AbstractWebInspector(QWidget):
 
     """A customized WebInspector which stores its geometry."""
 
-    def __init__(self, parent=None):
+    def __init__(self, page, parent=None):
         super().__init__(parent)
         self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._load_state_geometry()
+        self._page = page
+        page.destroyed.connect(lambda _obj: self.deleteLater())
 
     def _set_widget(self, widget):
         self._widget = widget
@@ -87,17 +89,18 @@ class AbstractWebInspector(QWidget):
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['inspector'] = geom
 
-        self.inspect(None)
+        self._inspect(None)
         super().closeEvent(e)
 
-    def inspect(self, page):
+    def _inspect(self, page):
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 
-    def toggle(self, page):
+    def toggle(self):
         """Show/hide the inspector."""
         if self._widget.isVisible():
             self.hide()
+            self._inspect(None)
         else:
-            self.inspect(page)
+            self._inspect(self._page)
             self.show()

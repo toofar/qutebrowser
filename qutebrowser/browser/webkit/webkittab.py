@@ -984,6 +984,7 @@ class WebKitTab(browsertab.AbstractTab):
     def title(self):
         return self._widget.title()
 
+<<<<<<< HEAD
     def tab_history_item_from_qt(self, qt_item, active=False):
         return WebKitTabHistoryItem.from_qt(qt_item, active)
 
@@ -1090,7 +1091,11 @@ class WebKitTab(browsertab.AbstractTab):
         frame.loadStarted.connect(self._on_load_started)
         view.scroll_pos_changed.connect(self.scroller.perc_changed)
         view.titleChanged.connect(self.title_changed)
+        view.titleChanged.connect(
+            functools.partial(self._on_history_trigger, False))
         view.urlChanged.connect(self._on_url_changed)
+        view.urlChanged.connect(
+            functools.partial(self._on_history_trigger, False))
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
         frame.loadFinished.connect(self._on_frame_load_finished)

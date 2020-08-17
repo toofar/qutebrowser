@@ -54,9 +54,60 @@
         window.open(url);
     }
 
+    let qute_gm_reqs_ind = 1;
+    let qute_gm_reqs = {};
+    // connect to requestFinished signal and hadle GM_xhr responses
+    if (window.qute) {
+        window.qute.requestFinished.connect(function(ret) {
+            if (ret['_qute_gm_request_index'] == null) {
+                return;
+            }
+            request_index = ret['_qute_gm_request_index'];
+            // is this request for us or another listener?
+            if (qute_gm_reqs[request_index] == null) {
+                return;
+            }
+            delete ret['_qute_gm_request_index'];
+            let details = qute_gm_reqs[request_index];
+            delete qute_gm_reqs[request_index];
+
+            ret['context'] = details;
+            if (ret.status === 598) {
+                // re-use the informal network timeout error for
+                // ontimeout
+                if (details['ontimeout']) {
+                    details['ontimeout'](ret);
+                    return;
+                }
+            }
+            if (ret.status >= 400) {
+                if (details['onerror']) {
+                    details['onerror'](ret);
+                }
+            } else {
+                if (details['onload']) {
+                    details['onload'](ret);
+                }
+            }
+        });
+    }
 
     // Almost verbatim copy from Eric
     function GM_xmlhttpRequest(/* object */ details) {
+        if (window.qute) {
+            // We only use one QT object for multiple javascript environments,
+            // so use a (shitty) nonce + index on the off chance that will
+            // help us avoid conflicts
+            // could also move the index to be part of the bridge?
+            const nonce = Math.random()+qute_gm_reqs_ind;
+            details['_qute_gm_request_index'] = nonce;
+            details['_qute_first_party_url'] = window.location.toString();
+            qute_gm_reqs[nonce] = details;
+            qute_gm_reqs_ind++;
+            return window.qute.GM_xmlhttpRequest(details);
+        } else {
+            alert('no window.qute :(');
+        }
         details.method = details.method ? details.method.toUpperCase() : "GET";
 
         if (!details.url) {

@@ -36,7 +36,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
-from qutebrowser.misc import quitter
+from qutebrowser.misc import quitter, sessions
 
 
 @attr.s
@@ -243,6 +243,7 @@ class TabbedBrowser(QWidget):
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
+        self.save_manager = objreg.get('save-manager')
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
@@ -383,6 +384,9 @@ class TabbedBrowser(QWidget):
         idx = self.widget.currentIndex()
         return self.widget.tab_url(idx)
 
+    def _mark_dirty(self):
+        self.save_manager.mark_dirty('session._autosave')
+
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
         self.is_shutting_down = True
@@ -436,6 +440,34 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
+    def _add_undo(self, tab, new_undo=True):
+        if tab.url().isEmpty():
+            # There are some good reasons why a URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
+            return False
+
+        if not tab.url().isValid():
+            urlutils.invalid_url_error(tab.url(), "saving tab")
+            return False
+
+        idx = self.widget.indexOf(tab)
+        try:
+            history_data = tab.history.private_api.serialize()
+        except browsertab.WebTabError:
+            pass  # special URL
+        else:
+            entry = _UndoEntry(url=tab.url(),
+                               history=history_data,
+                               index=idx,
+                               pinned=tab.data.pinned)
+            if new_undo or not self.undo_stack:
+                self.undo_stack.append([entry])
+            else:
+                self.undo_stack[-1].append(entry)
+        return True
+
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
@@ -456,31 +488,8 @@ class TabbedBrowser(QWidget):
 
         tab.pending_removal = True
 
-        if tab.url().isEmpty():
-            # There are some good reasons why a URL could be empty
-            # (target="_blank" with a download, see [1]), so we silently ignore
-            # this.
-            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
-            pass
-        elif not tab.url().isValid():
-            # We display a warning for URLs which are not empty but invalid -
-            # but we don't return here because we want the tab to close either
-            # way.
-            urlutils.invalid_url_error(tab.url(), "saving tab")
-        elif add_undo:
-            try:
-                history_data = tab.history.private_api.serialize()
-            except browsertab.WebTabError:
-                pass  # special URL
-            else:
-                entry = _UndoEntry(url=tab.url(),
-                                   history=history_data,
-                                   index=idx,
-                                   pinned=tab.data.pinned)
-                if new_undo or not self.undo_stack:
-                    self.undo_stack.append([entry])
-                else:
-                    self.undo_stack[-1].append(entry)
+        if add_undo:
+            self._add_undo(tab, new_undo=new_undo)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
@@ -495,6 +504,9 @@ class TabbedBrowser(QWidget):
                 tab.layout().unwrap()
 
             tab.deleteLater()
+
+        if not quitter.instance.shutting_down:
+            self._mark_dirty()
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
@@ -909,6 +921,7 @@ class TabbedBrowser(QWidget):
         self.widget.set_tab_indicator_color(idx, color)
         if idx == self.widget.currentIndex():
             tab.private_api.handle_auto_insert_mode(ok)
+        self._mark_dirty()
 
     @pyqtSlot()
     def _on_scroll_pos_changed(self):

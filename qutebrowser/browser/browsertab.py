@@ -47,7 +47,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, jinja,
                                qtutils, urlutils, message)
 from qutebrowser.misc import miscwidgets, objects, sessions
-from qutebrowser.browser import eventfilter, inspector
+from qutebrowser.browser import eventfilter, inspector, shared
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
@@ -995,6 +995,60 @@ class AbstractTabPrivate:
         tabdata.inspector.set_position(position)
 
 
+class AbstractPermissions(QObject):
+
+    """Handling a tab's access to web APIs.
+
+    Attributes:
+        features: A dict with a Qt feature enum -> shared.Feature mapping.
+    """
+
+    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self._tab = tab
+        self._widget = typing.cast(QWidget, None)
+        self.features = {}  # type: typing.Dict[int, shared.Feature]
+        self._init_features()
+
+    def _init_features(self) -> None:
+        """Initializes the self.features dict."""
+        raise NotImplementedError
+
+    @pyqtSlot()
+    def _on_load_started(self) -> None:
+        """Reset some state when loading of a new page started."""
+        for feat in self.features.values():
+            feat.state = None
+
+    def test_feature(self, setting_name: str) -> shared.FeatureState:
+        """Return whether the user has granted permission for `setting_name`.
+
+        Returns a value of `shared.FeatureState'.
+        Raises KeyError if `setting_name` doesn't map to a grantable
+        feature.
+        """
+        feats = [
+            f for f in self.features.values()
+            if f.setting_name == setting_name
+        ]
+        if not feats:
+            raise WebTabError("No feature called {}.".format(setting_name))
+
+        set_feats = [f for f in feats if f.state is not None]
+        if set_feats:
+            granted = any(
+                f.state == shared.FeatureState.granted for f in set_feats
+            )
+        else:
+            url = self._tab.url()
+            if not url.isValid():
+                url = None
+
+            granted = config.instance.get(setting_name, url=url)
+
+        return shared.FeatureState(granted)
+
+
 class AbstractTab(QWidget):
 
     """An adapter for QWebView/QWebEngineView representing a single tab."""
@@ -1024,6 +1078,11 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     #: Signal emitted before load starts (URL as QUrl)
     before_load_started = pyqtSignal(QUrl)
+    #: Signal emitted when a new load started or we're shutting down.
+    abort_questions = pyqtSignal()
+    #: Signal emitted when a tab's permission for a web API has been
+    #: changed (setting as str, current access as shared.FeatureState)
+    feature_permission_changed = pyqtSignal(str, shared.FeatureState)
 
     # Signal emitted when a page's load status changed
     # (argument: usertypes.LoadStatus)
@@ -1085,6 +1144,8 @@ class AbstractTab(QWidget):
             setattr, self, 'pending_removal', True))
 
         self.before_load_started.connect(self._on_before_load_started)
+        self.shutting_down.connect(self.abort_questions)  # type: ignore[arg-type]
+        self.load_started.connect(self.abort_questions)  # type: ignore[arg-type]
 
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
@@ -1103,6 +1164,7 @@ class AbstractTab(QWidget):
         self.elements._widget = widget
         self.audio._widget = widget
         self.private_api._widget = widget
+        self.permissions._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()

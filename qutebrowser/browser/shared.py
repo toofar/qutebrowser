@@ -20,10 +20,12 @@
 """Various utilities shared between webpage/webview subclasses."""
 
 import os
+import enum
 import html
 import netrc
 import typing
 
+import attr
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
@@ -34,6 +36,26 @@ from qutebrowser.mainwindow import mainwindow
 
 class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
+
+
+class FeatureState(enum.Enum):
+    """The possible states of a web API that can request user permission."""
+
+    granted = True
+    denied = False
+    ask = "ask"
+
+
+@attr.s
+class Feature:
+    """A web api that the user can interactively grant permission to.
+
+    `state` is a value of 'FeatureState'.
+    """
+
+    setting_name = attr.ib()
+    requesting_message = attr.ib()
+    state = attr.ib(None)
 
 
 def custom_headers(url):

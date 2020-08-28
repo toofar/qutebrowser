@@ -6,7 +6,8 @@
 
 from qutebrowser.qt import machinery
 from qutebrowser.qt.core import QObject, QEvent, Qt, QTimer
-from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt.widgets import QWidget, QApplication
+from qutebrowser.qt.gui import QInputMethodQueryEvent
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, message, usertypes, qtutils
@@ -84,8 +85,6 @@ class TabEventFilter(QObject):
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
         _ignore_wheel_event: Whether to ignore the next wheelEvent.
-        _check_insertmode_on_release: Whether an insertmode check should be
-                                      done when the mouse is released.
     """
 
     def __init__(self, tab, *, parent=None):
@@ -97,7 +96,6 @@ class TabEventFilter(QObject):
             QEvent.Type.Wheel: self._handle_wheel,
         }
         self._ignore_wheel_event = False
-        self._check_insertmode_on_release = False
 
     def _handle_mouse_press(self, e):
         """Handle pressing of a mouse button.
@@ -125,9 +123,6 @@ class TabEventFilter(QObject):
             log.mouse.warning("Ignoring invalid click at {}".format(pos))
             return False
 
-        if e.button() != Qt.MouseButton.NoButton:
-            self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
-
         return False
 
     def _handle_mouse_release(self, _e):
@@ -141,7 +136,7 @@ class TabEventFilter(QObject):
         """
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
-        QTimer.singleShot(0, self._mouserelease_insertmode)
+        QTimer.singleShot(0, self._set_insert_mode_based_on_focus)
         return False
 
     def _handle_wheel(self, e):
@@ -204,29 +199,43 @@ class TabEventFilter(QObject):
                 modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
                               'click', maybe=True)
 
-    def _mouserelease_insertmode(self):
+    def _set_insert_mode_based_on_focus(self):
         """If we have an insertmode check scheduled, handle it."""
-        if not self._check_insertmode_on_release:
+        auto_enter = config.val.input.insert_mode.auto_enter
+        auto_leave = config.val.input.insert_mode.auto_leave
+        if not auto_enter and not auto_leave:
             return
-        self._check_insertmode_on_release = False
 
-        def mouserelease_insertmode_cb(elem):
-            """Callback which gets called from JS."""
-            if elem is None:
-                log.mouse.debug("Element vanished!")
-                return
+        focusObject = QApplication.focusObject()
+        im_enabled = False
+        if focusObject:
+            query = QInputMethodQueryEvent(Qt.InputMethodQuery.ImEnabled)
+            QApplication.sendEvent(focusObject, query)
+            im_enabled = query.value(Qt.InputMethodQuery.ImEnabled)
 
-            if elem.is_editable():
-                log.mouse.debug("Clicked editable element (delayed)!")
+        if im_enabled:
+            log.mouse.debug("Clicked editable element!")
+            if auto_enter:
                 modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
-                              'click-delayed', only_if_normal=True)
-            else:
-                log.mouse.debug("Clicked non-editable element (delayed)!")
-                if config.val.input.insert_mode.auto_leave:
-                    modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
-                                  'click-delayed', maybe=True)
+                               'click', only_if_normal=True)
+        else:
+            # This extra check is useful in some cases where an input method
+            # isn't reported as enabled (such as "date" type input elements)
+            # and when an input box is only created as a result of a click
+            # (simply because of the delay due to being async).
+            def check_element_editable(elem):
+                if elem and elem.is_editable():
+                    log.mouse.debug("Clicked editable element (delayed)!")
+                    if auto_enter:
+                        modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                                      'click', only_if_normal=True)
+                else:
+                    log.mouse.debug("Clicked non-editable element!")
+                    if auto_leave:
+                        modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+                                      'click', maybe=True)
 
-        self._tab.elements.find_focused(mouserelease_insertmode_cb)
+            self._tab.elements.find_focused(check_element_editable)
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.

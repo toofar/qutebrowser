@@ -368,7 +368,12 @@ window._qutebrowser.webelem = (function() {
     };
 
     funcs.set_value = (id, value) => {
-        elements[id].value = value;
+        let elem = elements[id];
+        if (elem.nodeName === "DIV" || elem.nodeName === "SPAN") {
+            elem.textContent = value;
+        } else {
+            elem.value = value;
+        }
     };
 
     funcs.insert_text = (id, text) => {

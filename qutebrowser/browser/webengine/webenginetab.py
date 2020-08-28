@@ -1620,6 +1620,9 @@ class WebEngineTab(browsertab.AbstractTab):
         if sip.isdeleted(self._widget):
             log.webview.debug("Ignoring page lifecycle check for deleted widget")
             return
+        if self.navigation_blocked():
+            log.webview.vdebug("Ignoring page lifecycle check for pinned tab")
+            return
         recommended_state = self.recommended_lifecycle_state()
         current_state = self.lifecycle_state()
 

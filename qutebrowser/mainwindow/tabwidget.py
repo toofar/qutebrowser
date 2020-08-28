@@ -77,6 +77,17 @@ class TabWidget(QTabWidget):
         config.instance.changed.connect(self._init_config)
         self._scroll_left, self._scroll_right = self.findChildren(QToolButton)
 
+    def setCurrentIndex(self, idx):
+        """Set the focus to the tab at index idx and load it.
+
+        Args:
+            idx index of the tab to focus
+        """
+        super().setCurrentIndex(idx)
+        tab = self.widget(idx)
+        if tab.history.load_on_focus:
+            tab.load()
+
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""

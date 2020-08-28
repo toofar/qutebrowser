@@ -436,7 +436,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
                     modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
                                   'clicking input')
             else:
-                self._click_fake_event(click_target)
+                self._click_editable(click_target)
         elif click_target in [usertypes.ClickTarget.tab,
                               usertypes.ClickTarget.tab_bg,
                               usertypes.ClickTarget.window]:

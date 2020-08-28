@@ -1485,6 +1485,9 @@ class CommandDispatcher:
             return
 
         text = elem.value()
+        inner_text = str(elem)
+        if not text and inner_text:
+            text = inner_text
         if text is None:
             message.error("Could not get text from the focused element.")
             return

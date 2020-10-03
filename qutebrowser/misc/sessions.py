@@ -26,6 +26,7 @@ import urllib
 import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
+import base64
 
 import yaml
 from PyQt5.QtCore import Qt, QObject, QPoint, QTimer, QUrl, QDateTime
@@ -208,6 +209,10 @@ class SessionManager(QObject):
 
         data['pinned'] = tab.data.pinned
 
+        data['page_state'] = None
+        if item.page_state:
+            data['page_state'] = base64.b64encode(item.page_state)
+
         return data
 
     def _save_tab(self, tab, active):
@@ -220,6 +225,7 @@ class SessionManager(QObject):
         data: _JsonType = {'history': []}
         if active:
             data['active'] = True
+
         for idx, item in enumerate(tab.history):
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
@@ -387,13 +393,19 @@ class SessionManager(QObject):
             else:
                 last_visited = None
 
+            page_state = b''
+            if 'page_state' in histentry:
+                page_state = base64.b64decode(histentry['page_state'])
+
             entry = new_tab.new_history_item(
                 url=url,
                 original_url=orig_url,
                 title=histentry['title'],
                 active=active,
                 user_data=user_data,
-                last_visited=last_visited)
+                last_visited=last_visited,
+                page_state=page_state,
+            )
             entries.append(entry)
 
             if active:

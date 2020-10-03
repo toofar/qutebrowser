@@ -24,7 +24,7 @@ import functools
 import dataclasses
 import re
 import html as html_utils
-from typing import cast, Union, Optional
+from typing import cast, Union, Optional, Iterator
 
 from PyQt5.QtCore import (pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QObject, QFile, QIODevice, QTimer)
@@ -602,7 +602,7 @@ class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
     """History item data derived from QWebEngineHistoryItem."""
 
     @classmethod
-    def from_qt(cls, qt_item, active=False):
+    def from_qt(cls, qt_item, active=False, page_state=None):
         """Construct a WebEngineHistoryItem from a Qt history item.
 
         Args:
@@ -617,6 +617,7 @@ class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
             active=active,
             user_data=None,
             last_visited=qt_item.lastVisited(),
+            page_state=page_state,
         )
 
 
@@ -660,10 +661,10 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        webengine_version = version.qtwebengine_versions().webengine
-        if webengine_version >= utils.VersionNumber(5, 15):
-            self._load_items_workaround(items)
-            return
+        #webengine_version = version.qtwebengine_versions().webengine
+        #if webengine_version >= utils.VersionNumber(5, 15):
+        #    self._load_items_workaround(items)
+        #    return
 
         if items:
             self._tab.before_load_started.emit(items[-1].url)
@@ -684,6 +685,77 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
                 self._tab.load_finished.connect(_on_load_finished)
 
 
+def _deserialize_tab_history(history):
+    page_states = []
+
+    from PyQt5.QtCore import QDataStream, QByteArray, QIODevice
+    data = QByteArray()
+    stream = QDataStream(data, QIODevice.ReadWrite)
+    assert stream.status() == QDataStream.Ok
+    stream << history
+    assert stream.status() == QDataStream.Ok
+    stream.device().seek(0)
+
+    #print(f'raw data: {bytes(data).hex()}\n\n')
+
+    version = stream.readInt()
+    #print(f"version: {version}")
+
+    count = stream.readInt()
+    #print(f"count: {count}")
+
+    current = stream.readInt()
+    #print(f"current index: {current}")
+
+    for i in range(count):
+        #print(f"\n---- entry {i} ----")
+        url = QUrl()
+        stream >> url
+        #print(f"GetVirtualURL: {url}")
+
+        title = stream.readString()
+        #print(f"title: {title}")
+
+        pagestate = QByteArray()
+        stream >> pagestate
+        #print(f"pagestate: {bytes(pagestate).hex()}")
+        page_states.append(pagestate)
+
+        transition = stream.readInt32()
+        #print(f"transition: {hex(transition)}")
+
+        has_post_data = stream.readBool()
+        #print(f"has post data: {has_post_data}")
+
+        referrer = QUrl()
+        stream >> referrer
+        #print(f"referrer: {referrer}")
+
+        referrer_policy = stream.readInt32()
+        #print(f"referrer policy: {referrer_policy}")
+
+        original_request_url = QUrl()
+        stream >> original_request_url
+        #print(f"original request url: {original_request_url}")
+
+        is_overriding_user_agent = stream.readBool()
+        #print(f"is overriding user agent: {is_overriding_user_agent}")
+
+        time = stream.readInt64()
+        #print(f"time: {time}")
+
+        http_status = stream.readInt()
+        #print(f"http status: {http_status}")
+
+        if version >= 4:
+            favicon_url = QUrl()
+            stream >> favicon_url
+            #print(f"favicon url: {favicon_url}")
+
+    assert stream.atEnd()
+    return page_states
+
+
 class WebEngineHistory(browsertab.AbstractHistory):
 
     """QtWebEngine implementations related to page history."""
@@ -691,6 +763,21 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def __init__(self, tab):
         super().__init__(tab)
         self.private_api = WebEngineHistoryPrivate(tab)
+
+    def __iter__(self) -> Iterator:
+        if self.to_load:
+            return iter(self.to_load)
+
+        page_states = _deserialize_tab_history(self._history)
+
+        return iter([
+            self._tab.history_item_from_qt(
+                item,
+                active=idx == self.current_idx(),
+                page_state=bytes(page_states[idx]),
+            )
+            for idx, item in enumerate(self._history.items())
+        ])
 
     def load(self) -> None:
         """Load the tab history."""
@@ -1486,11 +1573,13 @@ class WebEngineTab(browsertab.AbstractTab):
         self.set_html(error_page)
 
     def history_item_from_qt(self, item: browsertab.TypeHistoryItem,
-                             active: bool = False) -> WebEngineHistoryItem:
-        return WebEngineHistoryItem.from_qt(item, active)
+                             active: bool = False,
+                             page_state: Optional[bytes] = None,
+                            ) -> WebEngineHistoryItem:
+        return WebEngineHistoryItem.from_qt(item, active, page_state=page_state)
 
     def new_history_item(self, url, original_url, title, active, user_data,
-                         last_visited):
+                         last_visited, page_state):
         return WebEngineHistoryItem(
             url=url,
             original_url=original_url,
@@ -1498,6 +1587,7 @@ class WebEngineTab(browsertab.AbstractTab):
             active=active,
             user_data=user_data,
             last_visited=last_visited,
+            page_state=page_state,
         )
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')

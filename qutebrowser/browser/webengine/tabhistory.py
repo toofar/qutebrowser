@@ -31,7 +31,7 @@ from qutebrowser.utils import qtutils
 # Qt 5.14 added version 4 which also serializes favicons:
 # https://codereview.qt-project.org/c/qt/qtwebengine/+/279407
 # However, we don't care about those, so let's keep it at 3.
-HISTORY_STREAM_VERSION = 3
+HISTORY_STREAM_VERSION = 4
 
 
 def _serialize_item(item, stream):
@@ -64,12 +64,13 @@ def _serialize_item(item, stream):
 
     ## QByteArray(encodedPageState.data(), encodedPageState.size());
     # \xff\xff\xff\xff
-    qtutils.serialize_stream(stream, QByteArray())
+    qtutils.serialize_stream(stream, QByteArray(item.page_state))
 
     ## static_cast<qint32>(entry->GetTransitionType());
     # chromium/ui/base/page_transition_types.h
     # \x00\x00\x00\x00
-    stream.writeInt32(0)  # PAGE_TRANSITION_LINK
+    # 0 = PAGE_TRANSITION_LINK, 8 = PAGE_TRANSITION_RELOAD
+    stream.writeInt32(8)
 
     ## entry->GetHasPostData();
     # \x00
@@ -105,6 +106,9 @@ def _serialize_item(item, stream):
     ## entry->GetHttpStatusCode();
     # \x00\x00\x00\xc8
     stream.writeInt(200)
+
+    # favicon
+    qtutils.serialize_stream(stream, QUrl())
 
 
 def serialize(items):

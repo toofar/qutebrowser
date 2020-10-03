@@ -23,7 +23,7 @@ import re
 import functools
 import typing
 import xml.etree.ElementTree
-from typing import cast, Iterable, Optional
+from typing import cast, Iterable, Optional, Iterator
 
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
@@ -687,6 +687,18 @@ class WebKitHistory(browsertab.AbstractHistory):
     def __init__(self, tab):
         super().__init__(tab)
         self.private_api = WebKitHistoryPrivate(tab)
+
+    def __iter__(self) -> Iterator:
+        if self.to_load:
+            return iter(self.to_load)
+
+        return iter([
+            self._tab.history_item_from_qt(
+                item,
+                active=idx == self.current_idx(),
+            )
+            for idx, item in enumerate(self._history.items())
+        ])
 
 
 class WebKitElements(browsertab.AbstractElements):

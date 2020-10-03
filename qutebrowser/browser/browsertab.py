@@ -679,7 +679,9 @@ class AbstractHistoryItem:
     def __init__(self, url: QUrl, title: str, *, original_url: QUrl = None,
                  active: bool = False,
                  user_data: Dict[str, Any] = None,
-                 last_visited: Optional[QDateTime] = None) -> None:
+                 last_visited: Optional[QDateTime] = None,
+                 page_state: Optional[bytes] = None,
+                ) -> None:
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -689,6 +691,7 @@ class AbstractHistoryItem:
         self.active = active
         self.user_data = user_data
         self.last_visited = last_visited
+        self.page_state = page_state
 
     def __repr__(self) -> str:
         return utils.get_repr(self, constructor=True, url=self.url,
@@ -697,8 +700,12 @@ class AbstractHistoryItem:
                               last_visited=self.last_visited)
 
     @classmethod
-    def from_qt(cls, qt_item: TypeHistoryItem,
-                active: bool = False) -> 'AbstractHistoryItem':
+    def from_qt(
+        cls,
+        qt_item: TypeHistoryItem,
+        active: bool = False,
+        page_state: Optional[bytes] = None,
+    ) -> 'AbstractHistoryItem':
         """Convert `TypeHistoryItem` to `AbstractHistoryItem`."""
         raise NotImplementedError
 
@@ -724,16 +731,7 @@ class AbstractHistory:
         return len(self._history)
 
     def __iter__(self) -> Iterator:
-        if self.to_load:
-            return iter(self.to_load)
-
-        return iter([
-            self._tab.history_item_from_qt(
-                item,
-                active=idx == self.current_idx()
-            )
-            for idx, item in enumerate(self._history.items())
-        ])
+        raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
         """Check whether the count is positive."""
@@ -1243,7 +1241,8 @@ class AbstractTab(QWidget):
     @pyqtSlot(QUrl)
     def _on_before_load_started(self, url: QUrl) -> None:
         """Adjust the title if we are going to visit a URL soon."""
-        qtutils.ensure_valid(url)
+        if not url.isValid():
+            return
         url_string = url.toDisplayString()
         log.webview.debug("Going to start loading: {}".format(url_string))
         self.title_changed.emit(url_string)
@@ -1542,7 +1541,9 @@ class AbstractTab(QWidget):
         return pic
 
     def history_item_from_qt(self, item: TypeHistoryItem,
-                             active: bool = False) -> AbstractHistoryItem:
+                             active: bool = False,
+                             page_state: Optional[bytes] = None,
+                            ) -> AbstractHistoryItem:
         raise NotImplementedError
 
     def new_history_item(
@@ -1550,6 +1551,7 @@ class AbstractTab(QWidget):
             title: str, active: bool,
             user_data: Dict[str, Any],
             last_visited: Optional[QDateTime],
+            page_state: Optional[bytes],
     ) -> AbstractHistoryItem:
         """Create `AbstractHistoryItem` from history item data."""
         raise NotImplementedError

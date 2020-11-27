@@ -29,8 +29,8 @@ import hashlib
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
-import qutebrowser
-from qutebrowser.utils import log, usertypes, error, standarddir, utils
+from qutebrowser.utils import log, usertypes, standarddir, utils
+from qutebrowser.misc.ipcclient import send_to_running_instance, display_error
 from qutebrowser.qt import sip
 
 
@@ -454,65 +454,6 @@ class IPCServer(QObject):
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
-
-
-def send_to_running_instance(socketname, command, target_arg, *, socket=None):
-    """Try to send a commandline to a running instance.
-
-    Blocks for CONNECT_TIMEOUT ms.
-
-    Args:
-        socketname: The name which should be used for the socket.
-        command: The command to send to the running instance.
-        target_arg: --target command line argument
-        socket: The socket to read data from, or None.
-
-    Return:
-        True if connecting was successful, False if no connection was made.
-    """
-    if socket is None:
-        socket = QLocalSocket()
-
-    log.ipc.debug("Connecting to {}".format(socketname))
-    socket.connectToServer(socketname)
-
-    connected = socket.waitForConnected(CONNECT_TIMEOUT)
-    if connected:
-        log.ipc.info("Opening in existing instance")
-        json_data = {'args': command, 'target_arg': target_arg,
-                     'version': qutebrowser.__version__,
-                     'protocol_version': PROTOCOL_VERSION}
-        try:
-            cwd = os.getcwd()
-        except OSError:
-            pass
-        else:
-            json_data['cwd'] = cwd
-        line = json.dumps(json_data) + '\n'
-        data = line.encode('utf-8')
-        log.ipc.debug("Writing: {!r}".format(data))
-        socket.writeData(data)
-        socket.waitForBytesWritten(WRITE_TIMEOUT)
-        if socket.error() != QLocalSocket.UnknownSocketError:
-            raise SocketError("writing to running instance", socket)
-        socket.disconnectFromServer()
-        if socket.state() != QLocalSocket.UnconnectedState:
-            socket.waitForDisconnected(CONNECT_TIMEOUT)
-        return True
-    else:
-        if socket.error() not in [QLocalSocket.ConnectionRefusedError,
-                                  QLocalSocket.ServerNotFoundError]:
-            raise SocketError("connecting to running instance", socket)
-        log.ipc.debug("No existing instance present (error {})".format(
-            socket.error()))
-        return False
-
-
-def display_error(exc, args):
-    """Display a message box with an IPC error."""
-    error.handle_fatal_exc(
-        exc, "Error while connecting to running instance!",
-        no_err_windows=args.no_err_windows)
 
 
 def send_or_listen(args):

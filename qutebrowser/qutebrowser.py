@@ -183,10 +183,22 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
+def start_new_instance(args):
+    """start a new instance."""
+    from qutebrowser.utils import standarddir
+    from qutebrowser.misc import ipcclient
+
+    # In order to get socket path for starting a new instance
+    standarddir.init(args)
+    return ipcclient.send(args)
+
+
 def main():
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
+    if start_new_instance(args):
+        sys.exit()
     if args.json_args is not None:
         # Restoring after a restart.
         # When restarting, we serialize the argparse namespace into json, and

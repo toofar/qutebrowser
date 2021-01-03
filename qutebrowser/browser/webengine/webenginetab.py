@@ -661,10 +661,11 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        #webengine_version = version.qtwebengine_versions().webengine
-        #if webengine_version >= utils.VersionNumber(5, 15):
-        #    self._load_items_workaround(items)
-        #    return
+        webengine_version = version.qtwebengine_versions().webengine
+        if webengine_version >= utils.VersionNumber(5, 15):
+            if any(item.page_state is None for item in items):
+                self._load_items_workaround(items)
+                return
 
         if items:
             self._tab.before_load_started.emit(items[-1].url)

@@ -185,8 +185,12 @@ def debug_flag_error(flag):
 
 def start_new_instance(args):
     """start a new instance."""
+    import tempfile
     from qutebrowser.utils import standarddir
     from qutebrowser.misc import ipcclient
+
+    if args.temp_basedir:
+        args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
     # In order to get socket path for starting a new instance
     standarddir.init(args)

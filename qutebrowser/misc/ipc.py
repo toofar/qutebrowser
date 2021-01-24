@@ -30,7 +30,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 from qutebrowser.utils import log, usertypes, standarddir, utils
-from qutebrowser.misc.ipcclient import send_to_running_instance, display_error
+from qutebrowser.misc.ipcclient import (Error, SocketError,
+                                        send_to_running_instance, display_error)
 from qutebrowser.qt import sip
 
 
@@ -81,38 +82,6 @@ def _get_socketname(basedir):
     prefix = 'i-' if utils.is_mac else 'ipc-'
     filename = '{}{}'.format(prefix, md5)
     return os.path.join(standarddir.runtime(), filename)
-
-
-class Error(Exception):
-
-    """Base class for IPC exceptions."""
-
-
-class SocketError(Error):
-
-    """Exception raised when there was an error with a QLocalSocket.
-
-    Args:
-        code: The error code.
-        message: The error message.
-        action: The action which was taken when the error happened.
-    """
-
-    def __init__(self, action, socket):
-        """Constructor.
-
-        Args:
-            action: The action which was taken when the error happened.
-            socket: The QLocalSocket which has the error set.
-        """
-        super().__init__()
-        self.action = action
-        self.code = socket.error()
-        self.message = socket.errorString()
-
-    def __str__(self):
-        return "Error while {}: {} (error {})".format(
-            self.action, self.message, self.code)
 
 
 class ListenError(Error):

@@ -543,7 +543,7 @@ class TestSendToRunningInstance:
                                       timeout=5000) as raw_blocker:
                     with testutils.change_cwd(tmp_path):
                         if not has_cwd:
-                            m = mocker.patch('qutebrowser.misc.ipc.os')
+                            m = mocker.patch('qutebrowser.misc.ipcclient.os')
                             m.getcwd.side_effect = OSError
                         sent = ipc.send_to_running_instance(
                             'qute-test', ['foo'], None)
@@ -639,7 +639,7 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
-        m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
+        m = mocker.patch('qutebrowser.misc.ipcclient.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
         for name in ['UnknownSocketError', 'UnconnectedState',
                      'ConnectionRefusedError', 'ServerNotFoundError',
@@ -728,9 +728,10 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
+        module_name = "ipcclient" if has_error else "ipc"
         error_msgs = [
-            'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
-                exc_name),
+            'Handling fatal misc.{}.{} with --no-err-windows!'.format(
+                module_name, exc_name),
             '',
             'title: Error while connecting to running instance!',
             'pre_text: ',

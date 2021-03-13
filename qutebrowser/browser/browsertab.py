@@ -24,7 +24,7 @@ import itertools
 import functools
 import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
-                    Sequence, Set, Type, Union)
+                    Sequence, Set, Type, Union, Dict, Iterator)
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect, QDateTime)
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 
 tab_id_gen = itertools.count(0)
 
-TypeHistoryItem = typing.Union['QWebEngineHistoryItem',
+TypeHistoryItem = Union['QWebEngineHistoryItem',
                                'QWebHistoryItem']
 
 
@@ -657,8 +657,8 @@ class AbstractHistoryItem:
 
     def __init__(self, url: QUrl, title: str, *, original_url: QUrl = None,
                  active: bool = False,
-                 user_data: typing.Dict[str, typing.Any] = None,
-                 last_visited: typing.Optional[QDateTime] = None) -> None:
+                 user_data: Dict[str, Any] = None,
+                 last_visited: Optional[QDateTime] = None) -> None:
         self.url = url
         if original_url is None:
             self.original_url = url
@@ -692,7 +692,7 @@ class AbstractHistory:
         self.private_api = AbstractHistoryPrivate()
 
         # Lazy loading properties
-        self.to_load = []  # type: typing.List[AbstractHistoryItem]
+        self.to_load = []  # type: List[AbstractHistoryItem]
         self.load_on_focus = True
         self.loaded = False
 
@@ -777,7 +777,7 @@ class AbstractHistory:
         self.loaded = True
         self.load_on_focus = False
 
-    def load_items(self, entries: typing.List[AbstractHistoryItem],
+    def load_items(self, entries: List[AbstractHistoryItem],
                    lazy: bool = True) -> None:
         """Add a list of AbstractHistoryItems to the tab's history.
 
@@ -1383,8 +1383,8 @@ class AbstractTab(QWidget):
     def new_history_item(
             self, url: QUrl, original_url: QUrl,
             title: str, active: bool,
-            user_data: typing.Dict[str, typing.Any],
-            last_visited: typing.Optional[QDateTime],
+            user_data: Dict[str, Any],
+            last_visited: Optional[QDateTime],
     ) -> AbstractHistoryItem:
         """Create `AbstractHistoryItem` from history item data."""
         raise NotImplementedError

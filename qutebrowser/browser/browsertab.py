@@ -973,10 +973,10 @@ class AbstractTab(QWidget):
             self, parent=self)
         self.backend: Optional[usertypes.Backend] = None
 
-        self._last_history_url = None  # type: Optional[QUrl]
-        self._last_history_atime = None  # type: Optional[int]
-        self._last_history_title = None  # type: Optional[str]
-        self._last_history_requested_url = None  # type: Optional[QUrl]
+        self._last_history_url: Optional[QUrl] = None
+        self._last_history_atime: Optional[int] = None
+        self._last_history_title: Optional[str] = None
+        self._last_history_requested_url: Optional[QUrl] = None
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
@@ -1177,7 +1177,7 @@ class AbstractTab(QWidget):
             atime = int(time.time())
 
             no_formatting = cast(QUrl.FormattingOptions,
-                                        QUrl.UrlFormattingOption(0))
+                                 QUrl.UrlFormattingOption(0))
             if any(u is not None and
                    requested_url.matches(u, no_formatting)
                    for u in (self._last_history_requested_url,

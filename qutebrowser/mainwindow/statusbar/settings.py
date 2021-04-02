@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import objreg, usertypes, message
-from qutebrowser.browser.browsertab import WebTabError, shared
+from qutebrowser.browser.browsertab import WebTabError, FeatureState
 
 
 class BooleanSettings(textbase.TextBase):
@@ -47,7 +47,7 @@ class BooleanSettings(textbase.TextBase):
         if not tab:
             return None
         state = tab.permissions.test_feature(setting_name)
-        return state == shared.FeatureState.granted
+        return state == FeatureState.granted
 
     def _to_bool(self, setting_name, url):
         """Return a bool for Bool and BoolAsk settings."""
@@ -117,7 +117,7 @@ class BooleanSettings(textbase.TextBase):
         elif option in self._config:
             self.on_tab_changed(self._current_tab())
 
-    @pyqtSlot(str, shared.FeatureState)
+    @pyqtSlot(str, FeatureState)
     def on_feature_permission_changed(self, option, _state):
         """Update the widget when a pages feature permissions change."""
         if option in self._config:

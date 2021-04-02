@@ -818,9 +818,9 @@ class _WebKitPermissions(browsertab.AbstractPermissions):
 
     def _init_features(self):
         self.features.update({
-            QWebPage.Notifications: shared.Feature(
-                'content.notifications', 'show notifications'),
-            QWebPage.Geolocation: shared.Feature(
+            QWebPage.Notifications: browsertab.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebPage.Geolocation: browsertab.Feature(
                 'content.geolocation', 'access your location'),
         })
 
@@ -893,11 +893,11 @@ class _WebKitPermissions(browsertab.AbstractPermissions):
         page.setFeaturePermission(frame, feature, policy)
 
         if policy == QWebPage.PermissionGrantedByUser:
-            self.features[feature].state = shared.FeatureState.granted
+            self.features[feature].state = browsertab.FeatureState.granted
         elif policy == QWebPage.PermissionDeniedByUser:
-            self.features[feature].state = shared.FeatureState.denied
+            self.features[feature].state = browsertab.FeatureState.denied
         else:
-            self.features[feature].state = shared.FeatureState.ask
+            self.features[feature].state = browsertab.FeatureState.ask
 
         self._tab.feature_permission_changed.emit(
             self.features[feature].setting_name,

@@ -24,8 +24,7 @@ from unittest import mock
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import shared
-from qutebrowser.browser.browsertab import WebTabError
+from qutebrowser.browser.browsertab import WebTabError, FeatureState, Feature
 
 
 class TestTestFeature:
@@ -42,7 +41,7 @@ class TestTestFeature:
     def test_calls_config_right(self, web_tab, config_stub, monkeypatch,
                                 url):
         """Check call to config given current url and passed arg."""
-        config_get_stub = mock.Mock(return_value=shared.FeatureState.granted)
+        config_get_stub = mock.Mock(return_value=FeatureState.granted)
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
         url = QUrl(url) if url else None
@@ -95,10 +94,10 @@ class TestTestFeature:
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
         features = {
-            1: shared.Feature(
+            1: Feature(
                 self.setting,
                 "plz?",
-                granted if granted is None else shared.FeatureState(granted)
+                granted if granted is None else FeatureState(granted)
             )
         }
 

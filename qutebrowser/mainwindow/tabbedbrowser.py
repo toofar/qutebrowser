@@ -33,7 +33,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
-from qutebrowser.browser import signalfilter, browsertab, history, shared
+from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja, version)
 from qutebrowser.misc import quitter
@@ -198,7 +198,7 @@ class TabbedBrowser(QWidget):
     cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(browsertab.SelectionState)
-    cur_feature_permission_changed = pyqtSignal(str, shared.FeatureState)
+    cur_feature_permission_changed = pyqtSignal(str, browsertab.FeatureState)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)

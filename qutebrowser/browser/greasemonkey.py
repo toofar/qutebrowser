@@ -29,13 +29,17 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl, pyqtSlot, QVariant
+from PyQt5.QtNetwork import (QNetworkRequest, QNetworkAccessManager,
+                             QNetworkCookie, QNetworkCookieJar)
+from PyQt5.QtWebChannel import QWebChannel
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+from qutebrowser.extensions import interceptors
 
 
 gm_manager = cast('GreasemonkeyManager', None)
@@ -171,13 +175,17 @@ class GreasemonkeyScript:
             objects.backend == usertypes.Backend.QtWebKit and
             version.qWebKitVersion() == '602.1')
         template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
-        return template.render(
+        codes = template.render(
             scriptName=javascript.string_escape(
                 "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
             scriptMeta=javascript.string_escape(self.script_meta or ''),
             scriptSource=self._code,
             use_proxy=use_proxy)
+        if self.name == 'Test GMXHR Contsruction':
+            with open('/tmp/gmxhr_post_proc.user.js', 'w') as f:
+                f.write(codes)
+        return codes
 
     def _meta_json(self):
         return json.dumps({
@@ -265,6 +273,11 @@ class GreasemonkeyManager(QObject):
         self._in_progress_dls: List[downloads.AbstractDownloadItem] = []
 
         self.load_scripts()
+        self.bridges = {}
+        self.channels = {}
+        #self.wc = QWebChannel() #does it matter what parent is?
+        #self.gm_bridge = GreasemonkeyBridge(self.wc)
+        #self.wc.registerObject('qute', self.gm_bridge)
 
     def load_scripts(self, *, force=False):
         """Re-read Greasemonkey scripts from disk.
@@ -423,6 +436,177 @@ class GreasemonkeyManager(QObject):
     def all_scripts(self):
         """Return all scripts found in the configured script directory."""
         return self._run_start + self._run_end + self._run_idle
+
+    def register_webchannel(self, page):
+        # Register one bridge object per profile so it can use the
+        # seperate cookieJar and User-Agent for xhrs.
+        if page.profile() not in self.channels:
+            new_wc = QWebChannel()
+            self.channels[page.profile()] = new_wc
+            new_bridge = GreasemonkeyBridge(new_wc, page.profile())
+            self.bridges[page.profile()] = new_bridge
+            new_wc.registerObject('qute', new_bridge)
+        wc = self.channels[page.profile()]
+        page.setWebChannel(wc)  #worldId is second param
+
+
+class CookieJarWrapper(QNetworkCookieJar):
+    """
+    Wraps a QWebEngineCookieStore in a QNetworkCookieJar.
+
+    Since cookiestore doesn't provide an equivalent of cookiesForURL()
+    we need to keep a copy of all the cookies somewhere we can access.
+    Which is either in the python CookieJarWrapper instance or in the
+    C++ QNetworkCookieJar super() instance. If we chose the latter we
+    would end up using whatever the QNetworkCookieJar's acceptance
+    criteria is for cookies which might be different from the webengine
+    one.
+    """
+
+    cookies = []
+
+    def __init__(self, parent, cookieStore):
+        super(CookieJarWrapper, self).__init__(parent)
+        self.cookieStore = cookieStore
+        self.cookieStore.cookieAdded.connect(self.onCookieAdded)
+        self.cookieStore.cookieRemoved.connect(self.onCookieRemoved)
+        # Trigger cookieAdded for all cookies currently stored.
+        # Hopefully this doesn't annoy any other listeners...
+        self.cookieStore.loadAllCookies()
+
+    def onCookieAdded(self, cookie):
+        self.cookies.append(QNetworkCookie(cookie))
+        return
+
+    def onCookieRemoved(self, cookie):
+        self.cookies.remove(cookie)
+        return
+
+    @pyqtSlot(QUrl)
+    def cookiesForUrl(self, url):
+        return filter(lambda c: c.domain() == url.host(), self.cookies)
+
+    @pyqtSlot(QNetworkCookie)
+    def deleteCookie(self, cookie):
+        self.cookieStore.deleteCookie(cookie)  #origin=QUrl()
+        return True
+
+    @pyqtSlot(QNetworkCookie)
+    def insertCookie(self, cookie):
+        self.cookieStore.setCookie(cookie)  #origin=QUrl()
+        return True
+
+
+class GreasemonkeyBridge(QObject):
+    """Object to be exposed to greasemonkey clients in javascript."""
+
+    requestFinished = pyqtSignal(QVariant)
+
+    def __init__(self, wc, profile):
+        super().__init__()
+        self.wc = wc
+        self.profile = profile
+        # It would be nice to use the qnam from the current profile but
+        # that ain't an option and it looks like webengine doesn't even
+        # use it anymore. So we have to try copy various things ourself.
+        self.nam = QNetworkAccessManager(self)
+        self.cookiejar = CookieJarWrapper(self, self.profile.cookieStore())
+        self.nam.setCookieJar(self.cookiejar)
+
+    def handle_xhr_reply(self, reply, index):
+        ret = {}
+        ret['_qute_gm_request_index'] = index;
+        ret['status'] = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        ret['statusText'] = reply.attribute(QNetworkRequest.HttpReasonPhraseAttribute)
+        ret['responseText'] = reply.readAll()
+        # list of QByteArray tuples
+        heads = reply.rawHeaderPairs()
+        pyheads = [(str(h[0], encoding='ascii'), str(h[1], encoding='ascii'))
+                   for h in heads]
+        for k, v in pyheads:
+            print("{}: {}".format(k,v))
+        ret['responseHeaders'] = dict(pyheads)
+        ret['finalUrl'] = reply.url()
+        self.requestFinished.emit(ret)
+
+    @pyqtSlot(QVariant, result=QVariant)
+    def GM_xmlhttpRequest(self, details):
+        # we could actually mock a XMLHttpRequest to support progress
+        # signals but who really uses them?
+        # https://wiki.greasespot.net/GM_xmlhttpRequest
+        # qtwebchannel.js calls JSON.stringify in QWebChannel.send() so any
+        # method attributes of arguments (eg {'onload':function(...){...;}) are
+        # stripped.
+        # * handle method, url, headers, data
+        # * figure out what headers we need to automatically set (referer, ...)
+        # * can we use some qt thing (page.get()?) to do ^
+        # * should probably check how cookies are handled
+        #   chrome/tampermonkey sends cookies (for the requested domain,
+        #   duh) with GM_xhr requests
+        # https://openuserjs.org/
+        # https://greasyfork.org/en/scripts
+
+        # tampermoney on chrome prompts when a script tries to do a
+        # cross-origin request.
+        print("==============================================")
+        print("GM_xmlhttpRequest")
+        print(details)
+
+        if not 'url' in details:
+            return
+
+        request_index = details['_qute_gm_request_index'];
+        if not request_index:
+            log.greasemonkey.error(("GM_xmlhttpRequest received request "
+                                    "without nonce, skipping."))
+            return;
+
+        request_url = QUrl(details['url'])
+        first_party_url = QUrl(details['_qute_first_party_url'])
+
+        intercept_request = interceptors.Request(first_party_url, request_url)
+        interceptors.run(intercept_request)
+        if intercept_request.is_blocked:
+            return
+
+        # TODO: url might be relative, need to fix on the JS side.
+        request = QNetworkRequest(request_url)
+        request.setOriginatingObject(self)
+        # The C++ docs say the default is to not follow any redirects.
+        request.setAttribute(QNetworkRequest.RedirectionTargetAttribute,
+                             QNetworkRequest.NoLessSafeRedirectPolicy)
+        # TODO: Ensure these headers are encoded to spec if containing eg
+        # unicodes
+        if 'headers' in details:
+            for k, v in details['headers'].items():
+                # With this script: https://raw.githubusercontent.com/evazion/translate-pixiv-tags/master/translate-pixiv-tags.user.js
+                # One of the headers it 'X-Twitter-Polling': True, which was
+                # causing the below to error out because v is a bool. Not sure
+                # where that is coming from or what value twitter expects.
+                # That script is patching jquery so try with unpatched jquery
+                # and see what it does.
+                request.setRawHeader(k.encode('ascii'), str(v).encode('ascii'))
+
+        # TODO: Should we allow xhr to set user-agent?
+        if not request.header(QNetworkRequest.UserAgentHeader):
+            request.setHeader(QNetworkRequest.UserAgentHeader,
+                              self.profile.httpUserAgent())
+
+        payload = details.get('data', None)
+        if payload:
+            # Should check encoding from content-type header?
+            payload = payload.encode('utf-8')
+
+        reply = self.nam.sendCustomRequest(request,
+                                           details.get('method',
+                                                       'GET').encode('ascii'),
+                                           payload)
+
+        if reply.isFinished():
+            self.handle_xhr_reply(reply, request_index)
+        else:
+            reply.finished.connect(functools.partial(self.handle_xhr_reply, reply,
+                                           request_index))
 
 
 @cmdutils.register()

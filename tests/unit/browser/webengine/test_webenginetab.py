@@ -172,6 +172,7 @@ def test_notification_permission_workaround():
     except AttributeError:
         pytest.skip("No Notifications member")
 
-    permissions = webenginetab._WebEnginePermissions
-    assert permissions._options[notifications] == 'content.notifications.enabled'
-    assert permissions._messages[notifications] == 'show notifications'
+    permissions = webenginetab._WebEnginePermissions(None, None)
+    feature = permissions.features[notifications]
+    assert feature.setting_name == 'content.notifications.enabled'
+    assert feature.requesting_message == 'show notifications'

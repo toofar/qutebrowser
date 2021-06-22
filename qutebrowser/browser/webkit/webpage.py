@@ -21,7 +21,6 @@
 
 import html
 import functools
-from typing import cast
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
@@ -86,8 +85,6 @@ class BrowserPage(QWebPage):
             self.on_unsupported_content)
         self.loadStarted.connect(  # type: ignore[attr-defined]
             self.on_load_started)
-        self.featurePermissionRequested.connect(  # type: ignore[attr-defined]
-            self._on_feature_permission_requested)
         self.saveFrameStateRequested.connect(  # type: ignore[attr-defined]
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(  # type: ignore[attr-defined]
@@ -308,8 +305,9 @@ class BrowserPage(QWebPage):
         """Reset error_occurred when loading of a new page started."""
         if self._ignore_load_started:
             self._ignore_load_started = False
-        else:
-            self.error_occurred = False
+            return
+
+        self.error_occurred = False
 
     def _inject_userjs(self, frame):
         """Inject user JavaScripts into the page.
@@ -345,61 +343,6 @@ class BrowserPage(QWebPage):
             if frame is self.mainFrame() or script.runs_on_sub_frames:
                 log.webview.debug('Running GM script: {}'.format(script.name))
                 frame.evaluateJavaScript(script.code())
-
-    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
-    def _on_feature_permission_requested(self, frame, feature):
-        """Ask the user for approval for geolocation/notifications."""
-        if not isinstance(frame, QWebFrame):  # pragma: no cover
-            # This makes no sense whatsoever, but someone reported this being
-            # called with a QBuffer...
-            log.misc.error("on_feature_permission_requested got called with "
-                           "{!r}!".format(frame))
-            return
-
-        options = {
-            QWebPage.Notifications: 'content.notifications.enabled',
-            QWebPage.Geolocation: 'content.geolocation',
-        }
-        messages = {
-            QWebPage.Notifications: 'show notifications',
-            QWebPage.Geolocation: 'access your location',
-        }
-        yes_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionGrantedByUser)
-        no_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionDeniedByUser)
-
-        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
-                                        QUrl.RemoveUserInfo |
-                                        QUrl.RemovePath |
-                                        QUrl.RemoveQuery |
-                                        QUrl.RemoveFragment))
-        question = shared.feature_permission(
-            url=url,
-            option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
-            abort_on=[self.shutting_down, self.loadStarted])
-
-        if question is not None:
-            self.featurePermissionRequestCanceled.connect(  # type: ignore[attr-defined]
-                functools.partial(self._on_feature_permission_cancelled,
-                                  question, frame, feature))
-
-    def _on_feature_permission_cancelled(self, question, frame, feature,
-                                         cancelled_frame, cancelled_feature):
-        """Slot invoked when a feature permission request was cancelled.
-
-        To be used with functools.partial.
-        """
-        if frame is cancelled_frame and feature == cancelled_feature:
-            try:
-                question.abort()
-            except RuntimeError:
-                # The question could already be deleted, e.g. because it was
-                # aborted after a loadStarted signal.
-                pass
 
     def on_save_frame_state_requested(self, frame, item):
         """Save scroll position and zoom in history.

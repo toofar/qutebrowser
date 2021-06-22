@@ -1917,9 +1917,21 @@ statusbar.widgets:
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
+        - settings: "Boolean settings state for the current page."
     none_ok: true
   default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: List of widgets displayed in the statusbar.
+
+statusbar.settings:
+  type:
+    name: StatusbarSettings
+    none_ok: true
+  default: {}
+  desc: >-
+    Which boolean settings to display in the statusbar settings widget.
+
+    The keys should be setting names and the values should be strings which
+    are shown if the setting is true for the current tab.
 
 ## tabs
 

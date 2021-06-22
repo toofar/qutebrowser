@@ -19,6 +19,7 @@
 
 """Showing messages above the statusbar."""
 
+import time
 from typing import MutableSequence, Optional
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
@@ -38,10 +39,15 @@ class Message(QLabel):
             text: str,
             replace: Optional[str],
             parent: QWidget = None,
+            created_at: Optional[float] = None,
     ) -> None:
         super().__init__(text, parent)
         self.replace = replace
         self.level = level
+        if created_at is None:
+            self.created_at = time.time() * 1000
+        else:
+            self.created_at = created_at
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setWordWrap(True)
         qss = """
@@ -90,18 +96,16 @@ class MessageView(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self._clear_timer = QTimer()
-        self._clear_timer.timeout.connect(self.clear_messages)
+        self._clear_timer.setSingleShot(True)
+        self._clear_timer.timeout.connect(self.update)
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
 
     @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
-        """Configure self._clear_timer according to the config."""
-        interval = config.val.messages.timeout
-        if interval > 0:
-            interval *= min(5, len(self._messages))
-            self._clear_timer.setInterval(interval)
+        """Handle message timeout setting changes."""
+        self.update()
 
     def _remove_message(self, widget):
         """Fully remove and destroy widget from this object."""
@@ -112,12 +116,31 @@ class MessageView(QWidget):
     @pyqtSlot()
     def clear_messages(self):
         """Hide and delete all messages."""
-        for widget in self._messages:
-            self._remove_message(widget)
-        self._messages = []
-        self._last_text = None
-        self.hide()
-        self._clear_timer.stop()
+        self.update(force_clear=True)
+
+    @pyqtSlot()
+    def update(self, force_clear=False):
+        """Delete old messages and reset timer."""
+        interval = config.val.messages.timeout
+        if not force_clear and interval == 0:
+            self._clear_timer.stop()
+            return
+
+        now = time.time() * 1000
+        while self._messages:
+            if not force_clear and now - self._messages[0].created_at < interval:
+                break
+            self._remove_message(self._messages.pop(0))
+
+        if self._messages:
+            self._clear_timer.start(int(self._messages[0].created_at + interval - now))
+
+        else:
+            self._last_text = None
+            self.hide()
+            self._clear_timer.stop()
+
+        self.update_geometry.emit()
 
     @pyqtSlot(usertypes.MessageLevel, str, str)
     def show_message(
@@ -146,9 +169,7 @@ class MessageView(QWidget):
         self._last_text = text
         self.show()
         self.update_geometry.emit()
-        if config.val.messages.timeout != 0:
-            self._set_clear_timer_interval()
-            self._clear_timer.start()
+        self.update()
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""

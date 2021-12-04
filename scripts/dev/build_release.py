@@ -26,6 +26,7 @@ import os.path
 import sys
 import time
 import shutil
+import pathlib
 import plistlib
 import subprocess
 import argparse
@@ -206,21 +207,11 @@ def smoke_test(executable, debug):
         raise Exception("\n".join(lines))
 
 
-def patch_windows_exe(exe_path):
-    """Make sure the Windows .exe has a correct checksum.
-
-    WORKAROUND for https://github.com/pyinstaller/pyinstaller/issues/5579
-    """
+def verify_windows_exe(exe_path):
+    """Make sure the Windows .exe has a correct checksum."""
     import pefile
     pe = pefile.PE(exe_path)
-
-    # If this fails, a PyInstaller upgrade fixed things, and we can remove the
-    # workaround. Would be a good idea to keep the check, though.
-    assert not pe.verify_checksum()
-
-    pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
-    pe.close()
-    pe.write(exe_path)
+    assert pe.verify_checksum()
 
 
 def patch_mac_app():
@@ -237,7 +228,7 @@ def patch_mac_app():
 
     # Replace some duplicate files by symlinks
     framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt', 'lib', 'QtWebEngineCore.framework')
+                                  'Qt5', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
     os.remove(core_lib)
@@ -260,6 +251,7 @@ INFO_PLIST_UPDATES = {
     'CFBundleShortVersionString': qutebrowser.__version__,
     'NSSupportsAutomaticGraphicsSwitching': True,
     'NSHighResolutionCapable': True,
+    'NSRequiresAquaSystemAppearance': False,
     'CFBundleURLTypes': [{
         "CFBundleURLName": "http(s) URL",
         "CFBundleURLSchemes": ["http", "https"]
@@ -278,7 +270,24 @@ INFO_PLIST_UPDATES = {
         "CFBundleTypeMIMETypes": ["text/xhtml"],
         "CFBundleTypeName": "XHTML document",
         "CFBundleTypeRole": "Viewer",
-    }]
+    }],
+
+    # https://developer.apple.com/documentation/avfoundation/cameras_and_media_capture/requesting_authorization_for_media_capture_on_macos
+    #
+    # Keys based on Google Chrome's .app, except Bluetooth keys which seem to
+    # be iOS-only.
+    #
+    # If we don't do this, we get a SIGABRT from macOS when those permissions
+    # are used, and even in some other situations (like logging into Google
+    # accounts)...
+    'NSCameraUsageDescription':
+        'A website in qutebrowser wants to use the camera.',
+    'NSLocationUsageDescription':
+        'A website in qutebrowser wants to use your location information.',
+    'NSMicrophoneUsageDescription':
+        'A website in qutebrowser wants to use your microphone.',
+    'NSBluetoothAlwaysUsageDescription':
+        'A website in qutebrowser wants to access Bluetooth.',
 }
 
 
@@ -363,8 +372,8 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     shutil.move(out_pyinstaller, outdir)
     exe_path = os.path.join(outdir, 'qutebrowser.exe')
 
-    utils.print_title(f"Patching {human_arch} exe")
-    patch_windows_exe(exe_path)
+    utils.print_title(f"Verifying {human_arch} exe")
+    verify_windows_exe(exe_path)
 
     utils.print_title(f"Running {human_arch} smoke test")
     smoke_test(exe_path, debug=debug)
@@ -472,24 +481,27 @@ def build_sdist():
     """Build an sdist and list the contents."""
     utils.print_title("Building sdist")
 
-    _maybe_remove('dist')
+    dist_path = pathlib.Path('dist')
+    _maybe_remove(dist_path)
 
-    subprocess.run([sys.executable, 'setup.py', 'sdist'], check=True)
-    dist_files = os.listdir(os.path.abspath('dist'))
-    assert len(dist_files) == 1
+    subprocess.run([sys.executable, '-m', 'build'], check=True)
 
-    dist_file = os.path.join('dist', dist_files[0])
-    subprocess.run(['gpg', '--detach-sign', '-a', dist_file], check=True)
+    dist_files = list(dist_path.glob('*.tar.gz'))
+    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
+    assert dist_files == [dist_path / filename], dist_files
+    dist_file = dist_files[0]
 
-    tar = tarfile.open(dist_file)
+    subprocess.run(['gpg', '--detach-sign', '-a', str(dist_file)], check=True)
+
     by_ext = collections.defaultdict(list)
 
-    for tarinfo in tar.getmembers():
-        if not tarinfo.isfile():
-            continue
-        name = os.sep.join(tarinfo.name.split(os.sep)[1:])
-        _base, ext = os.path.splitext(name)
-        by_ext[ext].append(name)
+    with tarfile.open(dist_file) as tar:
+        for tarinfo in tar.getmembers():
+            if not tarinfo.isfile():
+                continue
+            name = os.sep.join(tarinfo.name.split(os.sep)[1:])
+            _base, ext = os.path.splitext(name)
+            by_ext[ext].append(name)
 
     assert '.pyc' not in by_ext
 
@@ -499,11 +511,13 @@ def build_sdist():
         utils.print_subtitle(ext)
         print('\n'.join(files))
 
-    filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
     artifacts = [
-        (os.path.join('dist', filename), 'application/gzip', 'Source release'),
-        (os.path.join('dist', filename + '.asc'), 'application/pgp-signature',
-         'Source release - PGP signature'),
+        (str(dist_file), 'application/gzip', 'Source release'),
+        (
+            str(dist_file.with_suffix(dist_file.suffix + '.asc')),
+            'application/pgp-signature',
+            'Source release - PGP signature',
+        ),
     ]
 
     return artifacts
@@ -542,6 +556,7 @@ def github_upload(artifacts, tag, gh_token):
     Args:
         artifacts: A list of (filename, mimetype, description) tuples
         tag: The name of the release tag
+        gh_token: The GitHub token to use
     """
     import github3
     import github3.exceptions
@@ -591,15 +606,19 @@ def github_upload(artifacts, tag, gh_token):
 def pypi_upload(artifacts):
     """Upload the given artifacts to PyPI using twine."""
     utils.print_title("Uploading to PyPI...")
+    run_twine('upload', artifacts)
+
+
+def twine_check(artifacts):
+    """Check packages using 'twine check'."""
+    utils.print_title("Running twine check...")
+    run_twine('check', artifacts, '--strict')
+
+
+def run_twine(command, artifacts, *args):
     filenames = [a[0] for a in artifacts]
-    subprocess.run([sys.executable, '-m', 'twine', 'upload'] + filenames,
+    subprocess.run([sys.executable, '-m', 'twine', command] + list(args) + filenames,
                    check=True)
-
-
-def upgrade_sdist_dependencies():
-    """Make sure we have the latest tools for an sdist release."""
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', 'twine',
-                    'pip', 'wheel', 'setuptools'], check=True)
 
 
 def main():
@@ -616,6 +635,8 @@ def main():
                         nargs='?')
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub.")
+    parser.add_argument('--no-confirm', action='store_true', required=False,
+                        help="Skip confirmation before uploading.")
     parser.add_argument('--skip-packaging', action='store_true', required=False,
                         help="Skip Windows installer/zip generation.")
     parser.add_argument('--32bit', action='store_true', required=False,
@@ -657,15 +678,17 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac(gh_token=gh_token, debug=args.debug)
     else:
-        upgrade_sdist_dependencies()
         test_makefile()
         artifacts = build_sdist()
+        twine_check(artifacts)
         upload_to_pypi = True
 
     if args.upload:
         version_tag = "v" + qutebrowser.__version__
-        utils.print_title("Press enter to release {}...".format(version_tag))
-        input()
+
+        if not args.no_confirm:
+            utils.print_title("Press enter to release {}...".format(version_tag))
+            input()
 
         github_upload(artifacts, version_tag, gh_token=gh_token)
         if upload_to_pypi:

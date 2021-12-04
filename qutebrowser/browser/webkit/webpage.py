@@ -341,7 +341,7 @@ class BrowserPage(QWebPage):
 
         for script in toload:
             if frame is self.mainFrame() or script.runs_on_sub_frames:
-                log.webview.debug('Running GM script: {}'.format(script.name))
+                log.webview.debug(f'Running GM script: {script}')
                 frame.evaluateJavaScript(script.code())
 
     def on_save_frame_state_requested(self, frame, item):

@@ -87,7 +87,7 @@ class VersionNumber:
     """A representation of a version number."""
 
     def __init__(self, *args: int) -> None:
-        self._ver = QVersionNumber(*args)
+        self._ver = QVersionNumber(args)  # not *args, to support >3 components
         if self._ver.isNull():
             raise ValueError("Can't construct a null version")
 
@@ -101,8 +101,6 @@ class VersionNumber:
         self.minor = self._ver.minorVersion()
         self.patch = self._ver.microVersion()
         self.segments = self._ver.segments()
-
-        assert len(self.segments) <= 3, self.segments
 
     def __str__(self) -> str:
         return ".".join(str(s) for s in self.segments)
@@ -343,7 +341,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
         self._retval = retval
         self._predicate = predicate
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Called when a function should be decorated.
 
         Args:
@@ -384,7 +382,7 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         obj: The object to get a repr for.
         constructor: If True, show the Foo(one=1, two=2) form instead of
                      <Foo one=1 two=2>.
-        attrs: The attributes to add.
+        **attrs: The attributes to add.
     """
     cls = qualname(obj.__class__)
     parts = []
@@ -393,11 +391,10 @@ def get_repr(obj: Any, constructor: bool = False, **attrs: Any) -> str:
         parts.append('{}={!r}'.format(name, val))
     if constructor:
         return '{}({})'.format(cls, ', '.join(parts))
+    elif parts:
+        return '<{} {}>'.format(cls, ' '.join(parts))
     else:
-        if parts:
-            return '<{} {}>'.format(cls, ' '.join(parts))
-        else:
-            return '<{}>'.format(cls)
+        return '<{}>'.format(cls)
 
 
 def qualname(obj: Any) -> str:
@@ -431,7 +428,7 @@ def qualname(obj: Any) -> str:
 _ExceptionType = Union[Type[BaseException], Tuple[Type[BaseException]]]
 
 
-def raises(exc: _ExceptionType, func: Callable, *args: Any) -> bool:
+def raises(exc: _ExceptionType, func: Callable[..., Any], *args: Any) -> bool:
     """Check if a function raises a given exception.
 
     Args:
@@ -671,11 +668,12 @@ def yaml_load(f: Union[str, IO[str]]) -> Any:
             r"of from 'collections\.abc' is deprecated.*"):
         try:
             data = yaml.load(f, Loader=YamlLoader)
-        except ValueError as e:
-            if str(e).startswith('could not convert string to float'):
+        except ValueError as e:  # pragma: no cover
+            pyyaml_error = 'could not convert string to float'
+            if str(e).startswith(pyyaml_error):
                 # WORKAROUND for https://github.com/yaml/pyyaml/issues/168
                 raise yaml.YAMLError(e)
-            raise  # pragma: no cover
+            raise
 
     end = datetime.datetime.now()
 
@@ -709,7 +707,10 @@ def yaml_dump(data: Any, f: IO[str] = None) -> Optional[str]:
         return yaml_data.decode('utf-8')
 
 
-def chunk(elems: Sequence, n: int) -> Iterator[Sequence]:
+_T = TypeVar('_T')
+
+
+def chunk(elems: Sequence[_T], n: int) -> Iterator[Sequence[_T]]:
     """Yield successive n-sized chunks from elems.
 
     If elems % n != 0, the last chunk will be smaller.

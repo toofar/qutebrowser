@@ -659,8 +659,8 @@ class AbstractHistoryPrivate:
         """Deserialize from a format produced by self.serialize."""
         raise NotImplementedError
 
-    def load_items(self, items: Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
+    def load_items(self, items) -> None:
+        """Deserialize from a list of TabHistoryItems."""
         raise NotImplementedError
 
 
@@ -730,7 +730,7 @@ class AbstractHistory:
 
         return len(self._history)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -912,6 +912,7 @@ class AbstractAudio(QObject):
         """Set this tab as muted or not.
 
         Arguments:
+            muted: Whether the tab is currently muted.
             override: If set to True, muting/unmuting was done manually and
                       overrides future automatic mute/unmute changes based on
                       the URL.

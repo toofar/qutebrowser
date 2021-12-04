@@ -34,7 +34,8 @@ import datetime
 import getpass
 import functools
 import dataclasses
-from typing import Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast
+from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
+                    TYPE_CHECKING)
 
 
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
@@ -58,7 +59,9 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message, resources
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config
+if TYPE_CHECKING:
+    from qutebrowser.config import websettings
 
 _LOGO = r'''
          ______     ,,
@@ -86,7 +89,6 @@ class DistributionInfo:
 
     id: Optional[str]
     parsed: 'Distribution'
-    version: Optional[utils.VersionNumber]
     pretty: str
 
 
@@ -141,7 +143,6 @@ def distribution() -> Optional[DistributionInfo]:
     Returns:
         A DistributionInfo object, or None if no info could be determined.
             parsed: A Distribution enum member
-            version: A Version object, or None
             pretty: Always a string (might be "Unknown")
     """
     info = _parse_os_release()
@@ -152,12 +153,6 @@ def distribution() -> Optional[DistributionInfo]:
     if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
         pretty = info.get('NAME', 'Unknown')
     assert pretty is not None
-
-    dist_version: Optional[utils.VersionNumber] = None
-    for version_key in ['VERSION', 'VERSION_ID']:
-        if version_key in info:
-            dist_version = utils.VersionNumber.parse(info[version_key])
-            break
 
     dist_id = info.get('ID', None)
     id_mappings = {
@@ -181,8 +176,7 @@ def distribution() -> Optional[DistributionInfo]:
         else:
             break
 
-    return DistributionInfo(
-        parsed=parsed, version=dist_version, pretty=pretty, id=dist_id)
+    return DistributionInfo(parsed=parsed, pretty=pretty, id=dist_id)
 
 
 def is_flatpak() -> bool:
@@ -597,13 +591,13 @@ class WebEngineVersions:
     def __str__(self) -> str:
         s = f'QtWebEngine {self.webengine}'
         if self.chromium is not None:
-            s += f', Chromium {self.chromium}'
+            s += f', based on Chromium {self.chromium}'
         if self.source != 'UA':
             s += f' (from {self.source})'
         return s
 
     @classmethod
-    def from_ua(cls, ua: websettings.UserAgent) -> 'WebEngineVersions':
+    def from_ua(cls, ua: 'websettings.UserAgent') -> 'WebEngineVersions':
         """Get the versions parsed from a user agent.
 
         This is the most reliable and "default" way to get this information (at least
@@ -716,7 +710,7 @@ class WebEngineVersions:
         )
 
     @classmethod
-    def from_qt(cls, qt_version: str) -> 'WebEngineVersions':
+    def from_qt(cls, qt_version: str, *, source: str = 'Qt') -> 'WebEngineVersions':
         """Get the versions based on the Qt version.
 
         This is called if we don't have PYQT_WEBENGINE_VERSION, i.e. with PyQt 5.12.
@@ -725,7 +719,7 @@ class WebEngineVersions:
         return cls(
             webengine=parsed,
             chromium=cls._infer_chromium_version(parsed),
-            source='Qt',
+            source=source,
         )
 
 
@@ -756,6 +750,10 @@ def qtwebengine_versions(avoid_init: bool = False) -> WebEngineVersions:
     if webenginesettings.parsed_user_agent is not None:
         return WebEngineVersions.from_ua(webenginesettings.parsed_user_agent)
 
+    override = os.environ.get('QUTE_QTWEBENGINE_VERSION_OVERRIDE')
+    if override is not None:
+        return WebEngineVersions.from_qt(override, source='override')
+
     versions = elf.parse_webenginecore()
     if versions is not None:
         return WebEngineVersions.from_elf(versions)
@@ -775,8 +773,6 @@ def _backend() -> str:
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
-        webengine = usertypes.Backend.QtWebEngine
-        assert objects.backend == webengine, objects.backend
         return str(qtwebengine_versions(
             avoid_init='avoid-chromium-init' in objects.debug_flags))
     raise utils.Unreachable(objects.backend)

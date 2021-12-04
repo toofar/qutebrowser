@@ -551,7 +551,6 @@ class TabBar(QTabBar):
 
         Args:
             idx: The tab index to get the title for.
-            handle_unset: Whether to return an empty string on KeyError.
         """
         try:
             return self.tab_data(idx, 'page-title')
@@ -778,6 +777,19 @@ class TabBar(QTabBar):
                     self.parent().scroll_tab_bar_left(1)
                 else:
                     self.parent().scroll_tab_bar_right(1)
+            elif utils.is_mac:
+                # WORKAROUND for this not being customizable until Qt 6:
+                # https://codereview.qt-project.org/c/qt/qtbase/+/327746
+                index = self.currentIndex()
+                if index == -1:
+                    return
+                dx = e.angleDelta().x()
+                dy = e.angleDelta().y()
+                delta = dx if abs(dx) > abs(dy) else dy
+                offset = -1 if delta > 0 else 1
+                index += offset
+                if 0 <= index < self.count():
+                    self.setCurrentIndex(index)
             else:
                 super().wheelEvent(e)
         else:

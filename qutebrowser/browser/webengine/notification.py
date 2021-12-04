@@ -65,10 +65,17 @@ if TYPE_CHECKING:
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log, utils, debug, message
+from qutebrowser.utils import qtutils, log, utils, debug, message, version
+from qutebrowser.qt import sip
 
 
 bridge: Optional['NotificationBridgePresenter'] = None
+
+
+def _notifications_supported() -> bool:
+    """Check whether the current QtWebEngine version has notification support."""
+    versions = version.qtwebengine_versions(avoid_init=True)
+    return versions.webengine >= utils.VersionNumber(5, 14)
 
 
 def init() -> None:
@@ -84,7 +91,8 @@ def init() -> None:
         # at a later point in time. However, doing so is probably too complex compared
         # to its usefulness.
         return
-    if not qtutils.version_check('5.14'):
+
+    if not _notifications_supported():
         return
 
     global bridge
@@ -163,7 +171,7 @@ class NotificationBridgePresenter(QObject):
 
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        assert qtutils.version_check('5.14')
+        assert _notifications_supported()
 
         self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
@@ -399,8 +407,7 @@ class NotificationBridgePresenter(QObject):
             # Error during setup
             return
 
-        log.misc.error(
-            f"Notification error from {self._adapter.NAME} adapter: {error}")
+        message.error(f"Notification error from {self._adapter.NAME} adapter: {error}")
         self._drop_adapter()
 
 
@@ -466,12 +473,14 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot()
     def _on_systray_clicked(self) -> None:
-        self.on_clicked.emit(self.NOTIFICATION_ID)
+        self.click_id.emit(self.NOTIFICATION_ID)
 
     @pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
         assert notification_id == self.NOTIFICATION_ID, notification_id
-        self._systray.hide()
+        if not sip.isdeleted(self._systray):
+            # This can get called during shutdown
+            self._systray.hide()
 
 
 class MessagesNotificationAdapter(AbstractNotificationAdapter):
@@ -670,7 +679,8 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    assert variant.convert(QVariant.UInt)
+    successful = variant.convert(QVariant.UInt)
+    assert successful
     return variant
 
 
@@ -693,10 +703,27 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     SPEC_VERSION = "1.2"  # Released in January 2011, still current in March 2021.
     NAME = "libnotify"
 
+    _NON_FATAL_ERRORS = {
+        # notification daemon is gone
+        "org.freedesktop.DBus.Error.NoReply",
+
+        # https://gitlab.gnome.org/GNOME/gnome-flashback/-/blob/3.40.0/gnome-flashback/libnotifications/nd-daemon.c#L178-187
+        # Exceeded maximum number of notifications
+        "org.freedesktop.Notifications.MaxNotificationsExceeded",
+
+        # https://bugs.kde.org/show_bug.cgi?id=409157
+        # https://github.com/KDE/plasma-workspace/blob/v5.21.4/libnotificationmanager/server_p.cpp#L227-L237
+        # Created too many similar notifications in quick succession
+        "org.freedesktop.Notifications.Error.ExcessNotificationGeneration",
+
+        # From https://crashes.qutebrowser.org/view/b8c9838a - probably when
+        # notification daemon crashes?
+        "org.freedesktop.DBus.Error.Spawn.ChildSignaled",
+    }
+
     def __init__(self, parent: QObject = None) -> None:
-        super().__init__(bridge)
-        if not qtutils.version_check('5.14'):
-            raise Error("Notifications are not supported on Qt < 5.14")
+        super().__init__(parent)
+        assert _notifications_supported()
 
         if utils.is_windows:
             # The QDBusConnection destructor seems to cause error messages (and
@@ -764,7 +791,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self,
         name: str,
         vendor: str,
-        version: str,
+        ver: str,
     ) -> Optional[_ServerQuirks]:
         """Find quirks to use based on the server information."""
         if (name, vendor) == ("notify-osd", "Canonical Ltd"):
@@ -777,15 +804,15 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # Still in active development but doesn't implement spec 1.2:
             # https://github.com/mate-desktop/mate-notification-daemon/issues/132
             quirks = _ServerQuirks(spec_version="1.1")
-            if utils.VersionNumber.parse(version) <= utils.VersionNumber(1, 24):
+            if utils.VersionNumber.parse(ver) <= utils.VersionNumber(1, 24):
                 # https://github.com/mate-desktop/mate-notification-daemon/issues/118
                 quirks.avoid_body_hyperlinks = True
             return quirks
-        elif (name, vendor) == ("naughty", "awesome"):
+        elif (name, vendor) == ("naughty", "awesome") and ver != "devel":
             # Still in active development but spec 1.0/1.2 support isn't
             # released yet:
             # https://github.com/awesomeWM/awesome/commit/e076bc664e0764a3d3a0164dabd9b58d334355f4
-            parsed_version = utils.VersionNumber.parse(version.lstrip('v'))
+            parsed_version = utils.VersionNumber.parse(ver.lstrip('v'))
             if parsed_version <= utils.VersionNumber(4, 3):
                 return _ServerQuirks(spec_version="1.0")
         elif (name, vendor) == ("twmnd", "twmnd"):
@@ -796,7 +823,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             return _ServerQuirks(skip_capabilities=True)
         elif (name, vendor) == ("lxqt-notificationd", "lxqt.org"):
             quirks = _ServerQuirks()
-            parsed_version = utils.VersionNumber.parse(version)
+            parsed_version = utils.VersionNumber.parse(ver)
             if parsed_version <= utils.VersionNumber(0, 16):
                 # https://github.com/lxqt/lxqt-notificationd/issues/253
                 quirks.escape_title = True
@@ -829,13 +856,13 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         """Query notification server information and set quirks."""
         reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
         self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
-        name, vendor, version, spec_version = reply.arguments()
+        name, vendor, ver, spec_version = reply.arguments()
 
         log.misc.debug(
-            f"Connected to notification server: {name} {version} by {vendor}, "
+            f"Connected to notification server: {name} {ver} by {vendor}, "
             f"implementing spec {spec_version}")
 
-        quirks = self._find_quirks(name, vendor, version)
+        quirks = self._find_quirks(name, vendor, ver)
         if quirks is not None:
             log.misc.debug(f"Enabling quirks {quirks}")
             self._quirks = quirks
@@ -843,7 +870,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         expected_spec_version = self._quirks.spec_version or self.SPEC_VERSION
         if spec_version != expected_spec_version:
             log.misc.warning(
-                f"Notification server ({name} {version} by {vendor}) implements "
+                f"Notification server ({name} {ver} by {vendor}) implements "
                 f"spec {spec_version}, but {expected_spec_version} was expected. "
                 f"If {name} is up to date, please report a qutebrowser bug.")
 
@@ -878,8 +905,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
         if msg.type() == QDBusMessage.ErrorMessage:
             err = msg.errorName()
-            if err == "org.freedesktop.DBus.Error.NoReply":
-                self.error.emit(msg.errorMessage())  # notification daemon is gone
+            if err in self._NON_FATAL_ERRORS:
+                self.error.emit(msg.errorMessage())
                 return
 
             raise Error(f"Got DBus error: {err} - {msg.errorMessage()}")
@@ -1029,7 +1056,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         # Source:
         # https://github.com/dunst-project/dunst/blob/v1.6.1/src/icon.c#L292-L309
         padding = bytes_per_line - width * channel_count
-        assert 0 <= padding < 3, padding
+        assert 0 <= padding <= 3, (padding, bytes_per_line, width, channel_count)
         size -= padding
 
         if padding and self._quirks.no_padded_images:

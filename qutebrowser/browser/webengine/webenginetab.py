@@ -201,6 +201,14 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def _empty_flags(self):
         return QWebEnginePage.FindFlags(0)  # type: ignore[call-overload]
 
+    def _args_to_flags(self, reverse, ignore_case):
+        flags = self._empty_flags()
+        if self._is_case_sensitive(ignore_case):
+            flags |= QWebEnginePage.FindCaseSensitively
+        if reverse:
+            flags |= QWebEnginePage.FindBackward
+        return flags
+
     def connect_signals(self):
         self._wrap_handler.connect_signal(self._widget.page())
 
@@ -247,17 +255,14 @@ class WebEngineSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}, but resetting flags".format(text))
+            self._flags = self._args_to_flags(reverse, ignore_case)
             return
 
         self.text = text
-        self._flags = self._empty_flags()
+        self._flags = self._args_to_flags(reverse, ignore_case)
         self._wrap_handler.reset_match_data()
         self._wrap_handler.flag_wrap = wrap
-        if self._is_case_sensitive(ignore_case):
-            self._flags |= QWebEnginePage.FindCaseSensitively
-        if reverse:
-            self._flags |= QWebEnginePage.FindBackward
 
         self._find(text, self._flags, result_cb, 'search')
 
@@ -402,6 +407,16 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('reverseSelection')
 
     def _follow_selected_cb_wrapped(self, js_elem, tab):
+        if sip.isdeleted(self):
+            # Sometimes, QtWebEngine JS callbacks seem to be stuck, and will
+            # later get executed when the tab is closed. However, at this point,
+            # the WebEngineCaret is already gone.
+            log.webview.warning(
+                "Got follow_selected callback for deleted WebEngineCaret. "
+                "This is most likely due to a QtWebEngine bug, please report a "
+                "qutebrowser issue if you know a way to reproduce this.")
+            return
+
         try:
             self._follow_selected_cb(js_elem, tab)
         finally:
@@ -898,12 +913,37 @@ class WebEngineAudio(browsertab.AbstractAudio):
         super().__init__(tab, parent)
         self._overridden = False
 
+        # Implements the intended two-second delay specified at
+        # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
+        delay_ms = 2000
+        self._silence_timer = QTimer(self)
+        self._silence_timer.setSingleShot(True)
+        self._silence_timer.setInterval(delay_ms)
+
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
-        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        page.recentlyAudibleChanged.connect(self._delayed_recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
+
+    # WORKAROUND for recentlyAudibleChanged being emitted without delay from the moment
+    # that audio is dropped.
+    def _delayed_recently_audible_changed(self, recently_audible):
+        timer = self._silence_timer
+        # Stop any active timer and immediately display [A] if tab is audible,
+        # otherwise start a timer to update audio field
+        if recently_audible:
+            if timer.isActive():
+                timer.stop()
+            self.recently_audible_changed.emit(recently_audible)
+        else:
+            # Ignore all subsequent calls while the tab is muted with an active timer
+            if timer.isActive():
+                return
+            timer.timeout.connect(
+                functools.partial(self.recently_audible_changed.emit, recently_audible))
+            timer.start()
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
         was_muted = self.is_muted()
@@ -1111,6 +1151,11 @@ class _Quirk:
         QWebEngineScript.DocumentCreation)
     world: QWebEngineScript.ScriptWorldId = QWebEngineScript.MainWorld
     predicate: bool = True
+    name: Optional[str] = None
+
+    def __post_init__(self):
+        if self.name is None:
+            self.name = f"js-{self.filename.replace('_', '-')}"
 
 
 class _WebEngineScripts(QObject):
@@ -1233,7 +1278,12 @@ class _WebEngineScripts(QObject):
         page_scripts = self._widget.page().scripts()
         self._remove_all_greasemonkey_scripts()
 
+        seen_names = set()
         for script in scripts:
+            while script.full_name() in seen_names:
+                script.dedup_suffix += 1
+            seen_names.add(script.full_name())
+
             new_script = QWebEngineScript()
 
             try:
@@ -1265,7 +1315,7 @@ class _WebEngineScripts(QObject):
             new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
 
             new_script.setSourceCode(script.code())
-            new_script.setName(f"GM-{script.name}")
+            new_script.setName(script.full_name())
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
 
             if script.needs_document_end_workaround():
@@ -1288,6 +1338,12 @@ class _WebEngineScripts(QObject):
                 injection_point=QWebEngineScript.DocumentReady,
                 world=QWebEngineScript.ApplicationWorld,
             ),
+            _Quirk('discord'),
+            _Quirk(
+                'googledocs',
+                # will be an UA quirk once we set the JS UA as well
+                name='ua-googledocs',
+            ),
             _Quirk(
                 'string_replaceall',
                 predicate=versions.webengine < utils.VersionNumber(5, 15, 3),
@@ -1306,8 +1362,7 @@ class _WebEngineScripts(QObject):
             if not quirk.predicate:
                 continue
             src = resources.read_file(f'javascript/quirks/{quirk.filename}.user.js')
-            name = f"js-{quirk.filename.replace('_', '-')}"
-            if name not in config.val.content.site_specific_quirks.skip:
+            if quirk.name not in config.val.content.site_specific_quirks.skip:
                 self._inject_js(
                     f'quirk_{quirk.filename}',
                     src,
@@ -1817,7 +1872,9 @@ class WebEngineTab(browsertab.AbstractTab):
         up doing it twice.
         """
         super()._on_url_changed(url)
-        if url.isValid() and qtutils.version_check('5.13'):
+        if (url.isValid() and
+                qtutils.version_check('5.13') and
+                not qtutils.version_check('5.14')):
             self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)

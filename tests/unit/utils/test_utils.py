@@ -57,6 +57,7 @@ class TestVersionNumber:
         (VersionNumber(5, 15, 2), '5.15.2'),
         (VersionNumber(5, 15), '5.15'),
         (VersionNumber(5), '5'),
+        (VersionNumber(1, 2, 3, 4), '1.2.3.4'),
     ])
     def test_str(self, num, expected):
         assert str(num) == expected
@@ -69,6 +70,7 @@ class TestVersionNumber:
         (VersionNumber(5, 15, 2), VersionNumber(5, 15)),
         (VersionNumber(5, 15), VersionNumber(5, 15)),
         (VersionNumber(6), VersionNumber(6)),
+        (VersionNumber(1, 2, 3, 4), VersionNumber(1, 2)),
     ])
     def test_strip_patch(self, num, expected):
         assert num.strip_patch() == expected
@@ -79,6 +81,7 @@ class TestVersionNumber:
         ('5.15', VersionNumber(5, 15)),
         ('5.15.3', VersionNumber(5, 15, 3)),
         ('5.15.3.dev1234', VersionNumber(5, 15, 3)),
+        ('1.2.3.4', VersionNumber(1, 2, 3, 4)),
     ])
     def test_parse_valid(self, s, expected):
         assert VersionNumber.parse(s) == expected
@@ -806,8 +809,11 @@ class TestYaml:
         assert utils.yaml_load("[1, 2]") == [1, 2]
 
     def test_load_float_bug(self):
-        with pytest.raises(yaml.YAMLError):
+        try:
             utils.yaml_load("._")
+        except yaml.YAMLError:
+            # Either no exception or YAMLError, not ValueError
+            pass
 
     def test_load_file(self, tmp_path):
         tmpfile = tmp_path / 'foo.yml'

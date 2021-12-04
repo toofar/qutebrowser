@@ -32,7 +32,7 @@ to the QtWebEngine version (as that can be older/newer). Since there will be a
 QtWebEngine 5.15.3 release, but not Qt itself (due to LTS licensing restrictions), this
 isn't a reliable source of information.
 
-b) Look at the PyQtWebEngine version (PyQt5.QtWebEngine.PYQT_WEBENGINE_VERSION_STR).
+b) Look at the PyQtWebEngine version (PyQt6.QtWebEngine.PYQT_WEBENGINE_VERSION_STR).
 This is a good first guess (especially for our Windows/macOS releases), but still isn't
 certain. Linux distributions often push a newer QtWebEngine before the corresponding
 PyQtWebEngine release, and some (*cough* Gentoo *cough*) even publish QtWebEngine
@@ -67,7 +67,7 @@ import mmap
 import pathlib
 from typing import Any, IO, ClassVar, Dict, Optional, Tuple, cast
 
-from PyQt5.QtCore import QLibraryInfo
+from PyQt6.QtCore import QLibraryInfo
 
 from qutebrowser.utils import log, version
 
@@ -314,9 +314,9 @@ def parse_webenginecore() -> Optional[Versions]:
         # Flatpak has Qt in /usr/lib/x86_64-linux-gnu, but QtWebEngine in /app/lib.
         library_path = pathlib.Path("/app/lib")
     else:
-        library_path = pathlib.Path(QLibraryInfo.location(QLibraryInfo.LibrariesPath))
+        library_path = pathlib.Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.LibrariesPath))
 
-    library_name = sorted(library_path.glob('libQt5WebEngineCore.so*'))
+    library_name = sorted(library_path.glob('libQt?WebEngineCore.so*'))
     if not library_name:
         log.misc.debug(f"No QtWebEngine .so found in {library_path}")
         return None

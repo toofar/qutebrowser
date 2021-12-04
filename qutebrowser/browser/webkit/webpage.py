@@ -22,12 +22,12 @@
 import html
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtNetwork import QNetworkReply, QNetworkRequest
+from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtPrintSupport import QPrintDialog
+from PyQt6.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
@@ -67,8 +67,8 @@ class BrowserPage(QWebPage):
         self._tabdata = tabdata
         self._is_shutting_down = False
         self._extension_handlers = {
-            QWebPage.ErrorPageExtension: self._handle_errorpage,
-            QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
+            QWebPage.Extension.ErrorPageExtension: self._handle_errorpage,
+            QWebPage.Extension.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
         self.error_occurred = False
@@ -132,16 +132,16 @@ class BrowserPage(QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
+            (QWebPage.ErrorDomain.QtNetwork, QNetworkReply.NetworkError.OperationCanceledError),
             # "Loading is handled by the media engine"
-            (QWebPage.WebKit, 203),
+            (QWebPage.ErrorDomain.WebKit, 203),
             # "Frame load interrupted by policy change"
-            (QWebPage.WebKit, 102),
+            (QWebPage.ErrorDomain.WebKit, 102),
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) == (QWebPage.QtNetwork,
-                                         QNetworkReply.ProtocolUnknownError):
+        if (info.domain, info.error) == (QWebPage.ErrorDomain.QtNetwork,
+                                         QNetworkReply.NetworkError.ProtocolUnknownError):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
@@ -152,7 +152,7 @@ class BrowserPage(QWebPage):
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
                 yes_action=functools.partial(QDesktopServices.openUrl, url),
-                url=info.url.toString(QUrl.RemovePassword | QUrl.FullyEncoded))
+                url=info.url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -248,7 +248,7 @@ class BrowserPage(QWebPage):
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
         printdiag = QPrintDialog()
-        printdiag.setAttribute(Qt.WA_DeleteOnClose)
+        printdiag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
     def on_download_requested(self, request):
@@ -451,17 +451,17 @@ class BrowserPage(QWebPage):
         and then conditionally opens the URL here or in another tab/window.
         """
         type_map = {
-            QWebPage.NavigationTypeLinkClicked:
+            QWebPage.NavigationType.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,
-            QWebPage.NavigationTypeFormSubmitted:
+            QWebPage.NavigationType.NavigationTypeFormSubmitted:
                 usertypes.NavigationRequest.Type.form_submitted,
-            QWebPage.NavigationTypeFormResubmitted:
+            QWebPage.NavigationType.NavigationTypeFormResubmitted:
                 usertypes.NavigationRequest.Type.form_resubmitted,
-            QWebPage.NavigationTypeBackOrForward:
+            QWebPage.NavigationType.NavigationTypeBackOrForward:
                 usertypes.NavigationRequest.Type.back_forward,
-            QWebPage.NavigationTypeReload:
+            QWebPage.NavigationType.NavigationTypeReload:
                 usertypes.NavigationRequest.Type.reloaded,
-            QWebPage.NavigationTypeOther:
+            QWebPage.NavigationType.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
         is_main_frame = frame is self.mainFrame()

@@ -23,8 +23,8 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor
+from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QColor
 
 from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
@@ -758,7 +758,7 @@ class TestContainer:
 
     @pytest.mark.parametrize('configapi, expected', [
         (object(), 'rgb'),
-        (None, QColor.Rgb),
+        (None, QColor.Spec.Rgb),
     ])
     def test_getattr_option(self, container, configapi, expected):
         container._configapi = configapi

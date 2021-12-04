@@ -34,17 +34,17 @@ import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
 
-from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
+from PyQt6.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl)
-from PyQt5.QtGui import QColor
+from PyQt6.QtGui import QColor
 try:
-    from PyQt5.QtWebKit import qWebKitVersion
+    from PyQt6.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+    from PyQt6.QtWebKit import QWebHistory
+    from PyQt6.QtWebEngineWidgets import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -173,14 +173,14 @@ def ensure_valid(obj: Validatable) -> None:
 def check_qdatastream(stream: QDataStream) -> None:
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
-        QDataStream.Ok: "The data stream is operating normally.",
-        QDataStream.ReadPastEnd: ("The data stream has read past the end of "
+        QDataStream.Status.Ok: "The data stream is operating normally.",
+        QDataStream.Status.ReadPastEnd: ("The data stream has read past the end of "
                                   "the data in the underlying device."),
-        QDataStream.ReadCorruptData: "The data stream has read corrupt data.",
-        QDataStream.WriteFailed: ("The data stream cannot write to the "
+        QDataStream.Status.ReadCorruptData: "The data stream has read corrupt data.",
+        QDataStream.Status.WriteFailed: ("The data stream cannot write to the "
                                   "underlying device."),
     }
-    if stream.status() != QDataStream.Ok:
+    if stream.status() != QDataStream.Status.Ok:
         raise OSError(status_to_str[stream.status()])
 
 
@@ -196,14 +196,14 @@ _QtSerializableType = Union[
 def serialize(obj: _QtSerializableType) -> QByteArray:
     """Serialize an object into a QByteArray."""
     data = QByteArray()
-    stream = QDataStream(data, QIODevice.WriteOnly)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.WriteOnly)
     serialize_stream(stream, obj)
     return data
 
 
 def deserialize(data: QByteArray, obj: _QtSerializableType) -> None:
     """Deserialize an object from a QByteArray."""
-    stream = QDataStream(data, QIODevice.ReadOnly)
+    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadOnly)
     deserialize_stream(stream, obj)
 
 
@@ -233,7 +233,7 @@ def savefile_open(
     f = QSaveFile(filename)
     cancelled = False
     try:
-        open_ok = f.open(QIODevice.WriteOnly)
+        open_ok = f.open(QIODevice.OpenModeFlag.WriteOnly)
         if not open_ok:
             raise QtOSError(f)
 
@@ -302,7 +302,7 @@ class PyQIODevice(io.BufferedIOBase):
     # contextlib.closing is only generic in Python 3.9+
     def open(
         self,
-        mode: QIODevice.OpenMode,
+        mode,
     ) -> contextlib.closing:  # type: ignore[type-arg]
         """Open the underlying device and ensure opening succeeded.
 
@@ -463,8 +463,8 @@ class EventLoop(QEventLoop):
 
     def exec(
             self,
-            flags: QEventLoop.ProcessEventsFlags =
-            cast(QEventLoop.ProcessEventsFlags, QEventLoop.AllEvents)
+            flags: QEventLoop.ProcessEventsFlag =
+            cast(QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlag.AllEvents)
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
@@ -503,7 +503,7 @@ def interpolate_color(
         start: QColor,
         end: QColor,
         percent: int,
-        colorspace: Optional[QColor.Spec] = QColor.Rgb
+        colorspace: Optional[QColor.Spec] = QColor.Spec.Rgb
 ) -> QColor:
     """Get an interpolated color value.
 
@@ -528,17 +528,17 @@ def interpolate_color(
             return QColor(*start.getRgb())
 
     out = QColor()
-    if colorspace == QColor.Rgb:
+    if colorspace == QColor.Spec.Rgb:
         r1, g1, b1, a1 = start.getRgb()
         r2, g2, b2, a2 = end.getRgb()
         components = _get_color_percentage(r1, g1, b1, a1, r2, g2, b2, a2, percent)
         out.setRgb(*components)
-    elif colorspace == QColor.Hsv:
+    elif colorspace == QColor.Spec.Hsv:
         h1, s1, v1, a1 = start.getHsv()
         h2, s2, v2, a2 = end.getHsv()
         components = _get_color_percentage(h1, s1, v1, a1, h2, s2, v2, a2, percent)
         out.setHsv(*components)
-    elif colorspace == QColor.Hsl:
+    elif colorspace == QColor.Spec.Hsl:
         h1, s1, l1, a1 = start.getHsl()
         h2, s2, l2, a2 = end.getHsl()
         components = _get_color_percentage(h1, s1, l1, a1, h2, s2, l2, a2, percent)

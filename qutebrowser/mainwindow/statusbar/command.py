@@ -20,9 +20,9 @@
 """The commandline in the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
-from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
+from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtWidgets import QSizePolicy, QWidget
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils
@@ -69,7 +69,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             command_history = objreg.get('command-history')
             self.history.history = command_history.data
             self.history.changed.connect(command_history.changed)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Ignored)
 
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)
@@ -259,12 +259,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         without command_accept to be called.
         """
         text = self.text()
-        if text in modeparsers.STARTCHARS and e.key() == Qt.Key_Backspace:
+        if text in modeparsers.STARTCHARS and e.key() == Qt.Key.Key_Backspace:
             e.accept()
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted')
             return
-        if e.key() == Qt.Key_Return:
+        if e.key() == Qt.Key.Key_Return:
             e.ignore()
             return
         else:
@@ -276,7 +276,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         text = self.text()
         if not text:
             text = 'x'
-        width = self.fontMetrics().width(text)
+        width = self.fontMetrics().horizontalAdvance(text)
         return QSize(width, height)
 
     @pyqtSlot()

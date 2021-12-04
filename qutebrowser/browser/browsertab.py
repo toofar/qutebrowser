@@ -27,17 +27,17 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
                     Sequence, Set, Type, Union, Dict, Iterator)
 import time
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
+from PyQt6.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect, QDateTime)
-from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtNetwork import QNetworkAccessManager
+from PyQt6.QtGui import QKeyEvent, QIcon, QPixmap
+from PyQt6.QtWidgets import QWidget, QApplication, QDialog
+from PyQt6.QtPrintSupport import QPrintDialog, QPrinter
+from PyQt6.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
-    from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import (QWebEngineHistory, QWebEnginePage,
+    from PyQt6.QtWebKit import QWebHistory, QWebHistoryItem
+    from PyQt6.QtWebKitWidgets import QWebPage
+    from PyQt6.QtWebEngineCore import (QWebEngineHistory, QWebEnginePage,
                                           QWebEngineHistoryItem)
 
 from qutebrowser.keyinput import modeman
@@ -303,7 +303,7 @@ class AbstractPrinting:
         if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
             ret = diag.exec()
-            if ret == QDialog.Accepted:
+            if ret == QDialog.DialogCode.Accepted:
                 do_print()
         else:
             diag.open(do_print)
@@ -562,9 +562,9 @@ class AbstractCaret(QObject):
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:
-            self._tab.fake_key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            self._tab.fake_key_press(Qt.Key.Key_Enter, modifier=Qt.KeyboardModifier.ControlModifier)
         else:
-            self._tab.fake_key_press(Qt.Key_Enter)
+            self._tab.fake_key_press(Qt.Key.Key_Enter)
 
     def follow_selected(self, *, tab: bool = False) -> None:
         raise NotImplementedError
@@ -1347,7 +1347,7 @@ class AbstractTab(QWidget):
         title_url = QUrl(url)
         title_url.setScheme('')
         title_url_str = title_url.toDisplayString(
-            QUrl.RemoveScheme)  # type: ignore[arg-type]
+            QUrl.UrlFormattingOption.RemoveScheme)  # type: ignore[arg-type]
         if title == title_url_str.strip('/'):
             title = ""
 
@@ -1373,7 +1373,7 @@ class AbstractTab(QWidget):
 
             atime = int(time.time())
 
-            no_formatting = cast(QUrl.FormattingOptions,
+            no_formatting = cast(QUrl.UrlFormattingOption,
                                  QUrl.UrlFormattingOption(0))
             if any(u is not None and
                    requested_url.matches(u, no_formatting)
@@ -1427,7 +1427,7 @@ class AbstractTab(QWidget):
 
         try:
             icon_url = self._widget.iconUrl().toDisplayString(
-                QUrl.EncodeUnicode
+                QUrl.UrlFormattingOption.EncodeUnicode
             )
         except AttributeError:
             # QtWebkit doesn't have the iconUrl property
@@ -1467,10 +1467,10 @@ class AbstractTab(QWidget):
 
     def fake_key_press(self,
                        key: Qt.Key,
-                       modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
+                       modifier: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> None:
         """Send a fake key event to this tab."""
-        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+        press_evt = QKeyEvent(QEvent.Type.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.Type.KeyRelease, key, modifier,
                                 0, 0, 0)
         self.send_event(press_evt)
         self.send_event(release_evt)
@@ -1560,8 +1560,9 @@ class AbstractTab(QWidget):
     def __repr__(self) -> str:
         try:
             qurl = self.url()
-            url = qurl.toDisplayString(
-                QUrl.EncodeUnicode)  # type: ignore[arg-type]
+            url = qurl.toDisplayString()
+            # FIXME figure out why this results in AttributeError
+            #    QUrl.FormattingOption(QUrl.ComponentFormattingOption.EncodeUnicode))  # type: ignore[arg-type]
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         else:

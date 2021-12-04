@@ -25,8 +25,8 @@ subclasses to provide completions.
 
 from typing import TYPE_CHECKING, Optional
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
+from PyQt6.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
@@ -126,14 +126,14 @@ class CompletionView(QTreeView):
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
         self.setAnimated(False)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         # WORKAROUND
         # This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
@@ -327,8 +327,8 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            QItemSelectionModel.ClearAndSelect |  # type: ignore[arg-type]
-            QItemSelectionModel.Rows)
+            QItemSelectionModel.SelectionFlag.ClearAndSelect |  # type: ignore[arg-type]
+            QItemSelectionModel.SelectionFlag.Rows)
 
         # if the last item is focused, try to fetch more
         next_idx = self.indexBelow(idx)

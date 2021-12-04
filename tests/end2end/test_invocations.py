@@ -29,7 +29,7 @@ import json
 import platform
 
 import pytest
-from PyQt5.QtCore import QProcess, QPoint
+from PyQt6.QtCore import QProcess, QPoint
 
 from helpers import testutils
 from qutebrowser.utils import qtutils, utils
@@ -262,7 +262,7 @@ def test_version(request):
     # can't use quteproc_new here because it's confused by
     # early process termination
     proc = QProcess()
-    proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc.setProcessChannelMode(QProcess.ProcessChannelMode.SeparateChannels)
 
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
@@ -275,7 +275,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
+    assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
@@ -786,8 +786,8 @@ def test_unavailable_backend(request, quteproc_new):
     that the chosen backend is actually available - i.e., that the error message is
     properly printed, rather than an unhandled exception.
     """
-    qtwe_module = "PyQt5.QtWebEngineWidgets"
-    qtwk_module = "PyQt5.QtWebKitWidgets"
+    qtwe_module = "PyQt6.QtWebEngineWidgets"
+    qtwk_module = "PyQt6.QtWebKitWidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
         pytest.importorskip(qtwe_module)

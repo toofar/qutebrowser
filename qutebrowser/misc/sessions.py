@@ -29,8 +29,8 @@ from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Uni
 import base64
 
 import yaml
-from PyQt5.QtCore import Qt, QObject, QPoint, QTimer, QUrl, QDateTime
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtCore import Qt, QObject, QPoint, QTimer, QUrl, QDateTime
+from PyQt6.QtWidgets import QApplication
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils, usertypes, version)
@@ -193,7 +193,7 @@ class SessionManager(QObject):
 
         data['last_visited'] = None
         if item.last_visited:
-            data['last_visited'] = item.last_visited.toString(Qt.ISODate)
+            data['last_visited'] = item.last_visited.toString(Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -387,7 +387,7 @@ class SessionManager(QObject):
             if histentry.get("last_visited"):
                 last_visited: Optional[QDateTime] = QDateTime.fromString(
                     histentry.get("last_visited"),
-                    Qt.ISODate,
+                    Qt.DateFormat.ISODate,
                 )
             else:
                 last_visited = None

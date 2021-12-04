@@ -24,9 +24,9 @@ import binascii
 import enum
 from typing import cast, Optional
 
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QCloseEvent
+from PyQt6.QtWidgets import QWidget
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
+from PyQt6.QtGui import QCloseEvent
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles
@@ -70,7 +70,7 @@ class _EventFilter(QObject):
 
     def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
         """Translate mouse presses to a clicked signal."""
-        if event.type() == QEvent.MouseButtonPress:
+        if event.type() == QEvent.Type.MouseButtonPress:
             self.clicked.emit()
         return False
 

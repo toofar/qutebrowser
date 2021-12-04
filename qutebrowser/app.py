@@ -46,9 +46,9 @@ import datetime
 import argparse
 from typing import Iterable, Optional
 
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
+from PyQt6.QtWidgets import QApplication, QWidget
+from PyQt6.QtGui import QDesktopServices, QPixmap, QIcon
+from PyQt6.QtCore import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
 
 import qutebrowser
 import qutebrowser.resources
@@ -186,7 +186,9 @@ def _init_icon():
         filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
         pixmap = QPixmap(filename)
         if pixmap.isNull():
-            log.init.warning("Failed to load {}".format(filename))
+            # FIXME
+            # log.init.warning("Failed to load {}".format(filename))
+            pass
         else:
             fallback_icon.addPixmap(pixmap)
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)
@@ -565,7 +567,7 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(  # type: ignore[attr-defined]
             self.on_focus_object_changed)
-        self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+        #self.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
 
         self.new_window.connect(self._on_new_window)
 
@@ -584,7 +586,7 @@ class Application(QApplication):
 
     def event(self, e):
         """Handle macOS FileOpen events."""
-        if e.type() != QEvent.FileOpen:
+        if e.type() != QEvent.Type.FileOpen:
             return super().event(e)
 
         url = e.url()

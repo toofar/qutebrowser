@@ -29,10 +29,10 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl, pyqtSlot, QVariant
-from PyQt5.QtNetwork import (QNetworkRequest, QNetworkAccessManager,
+from PyQt6.QtCore import pyqtSignal, QObject, QUrl, pyqtSlot, QVariant
+from PyQt6.QtNetwork import (QNetworkRequest, QNetworkAccessManager,
                              QNetworkCookie, QNetworkCookieJar)
-from PyQt5.QtWebChannel import QWebChannel
+from PyQt6.QtWebChannel import QWebChannel
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)
@@ -246,7 +246,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.FullyEncoded)
+        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):

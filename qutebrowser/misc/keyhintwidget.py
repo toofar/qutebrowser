@@ -28,8 +28,8 @@ import html
 import fnmatch
 import re
 
-from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
+from PyQt6.QtWidgets import QLabel, QSizePolicy
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
@@ -65,9 +65,9 @@ class KeyHintView(QLabel):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setTextFormat(Qt.RichText)
+        self.setTextFormat(Qt.TextFormat.RichText)
         self._win_id = win_id
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)

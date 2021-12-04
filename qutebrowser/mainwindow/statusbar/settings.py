@@ -21,7 +21,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, QUrl
+from PyQt6.QtCore import pyqtSlot, QUrl
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase

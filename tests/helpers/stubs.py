@@ -30,11 +30,11 @@ import builtins
 import importlib
 import types
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
-from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
+from PyQt6.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl, QByteArray
+from PyQt6.QtGui import QIcon
+from PyQt6.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from PyQt6.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
@@ -135,7 +135,7 @@ class FakeNetworkReply:
     """QNetworkReply stub which provides a Content-Disposition header."""
 
     KNOWN_HEADERS = {
-        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+        QNetworkRequest.KnownHeaders.ContentTypeHeader: 'Content-Type',
     }
 
     def __init__(self, headers=None, url=None):

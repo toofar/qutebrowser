@@ -25,8 +25,8 @@ import dataclasses
 import types
 from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
+from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.qt import sip
 from qutebrowser.utils import debug, log
@@ -324,7 +324,7 @@ class Query:
             self.query.bindValue(f':{key}', val)
 
         bound_values = self.bound_values()
-        if None in bound_values.values():
+        if None in bound_values:
             raise BugError("Missing bound values!")
 
         return bound_values

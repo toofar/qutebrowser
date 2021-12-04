@@ -25,7 +25,7 @@
 import dataclasses
 from typing import Optional
 
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 
 @dataclasses.dataclass(order=True)
@@ -62,7 +62,7 @@ class Modifier:
 
     Attributes:
         attribute: The name of the Qt::KeyboardModifier attribute
-                   ('Shift' -> Qt.ShiftModifier)
+                   ('Shift' -> Qt.KeyboardModifier.ShiftModifier)
         name: The name returned by str(KeyInfo) with that modifier.
         member: The numeric value.
     """
@@ -72,7 +72,7 @@ class Modifier:
     member: Optional[int] = None
 
     def __post_init__(self):
-        self.member = getattr(Qt, self.attribute + 'Modifier')
+        self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 

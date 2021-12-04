@@ -22,8 +22,8 @@
 import time
 from typing import MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt6.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes
@@ -48,7 +48,7 @@ class Message(QLabel):
             self.created_at = time.time() * 1000
         else:
             self.created_at = created_at
-        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setWordWrap(True)
         qss = """
             padding-top: 2px;
@@ -93,7 +93,7 @@ class MessageView(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self._clear_timer = QTimer()
         self._clear_timer.setSingleShot(True)
@@ -173,5 +173,5 @@ class MessageView(QWidget):
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""
-        if e.button() in [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]:
+        if e.button() in [Qt.MouseButton.LeftButton, Qt.MouseButton.MiddleButton, Qt.MouseButton.RightButton]:
             self.clear_messages()

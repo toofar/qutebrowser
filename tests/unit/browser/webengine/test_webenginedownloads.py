@@ -22,8 +22,8 @@ import base64
 import dataclasses
 
 import pytest
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+pytest.importorskip('PyQt6.QtWebEngineWidgets')
+from PyQt6.QtWebEngineCore import QWebEngineProfile
 
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads
@@ -154,7 +154,7 @@ class TestDataUrlWorkaround:
         def check_item(item):
             assert item.mimeType() == 'application/pdf'
             assert item.url().scheme() == 'data'
-            assert os.path.basename(item.path()) == expected_names.before
+            assert item.downloadFileName() == expected_names.before
             return True
 
         with qtbot.wait_signal(webengine_profile.downloadRequested,

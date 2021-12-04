@@ -25,8 +25,8 @@ import contextlib
 import pathlib
 from typing import cast, Mapping, MutableSequence, Optional
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
+from PyQt6.QtCore import pyqtSlot, QUrl, QObject, pyqtSignal
+from PyQt6.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
@@ -451,10 +451,10 @@ class WebHistory(sql.SqlTable):
             }, replace=True)
 
     def _format_url(self, url):
-        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        return url.toString()
 
     def _format_completion_url(self, url):
-        return url.toString(QUrl.RemovePassword)
+        return url.toString(QUrl.UrlFormattingOption.RemovePassword)
 
 
 @cmdutils.register()

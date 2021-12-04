@@ -32,9 +32,9 @@ import faulthandler
 import dataclasses
 from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
 
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
+from PyQt6.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
@@ -134,8 +134,7 @@ class CrashHandler(QObject):
                                         window=win_id)
             for tab in tabbed_browser.widgets():
                 try:
-                    urlstr = tab.url().toString(
-                        QUrl.RemovePassword | QUrl.FullyEncoded)
+                    urlstr = tab.url().toString()
                     if urlstr:
                         win_pages.append(urlstr)
                 except Exception:
@@ -359,7 +358,7 @@ class SignalHandler(QObject):
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
-                                             QSocketNotifier.Read,
+                                             QSocketNotifier.Type.Read,
                                              self)
             self._notifier.activated.connect(  # type: ignore[attr-defined]
                 self.handle_signal_wakeup)

@@ -28,7 +28,7 @@ import warnings
 
 import pytest
 import hypothesis
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt6.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
@@ -252,9 +252,9 @@ def _select_backend(config):
 
     # Fail early if selected backend is not available
     if backend == 'webkit':
-        import PyQt5.QtWebKitWidgets
+        import PyQt6.QtWebKitWidgets
     elif backend == 'webengine':
-        import PyQt5.QtWebEngineWidgets
+        import PyQt6.QtWebEngineWidgets
     else:
         raise utils.Unreachable(backend)
 
@@ -264,12 +264,12 @@ def _select_backend(config):
 def _auto_select_backend():
     try:
         # Try to use QtWebKit as the default backend
-        import PyQt5.QtWebKitWidgets
+        import PyQt6.QtWebKitWidgets
         return 'webkit'
     except ImportError:
         # Try to use QtWebEngine as a fallback and fail early
         # if that's also not available
-        import PyQt5.QtWebEngineWidgets
+        import PyQt6.QtWebEngineWidgets
         return 'webengine'
 
 

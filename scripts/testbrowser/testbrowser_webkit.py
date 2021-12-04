@@ -23,10 +23,10 @@
 import sys
 import argparse
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWebKit import QWebSettings
+from PyQt6.QtWebKitWidgets import QWebView
 
 
 def parse_args():
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     wv.loadFinished.connect(lambda: print("Loading finished"))
 
     if args.plugins:
-        wv.settings().setAttribute(QWebSettings.PluginsEnabled, True)
+        wv.settings().setAttribute(QWebSettings.WebAttribute.PluginsEnabled, True)
 
     wv.load(QUrl.fromUserInput(args.url))
     wv.show()

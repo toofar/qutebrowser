@@ -33,8 +33,8 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QPoint
-from PyQt5.QtGui import QImage, QColor
+from PyQt6.QtCore import pyqtSignal, QUrl, QPoint
+from PyQt6.QtGui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
@@ -104,10 +104,10 @@ def is_ignored_lowlevel_message(message):
         # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
         'DevTools listening on *',
         # /home/travis/build/qutebrowser/qutebrowser/.tox/py36-pyqt511-cov/lib/
-        # python3.6/site-packages/PyQt5/Qt/libexec/QtWebEngineProcess:
+        # python3.6/site-packages/PyQt6/Qt/libexec/QtWebEngineProcess:
         # /lib/x86_64-linux-gnu/libdbus-1.so.3: no version information
         # available (required by /home/travis/build/qutebrowser/qutebrowser/
-        # .tox/py36-pyqt511-cov/lib/python3.6/site-packages/PyQt5/Qt/libexec/
+        # .tox/py36-pyqt511-cov/lib/python3.6/site-packages/PyQt6/Qt/libexec/
         # ../lib/libQt5WebEngineCore.so.5)
         '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
         'version information available (required by '
@@ -118,6 +118,9 @@ def is_ignored_lowlevel_message(message):
         '<frozen importlib._bootstrap>:*: RuntimeWarning: builtins.type size changed, '
         'may indicate binary incompatibility. Expected 872 from C header, got 880 from '
         'PyObject',
+
+        # FIXME PyQt6
+        "QVariant::save: unable to save type 'QObject*' (type id: 39)."
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -598,11 +601,11 @@ class QuteProc(testprocess.Process):
             raise ValueError("Either both x/y or neither must be given!")
 
         if x is None and y is None:
-            point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
+            point = 'PyQt6.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
-            point = 'PyQt5.QtCore.QPoint()'
+            point = 'PyQt6.QtCore.QPoint()'
         else:
-            point = 'PyQt5.QtCore.QPoint({}, {})'.format(x, y)
+            point = 'PyQt6.QtCore.QPoint({}, {})'.format(x, y)
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
@@ -849,13 +852,14 @@ class QuteProc(testprocess.Process):
 
         # We really need the same representation that the webview uses in
         # its __repr__
-        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+        #url = utils.elide(qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode), 100)
+        url = utils.elide(qurl.toDisplayString(), 100)
         assert url
 
         pattern = re.compile(
             r"(load status for <qutebrowser\.browser\..* "
             r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+            r"PyQt6\.QtCore\.QUrl\('{url}'\) -> .*)".format(
                 load_status=re.escape(load_status), url=re.escape(url)))
 
         try:

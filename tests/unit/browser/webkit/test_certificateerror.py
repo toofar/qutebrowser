@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtNetwork import QSslError
+from PyQt6.QtNetwork import QSslError
 
 from qutebrowser.browser.webkit import certificateerror
 
@@ -34,13 +34,13 @@ class FakeError:
 
 @pytest.mark.parametrize('errors, expected', [
     (
-        [QSslError(QSslError.UnableToGetIssuerCertificate)],
+        [QSslError(QSslError.SslError.UnableToGetIssuerCertificate)],
         ['<p>The issuer certificate could not be found</p>'],
     ),
     (
         [
-            QSslError(QSslError.UnableToGetIssuerCertificate),
-            QSslError(QSslError.UnableToDecryptCertificateSignature),
+            QSslError(QSslError.SslError.UnableToGetIssuerCertificate),
+            QSslError(QSslError.SslError.UnableToDecryptCertificateSignature),
         ],
         [
             '<ul>',

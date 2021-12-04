@@ -28,7 +28,7 @@ import types
 from typing import (
     Any, Callable, List, Mapping, MutableSequence, Optional, Sequence, Type, Union)
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
+from PyQt6.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSignal
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
@@ -70,7 +70,7 @@ def log_signals(obj: QObject) -> QObject:
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
             qtutils.ensure_valid(meta_method)
-            if meta_method.methodType() == QMetaMethod.Signal:
+            if meta_method.methodType() == QMetaMethod.MethodType.Signal:
                 name = meta_method.name().data().decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
@@ -125,7 +125,7 @@ def qenum_key(base: Type[_EnumValueType],
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
         idx = meta_obj.indexOfEnumerator(klass.__name__)
         meta_enum = meta_obj.enumerator(idx)
-        ret = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        ret = meta_enum.valueToKey(value.value)  # type: ignore[arg-type]
     except AttributeError:
         ret = None
 
@@ -135,7 +135,7 @@ def qenum_key(base: Type[_EnumValueType],
                 ret = name
                 break
         else:
-            ret = '0x{:04x}'.format(int(value))  # type: ignore[arg-type]
+            ret = '0x{:04x}'.format(value.value)  # type: ignore[arg-type]
 
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
@@ -149,8 +149,8 @@ def qflags_key(base: Type[_EnumValueType],
                klass: Type[_EnumValueType] = None) -> str:
     """Convert a Qt QFlags value to its keys as string.
 
-    Note: Passing a combined value (such as Qt.AlignCenter) will get the names
-    for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
+    Note: Passing a combined value (such as Qt.AlignmentFlag.AlignCenter) will get the names
+    for the individual bits (e.g. Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter). FIXME
 
     https://github.com/qutebrowser/qutebrowser/issues/42
 
@@ -327,7 +327,7 @@ def _get_pyqt_objects(lines: MutableSequence[str],
                       obj: QObject,
                       depth: int = 0) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(QObject, '', Qt.FindDirectChildrenOnly):
+    for kid in obj.findChildren(QObject, '', Qt.FindChildOption.FindDirectChildrenOnly):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 

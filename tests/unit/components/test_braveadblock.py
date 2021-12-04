@@ -22,7 +22,7 @@ import logging
 import csv
 from typing import Iterable, Tuple
 
-from PyQt5.QtCore import QUrl
+from PyQt6.QtCore import QUrl
 
 import pytest
 
@@ -327,7 +327,7 @@ def test_whitelist_on_dataset(config_stub, easylist_easyprivacy):
         assert not blockutils.is_whitelisted_url(url)
         config_stub.val.content.blocking.whitelist = []
         assert not blockutils.is_whitelisted_url(url)
-        whitelist_url = url.toString(QUrl.RemovePath) + "/*"
+        whitelist_url = url.toString(QUrl.UrlFormattingOption.RemovePath) + "/*"
         config_stub.val.content.blocking.whitelist = [whitelist_url]
         assert blockutils.is_whitelisted_url(url)
 

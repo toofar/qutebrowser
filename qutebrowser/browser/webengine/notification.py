@@ -50,18 +50,18 @@ import functools
 import subprocess
 from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
 
-from PyQt5.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
+from PyQt6.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
                           pyqtSignal, QTimer, QProcess, QUrl)
-from PyQt5.QtGui import QImage, QIcon, QPixmap
-from PyQt5.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
+from PyQt6.QtGui import QImage, QIcon, QPixmap
+from PyQt6.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
                           QDBusArgument, QDBusMessage, QDBusError)
-from PyQt5.QtWidgets import QSystemTrayIcon
+from PyQt6.QtWidgets import QSystemTrayIcon
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
-    from PyQt5.QtWebEngineCore import QWebEngineNotification
-    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+    from PyQt6.QtWebEngineCore import QWebEngineNotification
+    from PyQt6.QtWebEngineWidgets import QWebEngineProfile
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -238,7 +238,7 @@ class NotificationBridgePresenter(QObject):
         # Fixed in PyQtWebEngine 5.15.0
         # PYQT_WEBENGINE_VERSION was added with PyQtWebEngine 5.13, but if we're here,
         # we already did a version check above.
-        from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+        from PyQt6.QtWebEngineCore import PYQT_WEBENGINE_VERSION
         if PYQT_WEBENGINE_VERSION < 0x050F00:
             # PyQtWebEngine unrefs the callback after it's called, for some
             # reason.  So we call setNotificationPresenter again to *increase*
@@ -459,7 +459,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         """Convert a QImage to a QIcon."""
         if image.isNull():
             return QIcon()
-        pixmap = QPixmap.fromImage(image, Qt.NoFormatConversion)
+        pixmap = QPixmap.fromImage(image, Qt.ImageConversionFlag.NoFormatConversion)
         assert not pixmap.isNull()
         icon = QIcon(pixmap)
         assert not icon.isNull()
@@ -610,7 +610,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         signals, we can't do much - emitting self.error would just go use herbe again,
         so there's no point.
         """
-        if status == QProcess.CrashExit:
+        if status == QProcess.ExitStatus.CrashExit:
             return
 
         if code == 0:
@@ -624,7 +624,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     @pyqtSlot(QProcess.ProcessError)
     def _on_error(self, error: QProcess.ProcessError) -> None:
-        if error == QProcess.Crashed:
+        if error == QProcess.ProcessError.Crashed:
             return
         name = debug.qenum_key(QProcess.ProcessError, error)
         raise Error(f'herbe process error: {name}')
@@ -679,7 +679,7 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    successful = variant.convert(QVariant.UInt)
+    successful = variant.convert(QMetaType(QMetaType.Type.UInt.value))
     assert successful
     return variant
 
@@ -741,7 +741,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         self._watcher = QDBusServiceWatcher(
             self.SERVICE,
             bus,
-            QDBusServiceWatcher.WatchForUnregistration,
+            QDBusServiceWatcher.WatchModeFlag.WatchForUnregistration,
             self,
         )
         self._watcher.serviceUnregistered.connect(  # type: ignore[attr-defined]
@@ -854,8 +854,8 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
-        reply = self.interface.call(QDBus.BlockWithGui, "GetServerInformation")
-        self._verify_message(reply, "ssss", QDBusMessage.ReplyMessage)
+        reply = self.interface.call(QDBus.CallMode.BlockWithGui, "GetServerInformation")
+        self._verify_message(reply, "ssss", QDBusMessage.MessageType.ReplyMessage)
         name, vendor, ver, spec_version = reply.arguments()
 
         log.misc.debug(
@@ -899,11 +899,11 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         Raises DBusError if the signature doesn't match.
         """
         assert expected_type not in [
-            QDBusMessage.ErrorMessage,
-            QDBusMessage.InvalidMessage,
+            QDBusMessage.MessageType.ErrorMessage,
+            QDBusMessage.MessageType.InvalidMessage,
         ], expected_type
 
-        if msg.type() == QDBusMessage.ErrorMessage:
+        if msg.type() == QDBusMessage.MessageType.ErrorMessage:
             err = msg.errorName()
             if err in self._NON_FATAL_ERRORS:
                 self.error.emit(msg.errorMessage())
@@ -938,7 +938,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         actions = []
         if self._capabilities.actions:
             actions = ['default', 'Activate']  # key, name
-        actions_arg = QDBusArgument(actions, QMetaType.QStringList)
+        actions_arg = QDBusArgument(actions, QMetaType.Type.QStringList.value)
 
         origin_url_str = qt_notification.origin().toDisplayString()
         hints: Dict[str, Any] = {
@@ -953,7 +953,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             hints["x-kde-origin-name"] = origin_url_str
 
         icon = qt_notification.icon()
-        if icon.isNull():
+        if icon.isNull() or not bool(icon.rect()):
             filename = ':/icons/qutebrowser-64x64.png'
             icon = QImage(filename)
 
@@ -968,7 +968,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             title = html.escape(title, quote=False)
 
         reply = self.interface.call(
-            QDBus.BlockWithGui,
+            QDBus.CallMode.BlockWithGui,
             "Notify",
             "qutebrowser",  # application name
             _as_uint32(replaces_id),  # replaces notification id
@@ -979,7 +979,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             hints,
             -1,  # timeout; -1 means 'use default'
         )
-        self._verify_message(reply, "u", QDBusMessage.ReplyMessage)
+        self._verify_message(reply, "u", QDBusMessage.MessageType.ReplyMessage)
 
         notification_id = reply.arguments()[0]
 
@@ -1003,10 +1003,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         bits_per_color = 8
         has_alpha = qimage.hasAlphaChannel()
         if has_alpha:
-            image_format = QImage.Format_RGBA8888
+            image_format = QImage.Format.Format_RGBA8888
             channel_count = 4
         else:
-            image_format = QImage.Format_RGB888
+            image_format = QImage.Format.Format_RGB888
             channel_count = 3
 
         qimage.convertTo(image_format)
@@ -1031,6 +1031,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             # byteCount() is obsolete, but sizeInBytes() is only available with
             # SIP >= 5.3.0.
             size = qimage.byteCount()
+
+        if size == 0:
+            return None
 
         # Despite the spec not mandating this, many notification daemons mandate that
         # the last scanline does not have any padding bytes.
@@ -1071,14 +1074,14 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     @pyqtSlot(QDBusMessage)
     def _handle_close(self, msg: QDBusMessage) -> None:
         """Handle NotificationClosed from DBus."""
-        self._verify_message(msg, "uu", QDBusMessage.SignalMessage)
+        self._verify_message(msg, "uu", QDBusMessage.MessageType.SignalMessage)
         notification_id, _close_reason = msg.arguments()
         self.close_id.emit(notification_id)
 
     @pyqtSlot(QDBusMessage)
     def _handle_action(self, msg: QDBusMessage) -> None:
         """Handle ActionInvoked from DBus."""
-        self._verify_message(msg, "us", QDBusMessage.SignalMessage)
+        self._verify_message(msg, "us", QDBusMessage.MessageType.SignalMessage)
         notification_id, action_key = msg.arguments()
         if action_key == "default":
             self.click_id.emit(notification_id)
@@ -1087,7 +1090,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, notification_id: int) -> None:
         """Send CloseNotification if a notification was closed from JS."""
         self.interface.call(
-            QDBus.NoBlock,
+            QDBus.CallMode.NoBlock,
             "CloseNotification",
             _as_uint32(notification_id),
         )
@@ -1095,10 +1098,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
     def _fetch_capabilities(self) -> None:
         """Fetch capabilities from the notification server."""
         reply = self.interface.call(
-            QDBus.BlockWithGui,
+            QDBus.CallMode.BlockWithGui,
             "GetCapabilities",
         )
-        self._verify_message(reply, "as", QDBusMessage.ReplyMessage)
+        self._verify_message(reply, "as", QDBusMessage.MessageType.ReplyMessage)
 
         caplist = reply.arguments()[0]
         self._capabilities = _ServerCapabilities.from_list(caplist)
@@ -1125,7 +1128,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
             prefix = None
         elif self._capabilities.body_markup and self._capabilities.body_hyperlinks:
             href = html.escape(
-                origin_url.toString(QUrl.FullyEncoded)  # type: ignore[arg-type]
+                origin_url.toString(QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
             )
             text = html.escape(urlstr, quote=False)
             prefix = f'<a href="{href}">{text}</a>'

@@ -28,7 +28,7 @@ import textwrap
 import logging
 import subprocess
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt6.QtCore import QStandardPaths
 import pytest
 
 from qutebrowser.utils import standarddir, utils, qtutils
@@ -114,8 +114,8 @@ def test_fake_windows(tmpdir, monkeypatch, what):
 def test_fake_haiku(tmpdir, monkeypatch):
     """Test getting data dir on HaikuOS."""
     locations = {
-        QStandardPaths.AppDataLocation: '',
-        QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
+        QStandardPaths.StandardLocation.AppDataLocation: '',
+        QStandardPaths.StandardLocation.ConfigLocation: str(tmpdir / 'config' / APPNAME),
     }
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         locations.get)
@@ -135,14 +135,14 @@ class TestWritableLocation:
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
-            standarddir._writable_location(QStandardPaths.AppDataLocation)
+            standarddir._writable_location(QStandardPaths.StandardLocation.AppDataLocation)
 
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
         monkeypatch.setattr(standarddir.os, 'sep', '\\')
         monkeypatch.setattr(standarddir.os.path, 'join',
                             lambda *parts: '\\'.join(parts))
-        loc = standarddir._writable_location(QStandardPaths.AppDataLocation)
+        loc = standarddir._writable_location(QStandardPaths.StandardLocation.AppDataLocation)
         assert '/' not in loc
         assert '\\' in loc
 
@@ -465,7 +465,7 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
-        from PyQt5.QtWidgets import QApplication
+        from PyQt6.QtWidgets import QApplication
         from qutebrowser.utils import standarddir
 
         assert QApplication.instance() is None

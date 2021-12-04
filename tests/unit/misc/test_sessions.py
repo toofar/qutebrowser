@@ -23,14 +23,14 @@ import logging
 
 import pytest
 import yaml
-from PyQt5.QtCore import QByteArray, QObject, QPoint, QUrl
+from PyQt6.QtCore import QByteArray, QObject, QPoint, QUrl
 
 from qutebrowser.browser.browsertab import AbstractHistoryItem as Item
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc import sessions
 from qutebrowser.utils import objreg, qtutils
 
-QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
+QWebView = pytest.importorskip('PyQt6.QtWebKitWidgets').QWebView
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 

@@ -153,7 +153,13 @@ def smoke_test(executable, debug):
         '[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
     ]
 
-    proc = _smoke_test_run(executable)
+    try:
+        proc = _smoke_test_run(executable)
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode('utf-8'))
+        print(e.stderr.decode('utf-8'))
+        raise
+
     if debug:
         print("Skipping output check for debug build")
         return
@@ -227,23 +233,23 @@ def patch_mac_app():
         plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt5', 'lib', 'QtWebEngineCore.framework')
+    #framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt6',
+    #                              'Qt', 'lib', 'QtWebEngineCore.framework')
 
-    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
-    os.remove(core_lib)
-    core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
-    os.symlink(core_target, core_lib)
+    #core_lib = os.path.join(framework_path, 'Versions', '6', 'QtWebEngineCore')
+    #os.remove(core_lib)
+    #core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
+    #os.symlink(core_target, core_lib)
 
-    framework_resource_path = os.path.join(framework_path, 'Resources')
-    for name in os.listdir(framework_resource_path):
-        file_path = os.path.join(framework_resource_path, name)
-        target = os.path.join(*[os.pardir] * 5, name)
-        if os.path.isdir(file_path):
-            shutil.rmtree(file_path)
-        else:
-            os.remove(file_path)
-        os.symlink(target, file_path)
+    #framework_resource_path = os.path.join(framework_path, 'Resources')
+    #for name in os.listdir(framework_resource_path):
+    #    file_path = os.path.join(framework_resource_path, name)
+    #    target = os.path.join(*[os.pardir] * 5, name)
+    #    if os.path.isdir(file_path):
+    #        shutil.rmtree(file_path)
+    #    else:
+    #        os.remove(file_path)
+    #    os.symlink(target, file_path)
 
 
 INFO_PLIST_UPDATES = {

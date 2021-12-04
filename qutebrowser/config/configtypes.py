@@ -55,10 +55,10 @@ from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
 import yaml
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QTabWidget, QTabBar
-from PyQt5.QtNetwork import QNetworkProxy
+from PyQt6.QtCore import QUrl, Qt
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QTabWidget, QTabBar
+from PyQt6.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils, config
@@ -1058,9 +1058,9 @@ class ColorSystem(MappingType):
     """The color system to use for color interpolation."""
 
     MAPPING = {
-        'rgb': (QColor.Rgb, "Interpolate in the RGB color system."),
-        'hsv': (QColor.Hsv, "Interpolate in the HSV color system."),
-        'hsl': (QColor.Hsl, "Interpolate in the HSL color system."),
+        'rgb': (QColor.Spec.Rgb, "Interpolate in the RGB color system."),
+        'hsv': (QColor.Spec.Hsv, "Interpolate in the HSV color system."),
+        'hsl': (QColor.Spec.Hsl, "Interpolate in the HSL color system."),
         'none': (None, "Don't show a gradient."),
     }
 
@@ -1792,10 +1792,10 @@ class Position(MappingType):
     """The position of the tab bar."""
 
     MAPPING = {
-        'top': (QTabWidget.North, None),
-        'bottom': (QTabWidget.South, None),
-        'left': (QTabWidget.West, None),
-        'right': (QTabWidget.East, None),
+        'top': (QTabWidget.TabPosition.North, None),
+        'bottom': (QTabWidget.TabPosition.South, None),
+        'left': (QTabWidget.TabPosition.West, None),
+        'right': (QTabWidget.TabPosition.East, None),
     }
 
 
@@ -1804,9 +1804,9 @@ class TextAlignment(MappingType):
     """Alignment of text."""
 
     MAPPING = {
-        'left': (Qt.AlignLeft, None),
-        'right': (Qt.AlignRight, None),
-        'center': (Qt.AlignCenter, None),
+        'left': (Qt.AlignmentFlag.AlignLeft, None),
+        'right': (Qt.AlignmentFlag.AlignRight, None),
+        'center': (Qt.AlignmentFlag.AlignCenter, None),
     }
 
 
@@ -1862,17 +1862,17 @@ class SelectOnRemove(MappingType):
 
     MAPPING = {
         'prev': (
-            QTabBar.SelectLeftTab,
+            QTabBar.SelectionBehavior.SelectLeftTab,
             ("Select the tab which came before the closed one "
              "(left in horizontal, above in vertical)."),
         ),
         'next': (
-            QTabBar.SelectRightTab,
+            QTabBar.SelectionBehavior.SelectRightTab,
             ("Select the tab which came after the closed one "
              "(right in horizontal, below in vertical)."),
         ),
         'last-used': (
-            QTabBar.SelectPreviousTab,
+            QTabBar.SelectionBehavior.SelectPreviousTab,
             "Select the previously selected tab.",
         ),
     }

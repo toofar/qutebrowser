@@ -38,18 +38,18 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
 
-from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
-from PyQt5.QtNetwork import QSslSocket
-from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
-                         QOffscreenSurface)
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtCore import PYQT_VERSION_STR, QLibraryInfo, qVersion
+from PyQt6.QtNetwork import QSslSocket
+#from PyQt6.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+#                         QOffscreenSurface)
+from PyQt6.QtWidgets import QApplication
 
 try:
-    from PyQt5.QtWebKit import qWebKitVersion
+    from PyQt6.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
+    from PyQt6.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
 except ImportError:  # pragma: no cover
     # Added in PyQt 5.13
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
@@ -404,9 +404,9 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
-        ('PyQt5.QtWebEngineWidgets', []),
-        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
-        ('PyQt5.QtWebKitWidgets', []),
+        ('PyQt6.QtWebEngineWidgets', []),
+        ('PyQt6.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
+        ('PyQt6.QtWebKitWidgets', []),
     ]
 ])
 
@@ -519,7 +519,7 @@ def _get_pyqt_webengine_qt_version() -> Optional[str]:
             log.misc.debug("Neither importlib.metadata nor backport available")
             return None
 
-    for suffix in ['Qt5', 'Qt']:
+    for suffix in ['Qt6', 'Qt']:
         try:
             return importlib_metadata.version(f'PyQtWebEngine-{suffix}')
         except importlib_metadata.PackageNotFoundError:
@@ -699,7 +699,7 @@ class WebEngineVersions:
             # be using QtWebEngine 5.15.3 (87-based). For now, we play it safe, and only
             # do this kind of "downgrade" when we know we're using PyInstaller.
             frozen = hasattr(sys, 'frozen')
-            log.misc.debug(f"PyQt5 >= 5.15.3, frozen {frozen}")
+            log.misc.debug(f"PyQt6 >= 5.15.3, frozen {frozen}")
             if frozen:
                 parsed = utils.VersionNumber(5, 15, 2)
 
@@ -848,8 +848,8 @@ def version_info() -> str:
         "Imported from {}".format(importpath),
         "Using Python from {}".format(sys.executable),
         "Qt library executable path: {}, data path: {}".format(
-            QLibraryInfo.location(QLibraryInfo.LibraryExecutablesPath),
-            QLibraryInfo.location(QLibraryInfo.DataPath)
+            QLibraryInfo.path(QLibraryInfo.LibraryPath.LibraryExecutablesPath),
+            QLibraryInfo.path(QLibraryInfo.LibraryPath.DataPath)
         )
     ]
 
@@ -939,6 +939,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     determined.
     """
     assert QApplication.instance()
+    return None
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:

@@ -109,19 +109,25 @@ def init_faulthandler(fileobj=sys.__stderr__):
     when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
 
     Args:
-        fobj: An opened file object to write the traceback to.
+        fileobj: An opened file object to write the traceback to.
     """
-    if fileobj is None:
+    try:
+        faulthandler.enable(fileobj)
+    except (RuntimeError, AttributeError):
         # When run with pythonw.exe, sys.__stderr__ can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
-        # If we'd enable faulthandler in that case, we just get a weird
-        # exception, so we don't enable faulthandler if we have no stdout.
+        #
+        # With PyInstaller, it can be a NullWriter raising AttributeError on
+        # fileno: https://github.com/pyinstaller/pyinstaller/issues/4481
         #
         # Later when we have our data dir available we re-enable faulthandler
         # to write to a file so we can display a crash to the user at the next
         # start.
+        #
+        # Note that we don't have any logging initialized yet at this point, so
+        # this is a silent error.
         return
-    faulthandler.enable(fileobj)
+
     if (hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1') and
             sys.stderr is not None):
         # If available, we also want a traceback on SIGUSR1.
@@ -185,6 +191,11 @@ def check_qt_version():
                                                            PYQT_VERSION_STR))
         _die(text)
 
+    if qt_ver == QVersionNumber(5, 12, 0):
+        from qutebrowser.utils import log
+        log.init.warning("Running on Qt 5.12.0. Doing so is unsupported "
+                         "(newer 5.12.x versions are fine).")
+
 
 def check_ssl_support():
     """Check if SSL support is available."""
@@ -200,7 +211,6 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # pylint: disable=bad-continuation
             with log.py_warning_filter(
                 category=DeprecationWarning,
                 message=r'invalid escape sequence'
@@ -215,7 +225,6 @@ def _check_modules(modules):
                 category=DeprecationWarning,
                 message=r'Creating a LegacyVersion has been deprecated',
             ):
-                # pylint: enable=bad-continuation
                 importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
@@ -230,7 +239,11 @@ def check_libraries():
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
+        'PyQt5.QtDBus': _missing_str("PyQt5.QtDBus"),
     }
+    if sys.version_info < (3, 9):
+        # Backport required
+        modules['importlib_resources'] = _missing_str("importlib_resources")
     _check_modules(modules)
 
 
@@ -271,6 +284,21 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def webengine_early_import():
+    """If QtWebEngine is available, import it early.
+
+    We need to ensure that QtWebEngine is imported before a QApplication is created for
+    everything to work properly.
+
+    This needs to be done even when using the QtWebKit backend, to ensure that e.g.
+    error messages in backendproblem.py are accurate.
+    """
+    try:
+        from PyQt5 import QtWebEngineWidgets  # pylint: disable=unused-import
+    except ImportError:
+        pass
+
+
 def early_init(args):
     """Do all needed early initialization.
 
@@ -295,3 +323,4 @@ def early_init(args):
     configure_pyqt()
     check_ssl_support()
     check_optimize_flag()
+    webengine_early_import()

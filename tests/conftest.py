@@ -22,9 +22,9 @@
 """The qutebrowser test suite conftest file."""
 
 import os
+import pathlib
 import sys
 import warnings
-import pathlib
 
 import pytest
 import hypothesis
@@ -36,7 +36,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
-from helpers import utils as testutils
+from helpers import testutils
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects, earlyinit
 from qutebrowser.qt import sip
@@ -93,6 +93,10 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          getattr(sys, 'frozen', False),
          "Can't be run when frozen"),
+        ('not_flatpak',
+         pytest.mark.skipif,
+         version.is_flatpak(),
+         "Can't be run with Flatpak"),
         ('frozen',
          pytest.mark.skipif,
          not getattr(sys, 'frozen', False),
@@ -109,12 +113,6 @@ def _apply_platform_markers(config, item):
          pytest.mark.skipif,
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
-
-        ('qtwebkit6021_xfail',
-         pytest.mark.xfail,
-         version.qWebKitVersion and  # type: ignore[unreachable]
-         version.qWebKitVersion() == '602.1',
-         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, new_marker_kind, condition, default_reason in markers:
@@ -189,9 +187,10 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_ignore_collect(path):
     """Ignore BDD tests if we're unable to run them."""
+    fspath = pathlib.Path(path)
     skip_bdd = hasattr(sys, 'frozen')
-    rel_path = path.relto(os.path.dirname(__file__))
-    return rel_path == os.path.join('end2end', 'features') and skip_bdd
+    rel_path = fspath.relative_to(pathlib.Path(__file__).parent)
+    return rel_path == pathlib.Path('end2end') / 'features' and skip_bdd
 
 
 @pytest.fixture(scope='session')
@@ -215,18 +214,72 @@ def pytest_addoption(parser):
                      help="Delay between qutebrowser commands.")
     parser.addoption('--qute-profile-subprocs', action='store_true',
                      default=False, help="Run cProfile for subprocesses.")
-    parser.addoption('--qute-bdd-webengine', action='store_true',
-                     help='Use QtWebEngine for BDD tests')
+    parser.addoption('--qute-backend', action='store',
+                     choices=['webkit', 'webengine'], help='Set backend for BDD tests')
 
 
 def pytest_configure(config):
-    webengine_arg = config.getoption('--qute-bdd-webengine')
-    webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', 'false')
-    config.webengine = webengine_arg or webengine_env == 'true'
-    # Fail early if QtWebEngine is not available
-    if config.webengine:
-        import PyQt5.QtWebEngineWidgets
+    backend = _select_backend(config)
+    config.webengine = backend == 'webengine'
+
     earlyinit.configure_pyqt()
+
+
+def _select_backend(config):
+    """Select the backend for running tests.
+
+    The backend is auto-selected in the following manner:
+    1. Use QtWebKit if available
+    2. Otherwise use QtWebEngine as a fallback
+
+    Auto-selection is overridden by either passing a backend via
+    `--qute-backend=<backend>` or setting the environment variable
+    `QUTE_TESTS_BACKEND=<backend>`.
+
+    Args:
+        config: pytest config
+
+    Raises:
+        ImportError if the selected backend is not available.
+
+    Returns:
+        The selected backend as a string (e.g. 'webkit').
+    """
+    backend_arg = config.getoption('--qute-backend')
+    backend_env = os.environ.get('QUTE_TESTS_BACKEND')
+
+    backend = backend_arg or backend_env or _auto_select_backend()
+
+    # Fail early if selected backend is not available
+    if backend == 'webkit':
+        import PyQt5.QtWebKitWidgets
+    elif backend == 'webengine':
+        import PyQt5.QtWebEngineWidgets
+    else:
+        raise utils.Unreachable(backend)
+
+    return backend
+
+
+def _auto_select_backend():
+    try:
+        # Try to use QtWebKit as the default backend
+        import PyQt5.QtWebKitWidgets
+        return 'webkit'
+    except ImportError:
+        # Try to use QtWebEngine as a fallback and fail early
+        # if that's also not available
+        import PyQt5.QtWebEngineWidgets
+        return 'webengine'
+
+
+def pytest_report_header(config):
+    if config.webengine:
+        backend_version = version.qtwebengine_versions(avoid_init=True)
+    else:
+        backend_version = version.qWebKitVersion()
+
+    return f'backend: {backend_version}'
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -243,12 +296,6 @@ def set_backend(monkeypatch, request):
     else:
         backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
-
-
-@pytest.fixture(autouse=True, scope='session')
-def apply_libgl_workaround():
-    """Make sure we load libGL early so QtWebEngine tests run properly."""
-    utils.libgl_workaround()
 
 
 @pytest.fixture(autouse=True)

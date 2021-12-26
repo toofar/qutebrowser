@@ -241,11 +241,6 @@ Feature: Using hints
         # The actual check is already done above
         Then "No elements found." should not be logged
 
-    Scenario: Hinting invisible elements
-        When I open data/hints/invisible.html
-        And I run :hint
-        Then the error "No elements found." should be shown
-
     Scenario: Clicking input with existing text
         When I open data/hints/input.html
         And I run :click-element id qute-input-existing
@@ -443,7 +438,8 @@ Feature: Using hints
 
     ### hints.leave_on_load
     Scenario: Leaving hint mode on reload
-        When I open data/hints/html/wrapped.html
+        When I set hints.leave_on_load to true
+        And I open data/hints/html/wrapped.html
         And I hint with args "all"
         And I run :reload
         Then "Leaving mode KeyMode.hint (reason: load started)" should be logged

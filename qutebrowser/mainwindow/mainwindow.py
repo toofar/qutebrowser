@@ -38,7 +38,7 @@ from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
 from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import commands, downloadview, hints, downloads
+from qutebrowser.browser import downloadview, hints, downloads
 from qutebrowser.misc import crashsignal, keyhintwidget, sessions, objects
 from qutebrowser.qt import sip
 
@@ -381,6 +381,8 @@ class MainWindow(QWidget):
         self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
+        # Lazy import to avoid circular imports
+        from qutebrowser.browser import commands
         self._command_dispatcher = commands.CommandDispatcher(
             self.win_id, self.tabbed_browser)
         objreg.register('command-dispatcher',
@@ -618,13 +620,15 @@ class MainWindow(QWidget):
             True if closing is okay, False if a closeEvent should be ignored.
         """
         tab_count = self.tabbed_browser.widget.count()
+        window_count = len(objreg.window_registry)
         download_count = self._download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
             quit_texts.append("{} tabs are open.".format(tab_count))
-        # Ask if multiple downloads running
-        if 'downloads' in config.val.confirm_quit and download_count > 0:
+        # Ask if downloads running
+        if ('downloads' in config.val.confirm_quit and download_count > 0 and
+                window_count <= 1):
             quit_texts.append("{} {} running.".format(
                 download_count,
                 "download is" if download_count == 1 else "downloads are"))

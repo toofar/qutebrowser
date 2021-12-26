@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import configutils, configdata, configtypes, configexc
 from qutebrowser.utils import urlmatch, usertypes, qtutils
-from tests.helpers import utils
+from tests.helpers import testutils
 
 
 @pytest.fixture
@@ -277,7 +277,7 @@ def test_no_pattern_support(func, opt, pattern):
 
 
 def test_add_url_benchmark(values, benchmark):
-    blocked_hosts = list(utils.blocked_hosts())
+    blocked_hosts = list(testutils.blocked_hosts())
 
     def _add_blocked():
         for line in blocked_hosts:
@@ -294,33 +294,10 @@ def test_add_url_benchmark(values, benchmark):
 def test_domain_lookup_sparse_benchmark(url, values, benchmark):
     url = QUrl(url)
     values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
-    for line in utils.blocked_hosts():
+    for line in testutils.blocked_hosts():
         values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(lambda: values.get_for_url(url))
-
-
-class TestWiden:
-
-    @pytest.mark.parametrize('hostname, expected', [
-        ('a.b.c', ['a.b.c', 'b.c', 'c']),
-        ('foobarbaz', ['foobarbaz']),
-        ('', []),
-        ('.c', ['.c', 'c']),
-        ('c.', ['c.']),
-        ('.c.', ['.c.', 'c.']),
-        (None, []),
-    ])
-    def test_widen_hostnames(self, hostname, expected):
-        assert list(configutils._widened_hostnames(hostname)) == expected
-
-    @pytest.mark.parametrize('hostname', [
-        'test.qutebrowser.org',
-        'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.z.y.z',
-        'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.c',
-    ])
-    def test_bench_widen_hostnames(self, hostname, benchmark):
-        benchmark(lambda: list(configutils._widened_hostnames(hostname)))
 
 
 class TestFontFamilies:
@@ -382,7 +359,7 @@ class TestFontFamilies:
         print(stylesheet)
         label.setStyleSheet(stylesheet)
 
-        with qtbot.waitExposed(label):
+        with qtbot.wait_exposed(label):
             # Needed so the font gets calculated
             label.show()
         info = label.fontInfo()
@@ -390,13 +367,17 @@ class TestFontFamilies:
         # Check the requested font to make sure CSS parsing worked
         assert label.font().family() == families.family
 
+        # Skipping the rest of the test as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-94090
+        return
+
         # Try to find out whether the monospace font did a fallback on a non-monospace
         # font...
-        fallback_label = QLabel()
+        fallback_label = QLabel()  # pylint: disable=unreachable
         qtbot.add_widget(label)
         fallback_label.setText("fallback")
 
-        with qtbot.waitExposed(fallback_label):
+        with qtbot.wait_exposed(fallback_label):
             # Needed so the font gets calculated
             fallback_label.show()
 

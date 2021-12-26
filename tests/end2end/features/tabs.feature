@@ -192,7 +192,8 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
         And I run :tab-focus
-        Then the following tabs should be open:
+        Then the warning "Using :tab-focus without count is deprecated, use :tab-next instead." should be shown
+        And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
@@ -632,6 +633,27 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
+    Scenario: :tab-move with absolute position
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-move end
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+            - data/numbers/1.txt (active)
+
+    Scenario: :tab-move with absolute position
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move start
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
     Scenario: Make sure :tab-move retains metadata
         When I open data/title.html
         And I open data/hello.txt in a new tab
@@ -652,7 +674,7 @@ Feature: Tab management
 
     Scenario: :tab-clone with -b and -w
         When I run :tab-clone -b -w
-        Then the error "Only one of -b/-w can be given!" should be shown.
+        Then the error "Only one of -b/-w/-p can be given!" should be shown.
 
     Scenario: Cloning a tab with history and title
         When I open data/title.html
@@ -730,6 +752,26 @@ Feature: Tab management
                 - url: http://localhost:*/data/title.html
                   title: Test title
             - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+
+    Scenario: Cloning to private window
+        When I open data/title.html
+        And I run :tab-clone -p
+        And I wait until data/title.html is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+                  title: Test title
+            - private: true
+              tabs:
               - active: true
                 history:
                 - url: about:blank
@@ -1328,6 +1370,25 @@ Feature: Tab management
         And I run :tab-take 0/1
         Then the error "Can't take tabs when using windows as tabs" should be shown
 
+    @windows_skip
+    Scenario: Close the last tab of a window when taken by another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new window
+        And I set tabs.last_close to ignore
+        And I run :tab-take 1/1
+        And I wait until data/numbers/2.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
     # :tab-give
 
     @xfail_norun  # Needs qutewm
@@ -1384,6 +1445,24 @@ Feature: Tab management
         And I set tabs.tabs_are_windows to true
         And I run :tab-give 0
         Then the error "Can't give tabs when using windows as tabs" should be shown
+
+    @windows_skip
+    Scenario: Close the last tab of a window when given to another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I open data/numbers/2.txt in a new window
+        And I set tabs.last_close to ignore
+        And I run :tab-give 1
+        And I wait until data/numbers/1.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
 
     # Other
 
@@ -1531,13 +1610,44 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/2.txt (active) (pinned)
 
+    Scenario: Pinned :tab-only --pinned close
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned close
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only --pinned keep
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned keep
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt (pinned)
+
+    Scenario: Pinned :tab-only --pinned prompt
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only --pinned prompt
+        Then "*want to close pinned tabs*" should be logged
+
     Scenario: :tab-pin open url
         When I open data/numbers/1.txt
         And I run :tab-pin
-        And I open data/numbers/2.txt without waiting
-        Then the message "Tab is pinned!" should be shown
+        And I open data/numbers/2.txt
+        Then the message "Tab is pinned! Opening in new tab." should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt
 
     Scenario: :tab-pin open url with tabs.pinned.frozen = false
         When I set tabs.pinned.frozen to false

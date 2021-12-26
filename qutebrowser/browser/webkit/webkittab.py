@@ -33,8 +33,8 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings)
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+                                        webkitsettings, webkitinspector)
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug, resources
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
 
@@ -108,6 +108,16 @@ class WebKitSearch(browsertab.AbstractSearch):
     def _empty_flags(self):
         return QWebPage.FindFlags(0)  # type: ignore[call-overload]
 
+    def _args_to_flags(self, reverse, ignore_case, wrap):
+        flags = self._empty_flags()
+        if self._is_case_sensitive(ignore_case):
+            flags |= QWebPage.FindCaseSensitively
+        if reverse:
+            flags |= QWebPage.FindBackward
+        if wrap:
+            flags |= QWebPage.FindWrapsAroundDocument
+        return flags
+
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
 
@@ -150,7 +160,8 @@ class WebKitSearch(browsertab.AbstractSearch):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
-                              " for {}".format(text))
+                              " for {}, but resetting flags".format(text))
+            self._flags = self._args_to_flags(reverse, ignore_case, wrap)
             return
 
         # Clear old search results, this is done automatically on QtWebEngine.
@@ -158,13 +169,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
         self.text = text
         self.search_displayed = True
-        self._flags = self._empty_flags()
-        if self._is_case_sensitive(ignore_case):
-            self._flags |= QWebPage.FindCaseSensitively
-        if reverse:
-            self._flags |= QWebPage.FindBackward
-        if wrap:
-            self._flags |= QWebPage.FindWrapsAroundDocument
+        self._flags = self._args_to_flags(reverse, ignore_case, wrap)
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
         found = self._widget.findText(text, self._flags)
@@ -227,7 +232,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             # true in caret mode.
             if self._selection_state is browsertab.SelectionState.none:
                 self._widget.page().currentFrame().evaluateJavaScript(
-                    utils.read_file('javascript/position_caret.js'))
+                    resources.read_file('javascript/position_caret.js'))
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, _mode):
@@ -807,6 +812,9 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         document_element = self._widget.page().mainFrame().documentElement()
         result = document_element.evaluateJavaScript(code)
         return result
+
+    def _init_inspector(self, splitter, win_id, parent=None):
+        return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
 
 class WebKitTab(browsertab.AbstractTab):

@@ -58,8 +58,12 @@ def main():
         'protected-access',
         'len-as-condition',
         'compare-to-empty-string',
+        'pointless-statement',
+        'use-implicit-booleaness-not-comparison',
         # directories without __init__.py...
         'import-error',
+        # tests/helpers imports
+        'wrong-import-order',
     ]
 
     toxinidir = sys.argv[1]

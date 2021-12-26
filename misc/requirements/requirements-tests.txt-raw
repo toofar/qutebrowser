@@ -4,7 +4,8 @@ coverage
 Flask
 hypothesis
 pytest
-pytest-bdd
+# https://github.com/pytest-dev/pytest-bdd/issues/447
+pytest-bdd<5
 pytest-benchmark
 pytest-instafail
 pytest-mock
@@ -29,9 +30,14 @@ PyVirtualDisplay
 pytest-xdist
 # For nicer output
 pytest-icdiff
-pytest-clarity
 
 # Needed to test misc/userscripts/qute-lastpass
 tldextract
 
 #@ ignore: Jinja2, MarkupSafe, colorama
+
+# Python 3.6
+#@ markers: jaraco.functools python_version>="3.7"
+#@ add: jaraco.functools<3.5 ; python_version=="3.6.*"
+#@ markers: tomli python_version>="3.7"
+#@ add: tomli<2 ; python_version=="3.6.*"

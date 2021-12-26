@@ -35,7 +35,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message, jinja)
+                               urlutils, message, jinja, version)
 from qutebrowser.misc import quitter
 
 
@@ -406,15 +406,16 @@ class TabbedBrowser(QWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True, new_undo=True):
+    def close_tab(self, tab, *, add_undo=True, new_undo=True, transfer=False):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             new_undo: Whether the undo entry should be a new item in the stack.
+            transfer: Whether the tab is closing because it is moving to a new window.
         """
-        if config.val.tabs.tabs_are_windows:
+        if config.val.tabs.tabs_are_windows or transfer:
             last_close = 'close'
         else:
             last_close = config.val.tabs.last_close
@@ -697,10 +698,9 @@ class TabbedBrowser(QWidget):
         """
         if tab.data.keep_icon:
             tab.data.keep_icon = False
-        else:
-            if (config.cache['tabs.tabs_are_windows'] and
-                    tab.data.should_show_icon()):
-                self.widget.window().setWindowIcon(self.default_window_icon)
+        elif (config.cache['tabs.tabs_are_windows'] and
+              tab.data.should_show_icon()):
+            self.widget.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def _on_load_status_changed(self, tab):
@@ -929,26 +929,44 @@ class TabbedBrowser(QWidget):
             return
 
         messages = {
-            browsertab.TerminationStatus.abnormal:
-                "Renderer process exited with status {}".format(code),
-            browsertab.TerminationStatus.crashed:
-                "Renderer process crashed",
-            browsertab.TerminationStatus.killed:
-                "Renderer process was killed",
-            browsertab.TerminationStatus.unknown:
-                "Renderer process did not start",
+            browsertab.TerminationStatus.abnormal: "Renderer process exited",
+            browsertab.TerminationStatus.crashed: "Renderer process crashed",
+            browsertab.TerminationStatus.killed: "Renderer process was killed",
+            browsertab.TerminationStatus.unknown: "Renderer process did not start",
         }
-        msg = messages[status]
+        msg = messages[status] + f" (status {code})"
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91715
+        versions = version.qtwebengine_versions()
+        is_qtbug_91715 = (
+            status == browsertab.TerminationStatus.unknown and
+            code == 1002 and
+            versions.webengine == utils.VersionNumber(5, 15, 3))
 
         def show_error_page(html):
             tab.set_html(html)
             log.webview.error(msg)
 
-        url_string = tab.url(requested=True).toDisplayString()
-        error_page = jinja.render(
-            'error.html', title="Error loading {}".format(url_string),
-            url=url_string, error=msg)
-        QTimer.singleShot(100, lambda: show_error_page(error_page))
+        if is_qtbug_91715:
+            log.webview.error(msg)
+            log.webview.error('')
+            log.webview.error(
+                'NOTE: If you see this and "Network service crashed, restarting '
+                'service.", please see:')
+            log.webview.error('https://github.com/qutebrowser/qutebrowser/issues/6235')
+            log.webview.error(
+                'You can set the "qt.workarounds.locale" setting in qutebrowser to '
+                'work around the issue.')
+            log.webview.error(
+                'A proper fix is likely available in QtWebEngine soon (which is why '
+                'the workaround is disabled by default).')
+            log.webview.error('')
+        else:
+            url_string = tab.url(requested=True).toDisplayString()
+            error_page = jinja.render(
+                'error.html', title="Error loading {}".format(url_string),
+                url=url_string, error=msg)
+            QTimer.singleShot(100, lambda: show_error_page(error_page))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

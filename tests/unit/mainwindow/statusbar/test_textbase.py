@@ -19,10 +19,10 @@
 
 
 """Test TextBase widget."""
-from qutebrowser.qt.QtCore import Qt
 import pytest
 
 from qutebrowser.mainwindow.statusbar.textbase import TextBase
+from qutebrowser.qt.QtCore import Qt
 
 
 @pytest.mark.parametrize('elidemode, check', [

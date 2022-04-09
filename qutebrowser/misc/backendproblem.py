@@ -30,8 +30,9 @@ import dataclasses
 from typing import Any, List, Sequence, Tuple, Optional
 
 from qutebrowser.qt.QtCore import Qt
-from qutebrowser.qt.QtWidgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
-                             QMessageBox, QWidget)
+from qutebrowser.qt.QtWidgets import (
+    QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QWidget,
+)
 from qutebrowser.qt.QtNetwork import QSslSocket
 
 from qutebrowser.config import config, configfiles

@@ -44,10 +44,6 @@ except ImportError:  # pragma: no cover
 
             """Empty stub at runtime."""
 
-from qutebrowser.qt.QtCore import QUrl, QVersionNumber, QRect
-from qutebrowser.qt.QtGui import QClipboard, QDesktopServices
-from qutebrowser.qt.QtWidgets import QApplication
-
 import yaml
 try:
     from yaml import (CSafeLoader as YamlLoader,
@@ -59,6 +55,9 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 from qutebrowser.utils import log
+from qutebrowser.qt.QtCore import QUrl, QVersionNumber, QRect
+from qutebrowser.qt.QtGui import QClipboard, QDesktopServices
+from qutebrowser.qt.QtWidgets import QApplication
 
 fake_clipboard = None
 log_clipboard = False

@@ -28,7 +28,9 @@ from typing import Dict, IO, Optional
 
 from qutebrowser.qt.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from qutebrowser.qt.QtWidgets import QApplication
-from qutebrowser.qt.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
+from qutebrowser.qt.QtNetwork import (
+    QNetworkRequest, QNetworkReply, QNetworkAccessManager,
+)
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug, objreg

@@ -22,13 +22,13 @@ import operator
 import hypothesis
 from hypothesis import strategies
 import pytest
-from qutebrowser.qt.QtCore import Qt, QEvent, pyqtSignal
-from qutebrowser.qt.QtGui import QKeyEvent, QKeySequence
-from qutebrowser.qt.QtWidgets import QWidget
 
 from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
+from qutebrowser.qt.QtCore import Qt, QEvent, pyqtSignal
+from qutebrowser.qt.QtGui import QKeyEvent, QKeySequence
+from qutebrowser.qt.QtWidgets import QWidget
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)

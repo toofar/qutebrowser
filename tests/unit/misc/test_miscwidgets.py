@@ -19,12 +19,12 @@
 
 import logging
 
-from qutebrowser.qt.QtCore import Qt, QSize
-from qutebrowser.qt.QtWidgets import QWidget
 import pytest
 
 from qutebrowser.misc import miscwidgets
 from qutebrowser.browser import inspector
+from qutebrowser.qt.QtCore import Qt, QSize
+from qutebrowser.qt.QtWidgets import QWidget
 
 
 class TestCommandLineEdit:

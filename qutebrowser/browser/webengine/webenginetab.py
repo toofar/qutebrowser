@@ -26,12 +26,6 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 
-from qutebrowser.qt.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
-                          QObject)
-from qutebrowser.qt.QtNetwork import QAuthenticator
-from qutebrowser.qt.QtWidgets import QWidget
-from qutebrowser.qt.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript, QWebEngineHistory
-
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
@@ -41,6 +35,14 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version)
 from qutebrowser.qt import sip
+from qutebrowser.qt.QtCore import (
+    pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl, QObject,
+)
+from qutebrowser.qt.QtNetwork import QAuthenticator
+from qutebrowser.qt.QtWidgets import QWidget
+from qutebrowser.qt.QtWebEngineWidgets import (
+    QWebEnginePage, QWebEngineScript, QWebEngineHistory,
+)
 from qutebrowser.misc import objects, miscwidgets
 
 

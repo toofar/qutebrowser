@@ -27,7 +27,6 @@ import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
-from qutebrowser.qt.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
@@ -37,6 +36,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
+from qutebrowser.qt.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 from qutebrowser.misc import objects, throttle
 
 

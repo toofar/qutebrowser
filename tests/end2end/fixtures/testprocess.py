@@ -26,13 +26,13 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from qutebrowser.qt.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
-                          QElapsedTimer, QProcessEnvironment)
-from qutebrowser.qt.QtTest import QSignalSpy
 
 from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
+from qutebrowser.qt.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
+                          QElapsedTimer, QProcessEnvironment)
+from qutebrowser.qt.QtTest import QSignalSpy
 
 
 class InvalidLine(Exception):

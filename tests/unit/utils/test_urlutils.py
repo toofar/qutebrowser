@@ -24,8 +24,6 @@ import logging
 import dataclasses
 import urllib.parse
 
-from qutebrowser.qt.QtCore import QUrl
-from qutebrowser.qt.QtNetwork import QNetworkProxy
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -33,6 +31,8 @@ import hypothesis.strategies
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, usertypes
+from qutebrowser.qt.QtCore import QUrl
+from qutebrowser.qt.QtNetwork import QNetworkProxy
 
 
 class FakeDNS:

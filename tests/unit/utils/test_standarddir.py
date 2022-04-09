@@ -28,10 +28,10 @@ import textwrap
 import logging
 import subprocess
 
-from qutebrowser.qt.QtCore import QStandardPaths
 import pytest
 
 from qutebrowser.utils import standarddir, utils, qtutils, version
+from qutebrowser.qt.QtCore import QStandardPaths
 
 
 # Use a different application name for tests to make sure we don't change real

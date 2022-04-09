@@ -29,10 +29,10 @@ import json
 import platform
 
 import pytest
-from qutebrowser.qt.QtCore import QProcess, QPoint
 
 from helpers import testutils
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt.QtCore import QProcess, QPoint
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,

@@ -121,6 +121,8 @@ class StateConfig(configparser.ConfigParser):
             import qutebrowser.qt.QtWebEngineWidgets  # pylint: disable=unused-import
         except ImportError:
             return 'no'
+        if not qutebrowser.qt.QtWebEngineWidgets:
+            return False
         return str(version.qtwebengine_versions(avoid_init=True).webengine)
 
     def _set_changed_attributes(self) -> None:

@@ -24,12 +24,12 @@ import time
 import logging
 
 import py.path  # pylint: disable=no-name-in-module
-from qutebrowser.qt.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
 from qutebrowser.utils import resources
 from qutebrowser.misc import guiprocess
+from qutebrowser.qt.QtCore import QUrl, QUrlQuery
 
 
 class TestJavascriptHandler:

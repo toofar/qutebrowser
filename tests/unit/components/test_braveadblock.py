@@ -22,7 +22,6 @@ import logging
 import csv
 from typing import Iterable, Tuple
 
-from qutebrowser.qt.QtCore import QUrl
 
 import pytest
 
@@ -30,6 +29,7 @@ from qutebrowser.api.interceptor import ResourceType
 from qutebrowser.components import braveadblock
 from qutebrowser.components.utils import blockutils
 from qutebrowser.utils import usertypes
+from qutebrowser.qt.QtCore import QUrl
 from helpers import testutils
 
 pytestmark = pytest.mark.usefixtures("qapp")

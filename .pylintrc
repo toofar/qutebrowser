@@ -89,7 +89,7 @@ max-args=10
 valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
-ignored-modules=PyQt5,PyQt5.QtWebKit
+ignored-modules=PyQt5,PyQt5.QtWebKit,qutebrowser.qt
 ignored-classes=DummyBox,__cause__
 
 [IMPORTS]

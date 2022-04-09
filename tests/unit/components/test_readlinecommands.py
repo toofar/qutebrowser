@@ -21,10 +21,10 @@ import os
 import re
 import inspect
 
-from qutebrowser.qt.QtWidgets import QLineEdit, QApplication
 import pytest
 
 from qutebrowser.components import readlinecommands
+from qutebrowser.qt.QtWidgets import QLineEdit, QApplication
 
 
 # Some functions aren't 100% readline compatible:

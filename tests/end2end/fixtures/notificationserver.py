@@ -21,13 +21,13 @@ import dataclasses
 import itertools
 from typing import Dict, List
 
-from qutebrowser.qt.QtCore import QObject, QByteArray, QUrl, pyqtSlot
-from qutebrowser.qt.QtGui import QImage
-from qutebrowser.qt.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 import pytest
 
 from qutebrowser.browser.webengine import notification
 from qutebrowser.utils import utils
+from qutebrowser.qt.QtCore import QObject, QByteArray, QUrl, pyqtSlot
+from qutebrowser.qt.QtGui import QImage
+from qutebrowser.qt.QtDBus import QDBusConnection, QDBusArgument, QDBusMessage
 from tests.helpers import testutils
 
 

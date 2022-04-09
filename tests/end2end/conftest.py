@@ -27,7 +27,6 @@ import pstats
 import operator
 
 import pytest
-from qutebrowser.qt.QtCore import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -39,6 +38,7 @@ from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt.QtCore import PYQT_VERSION, QCoreApplication
 
 
 def pytest_configure(config):

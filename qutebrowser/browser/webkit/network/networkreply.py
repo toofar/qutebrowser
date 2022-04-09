@@ -34,26 +34,26 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request, fileData, mimeType, parent=None):  # noqa: N803
+    def __init__(self, request, file_data, mime_type, parent=None):  # noqa: N803
         """Constructor.
 
         Args:
             request: reference to the request object (QNetworkRequest)
-            fileData: reference to the data buffer (QByteArray)
-            mimeType: for the reply (string)
+            file_data: reference to the data buffer (QByteArray)
+            mime_type: for the reply (string)
             parent: reference to the parent object (QObject)
         """
         super().__init__(parent)
 
-        self._data = fileData
+        self._data = file_data
 
         self.setRequest(request)
         self.setUrl(request.url())
         self.setOpenMode(QIODevice.ReadOnly)
 
-        self.setHeader(QNetworkRequest.ContentTypeHeader, mimeType)
+        self.setHeader(QNetworkRequest.ContentTypeHeader, mime_type)
         self.setHeader(QNetworkRequest.ContentLengthHeader,
-                       QByteArray.number(len(fileData)))
+                       QByteArray.number(len(file_data)))
         self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
         self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't

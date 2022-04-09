@@ -19,17 +19,15 @@
 
 """Wrappers around Qt/PyQt code."""
 
-# pylint: disable=unused-import
-
 import sys
 import importlib
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 
 try:
-    import PyQt5 as pyqt
+    import PyQt5 as pyqt  # noqa: N813
 except ImportError:
-    import PyQt6 as pyqt
+    import PyQt6 as pyqt  # noqa: N813
 
 # While upstream recommends using PyQt5.sip ever since PyQt5 5.11, some distributions
 # still package later versions of PyQt5 with a top-level "sip" rather than "PyQt5.sip".
@@ -55,8 +53,7 @@ class QuteProxyLoader(Loader):
 
 
 class QuteProxyFinder(MetaPathFinder):
-    """
-    Proxy finder to access modules via an alternate prefix.
+    """Proxy finder to access modules via an alternate prefix.
 
     For example:
         >>> sys.meta_path.insert(0, QuteProxyFinder('qutesys', 'sys'))
@@ -64,7 +61,11 @@ class QuteProxyFinder(MetaPathFinder):
         >>> qutesys
         <module 'sys' (built-in)>
         >>> qutesys.__spec__
-        ModuleSpec(name='qutesys', loader=<__main__.QuteProxyLoader object at 0x7f8367ce1370>, origin='built-in')
+        ModuleSpec(
+            name='qutesys',
+            loader=<__main__.QuteProxyLoader object at 0x7f8367ce1370>,
+            origin='built-in',
+        )
         >>> id(sys) == id(qutesys)
         True
 
@@ -82,7 +83,8 @@ class QuteProxyFinder(MetaPathFinder):
         self.their_prefix = their_prefix
         self._loader = QuteProxyLoader(self.our_prefix, self.their_prefix)
 
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, _path, _target=None):
+        """Return a spec for a module, or None."""
         if not fullname.startswith(self.our_prefix):
             return None
 
@@ -123,30 +125,33 @@ sys.meta_path.insert(0, QuteProxyFinder(__name__, pyqt.__name__))
 #from pyqt import QtWebKitWidgets
 #from pyqt import QtWidgets
 
-#QtCore = importlib.import_module("PyQt5.QtCore", package="qutebrowser.qt")
-#QtDBus = importlib.import_module("PyQt5.QtDBus")
-#QtGui = importlib.import_module("PyQt5.QtGui")
-#QtNetwork = importlib.import_module("PyQt5.QtNetwork")
-#QtPrintSupport = importlib.import_module("PyQt5.QtPrintSupport")
-#QtQml = importlib.import_module("PyQt5.QtQml")
-#QtSql = importlib.import_module("PyQt5.QtSql")
-#QtWidgets = importlib.import_module("PyQt5.QtWidgets")
+# There module level imports aren't currently used, they are just to trick
+# pylint
+QtCore = importlib.import_module("PyQt5.QtCore")
+QtDBus = importlib.import_module("PyQt5.QtDBus")
+QtGui = importlib.import_module("PyQt5.QtGui")
+QtNetwork = importlib.import_module("PyQt5.QtNetwork")
+QtPrintSupport = importlib.import_module("PyQt5.QtPrintSupport")
+QtQml = importlib.import_module("PyQt5.QtQml")
+QtSql = importlib.import_module("PyQt5.QtSql")
+QtWidgets = importlib.import_module("PyQt5.QtWidgets")
+QtTest = importlib.import_module("PyQt5.QtTest")
 
-#try:
-#    QtWebEngine = importlib.import_module("PyQt5.QtWebEngine")
-#    QtWebEngineCore = importlib.import_module("PyQt5.QtWebEngineCore")
-#    QtWebEngineWidgets = importlib.import_module("PyQt5.QtWebEngineWidgets")
-#except ImportError:
-#    QtWebEngine = None
-#    QtWebEngineCore = None
-#    QtWebEngineWidgets = None
-#
-#try:
-#    QtWebKit = importlib.import_module("PyQt5.QtWebKit")
-#    QtWebKitWidgets = importlib.import_module("PyQt5.QtWebKitWidgets")
-#except ImportError:
-#    QtWebKit = None
-#    QtWebKitWidgets = None
+try:
+    QtWebEngine = importlib.import_module("PyQt5.QtWebEngine")
+    QtWebEngineCore = importlib.import_module("PyQt5.QtWebEngineCore")
+    QtWebEngineWidgets = importlib.import_module("PyQt5.QtWebEngineWidgets")
+except ImportError:
+    QtWebEngine = None
+    QtWebEngineCore = None
+    QtWebEngineWidgets = None
+
+try:
+    QtWebKit = importlib.import_module("PyQt5.QtWebKit")
+    QtWebKitWidgets = importlib.import_module("PyQt5.QtWebKitWidgets")
+except ImportError:
+    QtWebKit = None
+    QtWebKitWidgets = None
 
 #common_submodules = [
 #    'QtCore',

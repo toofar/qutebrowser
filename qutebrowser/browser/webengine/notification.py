@@ -50,11 +50,15 @@ import functools
 import subprocess
 from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
 
-from qutebrowser.qt.QtCore import (Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot,
-                          pyqtSignal, QTimer, QProcess, QUrl)
+from qutebrowser.qt.QtCore import (
+    Qt, QObject, QVariant, QMetaType, QByteArray, pyqtSlot, pyqtSignal,
+    QTimer, QProcess, QUrl,
+)
 from qutebrowser.qt.QtGui import QImage, QIcon, QPixmap
-from qutebrowser.qt.QtDBus import (QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
-                          QDBusArgument, QDBusMessage, QDBusError)
+from qutebrowser.qt.QtDBus import (
+    QDBusConnection, QDBusInterface, QDBus, QDBusServiceWatcher,
+    QDBusArgument, QDBusMessage, QDBusError,
+)
 from qutebrowser.qt.QtWidgets import QSystemTrayIcon
 
 if TYPE_CHECKING:

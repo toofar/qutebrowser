@@ -23,10 +23,10 @@ from unittest import mock
 
 import sip
 import pytest
-from qutebrowser.qt.QtCore import QObject
 
 from helpers import testutils
 from qutebrowser.misc import throttle
+from qutebrowser.qt.QtCore import QObject
 
 
 DELAY = 500 if testutils.ON_CI else 100

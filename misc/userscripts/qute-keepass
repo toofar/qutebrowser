@@ -64,8 +64,8 @@ import shlex
 import subprocess
 import sys
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+from qutebrowser.qt.QtCore import QUrl
+from qutebrowser.qt.QtWidgets import QApplication, QInputDialog, QLineEdit
 
 try:
     import pykeepass

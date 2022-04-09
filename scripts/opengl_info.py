@@ -20,7 +20,7 @@
 
 """Show information about the OpenGL setup."""
 
-from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+from qutebrowser.qt.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
                          QOffscreenSurface, QGuiApplication)
 
 app = QGuiApplication([])

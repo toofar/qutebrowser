@@ -23,8 +23,8 @@ import functools
 import urllib.parse
 from typing import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
+from qutebrowser.qt.QtCore import pyqtSignal, QObject, QTimer
+from qutebrowser.qt.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
 
 from qutebrowser.utils import log

@@ -55,10 +55,10 @@ from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
 import yaml
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QTabWidget, QTabBar
-from PyQt5.QtNetwork import QNetworkProxy
+from qutebrowser.qt.QtCore import QUrl, Qt
+from qutebrowser.qt.QtGui import QColor
+from qutebrowser.qt.QtWidgets import QTabWidget, QTabBar
+from qutebrowser.qt.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils

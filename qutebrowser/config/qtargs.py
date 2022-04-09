@@ -25,7 +25,7 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from PyQt5.QtCore import QLibraryInfo, QLocale
+from qutebrowser.qt.QtCore import QLibraryInfo, QLocale
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects

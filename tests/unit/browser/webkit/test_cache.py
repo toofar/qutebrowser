@@ -19,8 +19,8 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
-from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
+from qutebrowser.qt.QtCore import QUrl, QDateTime
+from qutebrowser.qt.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
 

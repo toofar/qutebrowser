@@ -23,12 +23,12 @@ import html
 import functools
 from typing import cast
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from qutebrowser.qt.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
+from qutebrowser.qt.QtGui import QDesktopServices
+from qutebrowser.qt.QtNetwork import QNetworkReply, QNetworkRequest
+from qutebrowser.qt.QtWidgets import QFileDialog
+from qutebrowser.qt.QtPrintSupport import QPrintDialog
+from qutebrowser.qt.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey

@@ -24,12 +24,12 @@ import functools
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
 
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
-from PyQt5.QtWebKit import QWebSettings, QWebHistory, QWebElement
-from PyQt5.QtPrintSupport import QPrinter
+from qutebrowser.qt.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
+from qutebrowser.qt.QtGui import QIcon
+from qutebrowser.qt.QtWidgets import QWidget
+from qutebrowser.qt.QtWebKitWidgets import QWebPage, QWebFrame
+from qutebrowser.qt.QtWebKit import QWebSettings, QWebHistory, QWebElement
+from qutebrowser.qt.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,

@@ -19,8 +19,8 @@
 
 """Handling of proxies."""
 
-from PyQt5.QtCore import QUrl, pyqtSlot
-from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
+from qutebrowser.qt.QtCore import QUrl, pyqtSlot
+from qutebrowser.qt.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import message, usertypes, urlutils, utils

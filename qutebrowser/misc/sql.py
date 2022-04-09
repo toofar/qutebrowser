@@ -25,8 +25,8 @@ import dataclasses
 import types
 from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
+from qutebrowser.qt.QtCore import QObject, pyqtSignal
+from qutebrowser.qt.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
 from qutebrowser.qt import sip
 from qutebrowser.utils import debug, log

@@ -24,7 +24,7 @@ import logging
 import pytest
 import hypothesis
 from hypothesis import strategies
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.QtCore import QUrl
 
 from qutebrowser.browser.webkit import http
 

@@ -19,9 +19,9 @@
 
 """The main browser widgets."""
 
-from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from qutebrowser.qt.QtCore import pyqtSignal, Qt, QUrl
+from qutebrowser.qt.QtWebKit import QWebSettings
+from qutebrowser.qt.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman

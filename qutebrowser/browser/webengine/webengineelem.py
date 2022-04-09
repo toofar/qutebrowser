@@ -22,9 +22,9 @@
 from typing import (
     TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
 
-from PyQt5.QtCore import QRect, QEventLoop
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from qutebrowser.qt.QtCore import QRect, QEventLoop
+from qutebrowser.qt.QtWidgets import QApplication
+from qutebrowser.qt.QtWebEngineWidgets import QWebEngineSettings
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem

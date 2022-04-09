@@ -21,9 +21,9 @@
 
 from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
 
-from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtWebKit import QWebElement, QWebSettings
-from PyQt5.QtWebKitWidgets import QWebFrame
+from qutebrowser.qt.QtCore import QRect, Qt
+from qutebrowser.qt.QtWebKit import QWebElement, QWebSettings
+from qutebrowser.qt.QtWebKitWidgets import QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes

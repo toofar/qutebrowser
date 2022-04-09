@@ -26,17 +26,17 @@ import dataclasses
 from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional,
                     Sequence, Set, Type, Union)
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
+from qutebrowser.qt.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint, QRect)
-from PyQt5.QtGui import QKeyEvent, QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtNetwork import QNetworkAccessManager
+from qutebrowser.qt.QtGui import QKeyEvent, QIcon, QPixmap
+from qutebrowser.qt.QtWidgets import QWidget, QApplication, QDialog
+from qutebrowser.qt.QtPrintSupport import QPrintDialog, QPrinter
+from qutebrowser.qt.QtNetwork import QNetworkAccessManager
 
 if TYPE_CHECKING:
-    from PyQt5.QtWebKit import QWebHistory, QWebHistoryItem
-    from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import (
+    from qutebrowser.qt.QtWebKit import QWebHistory, QWebHistoryItem
+    from qutebrowser.qt.QtWebKitWidgets import QWebPage
+    from qutebrowser.qt.QtWebEngineWidgets import (
         QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage)
 
 from qutebrowser.keyinput import modeman

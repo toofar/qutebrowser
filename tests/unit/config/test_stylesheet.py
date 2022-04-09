@@ -18,7 +18,7 @@
 
 import pytest
 
-from PyQt5.QtCore import QObject
+from qutebrowser.qt.QtCore import QObject
 
 from qutebrowser.config import stylesheet
 

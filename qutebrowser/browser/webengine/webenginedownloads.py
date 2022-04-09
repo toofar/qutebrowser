@@ -23,8 +23,8 @@ import re
 import os.path
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QObject
-from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
+from qutebrowser.qt.QtCore import pyqtSlot, Qt, QUrl, QObject
+from qutebrowser.qt.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import (debug, usertypes, message, log, objreg, urlutils,

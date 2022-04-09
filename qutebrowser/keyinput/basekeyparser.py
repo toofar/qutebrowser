@@ -24,8 +24,8 @@ import types
 import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from qutebrowser.qt.QtCore import pyqtSignal, QObject, Qt
+from qutebrowser.qt.QtGui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils

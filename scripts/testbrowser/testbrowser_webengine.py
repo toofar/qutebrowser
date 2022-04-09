@@ -23,9 +23,9 @@
 import sys
 import argparse
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from qutebrowser.qt.QtCore import QUrl
+from qutebrowser.qt.QtWidgets import QApplication
+from qutebrowser.qt.QtWebEngineWidgets import QWebEngineView
 
 
 def parse_args():

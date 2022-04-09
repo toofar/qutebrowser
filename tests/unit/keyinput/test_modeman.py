@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from qutebrowser.qt.QtCore import Qt, QObject, pyqtSignal
 
 from qutebrowser.utils import usertypes
 from qutebrowser.keyinput import keyutils

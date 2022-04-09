@@ -31,7 +31,7 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtGui import QColor
+from qutebrowser.qt.QtGui import QColor
 
 from qutebrowser.utils import qtutils, log, utils, version
 
@@ -273,9 +273,11 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from PyQt5 import QtWebEngine  # pylint: disable=unused-import
+        from qutebrowser.qt import QtWebEngine  # pylint: disable=unused-import
     except ImportError:
         # no QtWebEngine available
+        return False
+    if not QtWebEngine:
         return False
 
     affected_versions = set()

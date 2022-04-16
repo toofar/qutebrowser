@@ -217,7 +217,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self.search_displayed = True
         self._pending_searches += 1
 
-        def wrapped_callback(found):
+        def wrapped_callback(cb_arg):
             """Wrap the callback to do debug logging."""
             self._pending_searches -= 1
             if self._pending_searches > 0:
@@ -234,6 +234,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 log.webview.debug("Ignoring finished search for deleted "
                                   "widget")
                 return
+
+            # bool in Qt 5, QWebEngineFindTextResult in Qt 6
+            # Once we drop Qt 5, we might also want to call callbacks with the
+            # QWebEngineFindTextResult instead of the bool.
+            found = cb_arg if isinstance(cb_arg, bool) else cb_arg.numberOfMatches() > 0
 
             found_text = 'found' if found else "didn't find"
             if flags:
@@ -274,9 +279,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._widget.page().findText('')
 
     def prev_result(self, *, result_cb=None):
-        # The int() here makes sure we get a copy of the flags.
-        flags = QWebEnginePage.FindFlags(
-            int(self._flags))  # type: ignore[call-overload]
+        # make sure we get a copy of the flags.
+        flags = QWebEnginePage.FindFlag(self._flags)
         if flags & QWebEnginePage.FindFlag.FindBackward:
             if self._wrap_handler.prevent_wrapping(going_up=False):
                 return

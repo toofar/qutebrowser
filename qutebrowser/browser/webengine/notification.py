@@ -692,7 +692,15 @@ class _ServerCapabilities:
 def _as_uint32(x: int) -> QVariant:
     """Convert the given int to an uint32 for DBus."""
     variant = QVariant(x)
-    successful = variant.convert(QVariant.Type.UInt)
+
+    try:
+        # Qt 5
+        target_type = QVariant.Type.UInt
+    except AttributeError:
+        # Qt 6
+        target_type = QMetaType(QMetaType.Type.UInt.value)
+
+    successful = variant.convert(target_type)
     assert successful
     return variant
 
@@ -951,7 +959,10 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         actions = []
         if self._capabilities.actions:
             actions = ['default', 'Activate']  # key, name
-        actions_arg = QDBusArgument(actions, QMetaType.Type.QStringList)
+        actions_arg = QDBusArgument(
+            actions,
+            qtutils.extract_enum_val(QMetaType.Type.QStringList),
+        )
 
         origin_url_str = qt_notification.origin().toDisplayString()
         hints: Dict[str, Any] = {

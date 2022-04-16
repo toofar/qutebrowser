@@ -35,17 +35,18 @@ import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
-try:
-    from qutebrowser.qt.webkit import qWebKitVersion
-except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
-    from qutebrowser.qt import QWebHistory
-    from qutebrowser.qt import QWebEngineHistory
+    from qutebrowser.qt import webenginecore
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
-from qutebrowser.qt import core, gui
+from qutebrowser.qt import core, gui, webkit
+
+
+if webkit:
+    qWebKitVersion = webkit.qWebKitVersion
+else:
+    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
 
 
 MAXVALS = {
@@ -186,8 +187,8 @@ _QtSerializableType = Union[
     core.QObject,
     core.QByteArray,
     core.QUrl,
-    'QWebEngineHistory',
-    'QWebHistory'
+    'webenginecore.QWebEngineHistory',
+    'webkit.QWebHistory'
 ]
 
 

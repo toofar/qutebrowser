@@ -36,17 +36,7 @@ import dataclasses
 from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
-from qutebrowser.qt import opengl, widgets, network, gui, core, machinery
-
-try:
-    from qutebrowser.qt.webkit import qWebKitVersion
-except ImportError:  # pragma: no cover
-    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
-try:
-    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
-except ImportError:
-    # QtWebKit
-    PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
+from qutebrowser.qt import opengl, widgets, webenginecore, webkit, network, gui, core, machinery
 
 
 import qutebrowser
@@ -55,8 +45,23 @@ from qutebrowser.utils import (log, utils, standarddir, usertypes, message, reso
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
+
+
 if TYPE_CHECKING:
     from qutebrowser.config import websettings
+
+
+if webkit:
+    qWebKitVersion = webkit.qWebKitVersion
+else:
+    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
+
+
+if webenginecore:
+    PYQT_WEBENGINE_VERSION_STR = webenginecore.PYQT_WEBENGINE_VERSION_STR
+else:
+    PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
+
 
 _LOGO = r'''
          ______     ,,

@@ -633,7 +633,7 @@ class KeySequence:
         if (modifiers == Qt.KeyboardModifier.ShiftModifier and
                 _is_printable(key) and
                 not ev.text().isupper()):
-            modifiers = Qt.KeyboardModifiers()  # type: ignore[assignment]
+            modifiers = Qt.KeyboardModifier.NoModifier
 
         # On macOS, swap Ctrl and Meta back
         #

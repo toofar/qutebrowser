@@ -274,7 +274,7 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     else:
         result = ''
 
-    result += QKeySequence(modifiers).toString()
+    result += QKeySequence(_extract_enum_val(modifiers)).toString()
 
     _check_valid_utf8(result, modifiers)
     return result

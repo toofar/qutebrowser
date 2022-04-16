@@ -24,7 +24,7 @@ from qutebrowser.qt.webenginecore import QWebEnginePage
 from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
-from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.browser.webengine import webenginesettings, webview
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import version, usertypes, qtutils
 from qutebrowser.keyinput import modeman
@@ -47,7 +47,14 @@ class WebEngineInspectorView(QWebEngineView):
 
         See WebEngineView.createWindow for details.
         """
-        return self.page().inspectedPage().view().createWindow(wintype)
+        inspected_page = self.page().inspectedPage()
+        try:
+            # Qt 5
+            return inspected_page.view().createWindow(wintype)
+        except AttributeError:
+            # Qt 6
+            newpage = inspected_page.createWindow(wintype)
+            return webview.WebEngineView.forPage(newpage)
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):

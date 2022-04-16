@@ -403,6 +403,7 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict([
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('adblock', ['__version__'], "0.3.2"),
+        # XXX: fix for qt6
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),

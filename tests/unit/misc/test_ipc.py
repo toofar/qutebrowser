@@ -30,13 +30,12 @@ from unittest import mock
 from typing import Optional, List
 
 import pytest
-from qutebrowser.qt import test
 
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils, version
 from helpers import stubs, testutils
-from qutebrowser.qt import network, core
+from qutebrowser.qt import network, core, test
 
 
 pytestmark = pytest.mark.usefixtures('qapp')

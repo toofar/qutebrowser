@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Base class for a wrapper over QWebView/QWebEngineView."""
+"""Base class for a wrapper over webkitwidgets.QWebView/webenginecore.QWebEngineView."""
 
 import enum
 import itertools
@@ -28,10 +28,7 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
 from qutebrowser.qt import widgets, printsupport, network
 
 if TYPE_CHECKING:
-    from qutebrowser.qt.webkit import QWebHistory, QWebHistoryItem
-    from qutebrowser.qt.webkitwidgets import QWebPage, QWebView
-    from qutebrowser.qt.webenginewidgets import (
-        QWebEngineHistory, QWebEngineHistoryItem, QWebEnginePage, QWebEngineView)
+    from qutebrowser.qt import webkit, webkitwidgets, webenginecore
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, websettings
@@ -47,7 +44,7 @@ if TYPE_CHECKING:
 
 
 tab_id_gen = itertools.count(0)
-_WidgetType = Union["QWebView", "QWebEngineView"]
+_WidgetType = Union["webkitwidgets.QWebView", "webenginecore.QWebEngineView"]
 
 
 def create(win_id: int,
@@ -147,7 +144,12 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
+    action_base: Type[
+        Union[
+            'webkitwidgets.QWebPage.WebAction',
+            'webenginecore.QWebEnginePage.WebAction',
+        ]
+    ]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = cast(_WidgetType, None)
@@ -691,7 +693,7 @@ class AbstractHistoryPrivate:
 
     """Private API related to the history."""
 
-    _history: Union["QWebHistory", "QWebEngineHistory"]
+    _history: Union["webkit.QWebHistory", "webenginecore.QWebEngineHistory"]
 
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
@@ -712,13 +714,19 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = cast(Union['QWebHistory', 'QWebEngineHistory'], None)
+        self._history = cast(
+            Union['webkit.QWebHistory', 'webenginecore.QWebEngineHistory'], None
+        )
         self.private_api = AbstractHistoryPrivate()
 
     def __len__(self) -> int:
         raise NotImplementedError
 
-    def __iter__(self) -> Iterable[Union['QWebHistoryItem', 'QWebEngineHistoryItem']]:
+    def __iter__(
+        self,
+    ) -> Iterable[
+        Union['webkit.QWebHistoryItem', 'webenginecore.QWebEngineHistoryItem']
+    ]:
         raise NotImplementedError
 
     def _check_count(self, count: int) -> None:
@@ -729,7 +737,7 @@ class AbstractHistory:
     def current_idx(self) -> int:
         raise NotImplementedError
 
-    def current_item(self) -> Union['QWebHistoryItem', 'QWebEngineHistoryItem']:
+    def current_item(self) -> Union['webkit.QWebHistoryItem', 'webenginecore.QWebEngineHistoryItem']:
         raise NotImplementedError
 
     def back(self, count: int = 1) -> None:
@@ -964,7 +972,7 @@ class AbstractTabPrivate:
 
 class AbstractTab(widgets.QWidget):
 
-    """An adapter for QWebView/QWebEngineView representing a single tab."""
+    """An adapter for webkitwidgets.QWebView/webenginecore.QWebEngineView representing a single tab."""
 
     #: Signal emitted when a website requests to close this tab.
     window_close_requested = core.pyqtSignal()
@@ -1058,7 +1066,7 @@ class AbstractTab(widgets.QWidget):
 
         self.before_load_started.connect(self._on_before_load_started)
 
-    def _set_widget(self, widget: Union["QWebView", "QWebEngineView"]) -> None:
+    def _set_widget(self, widget: Union["webkitwidgets.QWebView", "webenginecore.QWebEngineView"]) -> None:
         # pylint: disable=protected-access
         self._widget = widget
         self.data.splitter = miscwidgets.InspectorSplitter(

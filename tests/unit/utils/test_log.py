@@ -28,9 +28,9 @@ import dataclasses
 
 import pytest
 import _pytest.logging  # pylint: disable=import-private-name
-from qutebrowser.qt import core
 
 from qutebrowser import qutebrowser
+from qutebrowser.qt import core
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils

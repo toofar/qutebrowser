@@ -26,12 +26,11 @@ import dataclasses
 
 import pytest
 import pytestqt.wait_signal
-from qutebrowser.qt import test
 
 from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
-from qutebrowser.qt import core
+from qutebrowser.qt import core, test
 
 
 class InvalidLine(Exception):

@@ -119,7 +119,7 @@ class StateConfig(configparser.ConfigParser):
         Note that it's too early to use objects.backend here...
         """
         try:
-            import qutebrowser.qt  # pylint: disable=unused-import
+            import qutebrowser.qt.webenginewidgets
         except ImportError:
             return 'no'
         return str(version.qtwebengine_versions(avoid_init=True).webengine)

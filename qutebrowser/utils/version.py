@@ -38,17 +38,15 @@ from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
 
-from qutebrowser.qt.core import qVersion
-from qutebrowser.qt import widgets, webkit, webenginecore, network
-from qutebrowser.qt.opengl import QOpenGLVersionProfile
+from qutebrowser.qt import widgets, webkit, webenginecore, network, opengl
 
 try:
-    pass
+    from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 try:
-    pass
-except ImportError:  # pragma: no cover
+    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
+except ImportError:
     # QtWebKit
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
 
@@ -963,7 +961,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             # Can't use versionFunctions there
             return OpenGLInfo(gles=True)
 
-        vp = QOpenGLVersionProfile()
+        vp = opengl.QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
         try:

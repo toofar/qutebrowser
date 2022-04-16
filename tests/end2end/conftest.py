@@ -38,7 +38,7 @@ from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.qt import webenginecore, core
+from qutebrowser.qt import core
 
 
 def pytest_configure(config):
@@ -119,12 +119,12 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            pass
+            from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
         except ImportError:
             # QtWebKit
             running_version = core.PYQT_VERSION
         else:
-            running_version = webenginecore.PYQT_WEBENGINE_VERSION
+            running_version = PYQT_WEBENGINE_VERSION
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),

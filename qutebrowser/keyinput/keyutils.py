@@ -374,7 +374,7 @@ class KeyInfo:
         modifiers = e.modifiers()
         _assert_plain_key(key)
         _assert_plain_modifier(modifiers)
-        return cls(key, cast(Qt.KeyboardModifier, modifiers))
+        return cls(key, modifiers)
 
     @classmethod
     def from_qt(cls, combination: Union[int, QKeyCombination]) -> 'KeyInfo':

@@ -466,7 +466,7 @@ class EventLoop(QEventLoop):
     def exec(
             self,
             flags: QEventLoop.ProcessEventsFlag =
-            cast(QEventLoop.ProcessEventsFlag, QEventLoop.ProcessEventsFlag.AllEvents)
+            QEventLoop.ProcessEventsFlag.AllEvents
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:

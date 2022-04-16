@@ -1049,3 +1049,8 @@ class TestLibraryPath:
     def test_all(self, which):
         path = qtutils.library_path(which)
         assert path.exists()
+
+
+def test_extract_enum_val():
+    value = qtutils.extract_enum_val(Qt.KeyboardModifiers.ShiftModifier)
+    assert value == 0x02000000 

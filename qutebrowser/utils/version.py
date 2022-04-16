@@ -36,15 +36,15 @@ import dataclasses
 from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
-from qutebrowser.qt import opengl, widgets, webkit, webenginecore, network, gui, core, machinery
+from qutebrowser.qt import opengl, widgets, network, gui, core, machinery
 
 try:
-    pass
+    from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
+    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
 try:
-    pass
-except ImportError:  # pragma: no cover
+    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
+except ImportError:
     # QtWebKit
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
 
@@ -774,11 +774,10 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     if override is not None:
         return WebEngineVersions.from_pyqt(override, source='override')
 
-    try:
-        pass
-    except ImportError:
-        pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
-    else:
+    if hasattr(webenginecore, 'qWebEngineChromiumVersion') and hasattr(
+        webenginecore, 'qWebEngineVersion'
+    ):
+        # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
         return WebEngineVersions.from_api(
             qtwe_version=webenginecore.qWebEngineVersion(),
             chromium_version=webenginecore.qWebEngineChromiumVersion(),
@@ -801,14 +800,14 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         return WebEngineVersions.from_webengine(
             pyqt_webengine_qt_version, source='importlib')
 
-    assert webenginecore.PYQT_WEBENGINE_VERSION_STR is not None
-    return WebEngineVersions.from_pyqt(webenginecore.PYQT_WEBENGINE_VERSION_STR)
+    assert PYQT_WEBENGINE_VERSION_STR is not None
+    return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
 
 
 def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return 'new QtWebKit (WebKit {})'.format(webkit.qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
         return str(qtwebengine_versions(
             avoid_init='avoid-chromium-init' in objects.debug_flags))

@@ -21,7 +21,7 @@
 
 from typing import Optional
 
-from qutebrowser.qt import widgets, sql
+from qutebrowser.qt import widgets, sql as qtsql
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log
@@ -29,7 +29,7 @@ from qutebrowser.config import config
 from qutebrowser.completion.models import util
 
 
-class HistoryCategory(sql.QSqlQueryModel):
+class HistoryCategory(qtsql.QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 

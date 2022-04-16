@@ -32,7 +32,7 @@ import importlib.machinery
 
 import pytest
 
-from qutebrowser.qt import gui
+from qutebrowser.qt import gui, webenginecore
 
 from qutebrowser.utils import log, utils, version
 
@@ -268,10 +268,7 @@ def disable_seccomp_bpf_sandbox():
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
     """
-    try:
-        pass
-    except ImportError:
-        # no QtWebEngine available
+    if not webenginecore:
         return False
 
     versions = version.qtwebengine_versions(avoid_init=True)

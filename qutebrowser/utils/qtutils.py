@@ -35,9 +35,8 @@ import operator
 import contextlib
 from typing import (Any, AnyStr, TYPE_CHECKING, BinaryIO, IO, Iterator,
                     Optional, Union, Tuple, cast)
-from qutebrowser.qt import webkit, webenginewidgets, gui
 try:
-    pass
+    from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
@@ -46,7 +45,7 @@ if TYPE_CHECKING:
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
-from qutebrowser.qt import core
+from qutebrowser.qt import core, gui
 
 
 MAXVALS = {

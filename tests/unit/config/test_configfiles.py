@@ -25,7 +25,7 @@ import textwrap
 import logging
 
 import pytest
-from qutebrowser.qt import core
+from qutebrowser.qt import core, webenginecore
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
@@ -186,9 +186,7 @@ def state_writer(data_tmpdir):
 
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
-    try:
-        pass
-    except ImportError:
+    if not webenginecore:
         pytest.skip("QtWebEngine not available")
 
     def patch(ver, chromium_version=None):

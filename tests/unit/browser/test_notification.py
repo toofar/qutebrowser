@@ -25,7 +25,7 @@ import inspect
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 import pytest
-from qutebrowser.qt import webenginecore, gui
+from qutebrowser.qt import gui
 pytest.importorskip("qutebrowser.qt.webenginecore")
 if TYPE_CHECKING:
     from qutebrowser.qt import QWebEngineNotification

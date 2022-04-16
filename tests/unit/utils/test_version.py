@@ -1007,7 +1007,8 @@ class TestWebEngineVersions:
                 pytest.skip("dev version of PyQt")
 
             try:
-                pass
+                from qutebrowser.qt.webenginecore import (
+                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
             except ImportError as e:
                 # QtWebKit
                 pytest.skip(str(e))

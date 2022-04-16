@@ -122,7 +122,7 @@ class StateConfig(configparser.ConfigParser):
         """
         try:
             # pylint: disable=unused-import,redefined-outer-name
-            import qutebrowser.qt
+            import qutebrowser.qt.webenginewidgets
         except ImportError:
             return False
         return True

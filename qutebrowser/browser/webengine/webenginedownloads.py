@@ -44,8 +44,23 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  parent: QObject = None) -> None:
         super().__init__(manager=manager, parent=manager)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(  # type: ignore[attr-defined]
-            self.stats.on_download_progress)
+        try:
+            # Qt 5
+            qt_item.downloadProgress.connect(self.stats.on_download_progress)
+        except AttributeError:
+            # Qt 6
+            qt_item.receivedBytesChanged.connect(  # type: ignore[attr-defined]
+                lambda: self.stats.on_download_progress(
+                    qt_item.receivedBytes(),
+                    qt_item.totalBytes(),
+                )
+            )
+            qt_item.totalBytesChanged.connect(  # type: ignore[attr-defined]
+                lambda: self.stats.on_download_progress(
+                    qt_item.receivedBytes(),
+                    qt_item.totalBytes(),
+                )
+            )
         qt_item.stateChanged.connect(  # type: ignore[attr-defined]
             self._on_state_changed)
 

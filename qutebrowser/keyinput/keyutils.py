@@ -153,11 +153,16 @@ _SPECIAL_NAMES = {
 }
 
 
+def _extract_enum_val(val: Union[int, enum.Enum]) -> int:
+    """Extract an int value from a Qt enum value."""
+    if isinstance(val, enum.Enum):
+        return val.value
+    return int(val)
+
+
 def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
-    mask = Qt.KeyboardModifier.KeyboardModifierMask
-    if isinstance(mask, enum.Enum):  # PyQt6
-        mask = mask.value
+    mask = _extract_enum_val(Qt.KeyboardModifier.KeyboardModifierMask)
     assert not int(key) & mask, hex(key)
 
 
@@ -451,7 +456,7 @@ class KeyInfo:
 
     def to_int(self) -> int:
         """Get the key as an integer (with key/modifiers)."""
-        return int(self.key) | int(self.modifiers)
+        return int(self.key) | _extract_enum_val(self.modifiers)
 
     def to_qt(self) -> Union[int, QKeyCombination]:
         """Get something suitable for a QKeySequence."""

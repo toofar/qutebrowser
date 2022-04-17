@@ -1079,7 +1079,7 @@ class TestChromiumVersion:
             def defaultProfile(self):
                 raise AssertionError("Should not be called")
 
-        monkeypatch.setattr(webenginesettings, 'QWebEngineProfile', FakeProfile())
+        monkeypatch.setattr(webenginesettings.webenginecore, 'QWebEngineProfile', FakeProfile())
 
         version.qtwebengine_versions()
 
@@ -1253,11 +1253,11 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
         'sys.executable': 'EXECUTABLE PATH',
-        'PYQT_VERSION_STR': 'PYQT VERSION',
+        'core.PYQT_VERSION_STR': 'PYQT VERSION',
         'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
+        'QtNetwork.QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
@@ -1360,7 +1360,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
     """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
-    assert version.version_info() == expected
+    assert version.version_info().split() == expected.split()
 
 
 class TestOpenGLInfo:

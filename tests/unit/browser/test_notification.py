@@ -194,7 +194,7 @@ class TestDBus:
     @pytest.fixture
     def dbus_adapter_patches(self, monkeypatch, config_stub):
         monkeypatch.setattr(objects, "debug_flags", ["test-notification-service"])
-        monkeypatch.setattr(notification, "QDBusInterface", FakeDBusInterface)
+        monkeypatch.setattr(notification.dbus, "QDBusInterface", FakeDBusInterface)
 
     @pytest.fixture
     def dbus_adapter(self, dbus_adapter_patches):

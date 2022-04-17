@@ -300,7 +300,7 @@ class TestListen:
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
-        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
+        monkeypatch.setattr(ipc.network.QLocalServer, 'removeServer',
                             lambda self: True)
         monkeypatch.setattr(ipc_server, '_socketname', None)
         with pytest.raises(ipc.ListenError):
@@ -308,7 +308,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
-        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
+        monkeypatch.setattr(ipc.network.QLocalServer, 'removeServer',
                             lambda self: True)
         qlocalserver.listen('qute-test')
         with pytest.raises(ipc.AddressInUseError):
@@ -654,7 +654,7 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalserver_mock(self, mocker):
-        m = mocker.patch('qutebrowser.misc.ipc.QLocalServer', autospec=True)
+        m = mocker.patch('qutebrowser.misc.ipc.network.QLocalServer', autospec=True)
         m().errorString.return_value = "Error string"
         m.SocketOption = network.QLocalServer.SocketOption
         m().newConnection = stubs.FakeSignal()
@@ -662,7 +662,7 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
-        m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
+        m = mocker.patch('qutebrowser.misc.ipc.network.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
         m.LocalSocketError = network.QLocalSocket.LocalSocketError
         m.LocalSocketState = network.QLocalSocket.LocalSocketState

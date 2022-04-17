@@ -137,7 +137,7 @@ class TestKeyToString:
 
     @pytest.mark.skipif(machinery.IS_QT6, reason="Can't delete enum members on PyQt 6")
     def test_missing(self, monkeypatch):
-        monkeypatch.delattr(keyutils.Qt, 'Key_AltGr')
+        monkeypatch.delattr(keyutils.core.Qt, 'Key_AltGr')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert keyutils._key_to_string(core.Qt.Key.Key_A) == 'A'

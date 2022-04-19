@@ -129,6 +129,14 @@ jobs:
           - testenv: py310-pyqt515
             os: ubuntu-20.04
             python: 3.10-dev
+          ### PyQt 6.2 (Python 3.9)
+          - testenv: py39-pyqt62
+            os: ubuntu-20.04
+            python: 3.9
+          ### PyQt 6.3 (Python 3.9)
+          - testenv: py39-pyqt63
+            os: ubuntu-20.04
+            python: 3.9
           ### macOS: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: macos-10.15

@@ -353,7 +353,7 @@ class KeyInfo:
     """
 
     key: Qt.Key
-    modifiers: _ModifierType
+    modifiers: _ModifierType = Qt.KeyboardModifier.NoModifier
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':

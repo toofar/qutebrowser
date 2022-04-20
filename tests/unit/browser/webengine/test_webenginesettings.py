@@ -21,7 +21,7 @@ import logging
 
 import pytest
 
-QtWebEngineWidgets = pytest.importorskip('qutebrowser.qt.webenginewidgets')
+QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
@@ -41,7 +41,7 @@ def default_profile(monkeypatch):
 
     Note we use a "private" profile here to avoid actually storing data during tests.
     """
-    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile = QtWebEngineCore.QWebEngineProfile()
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(profile, 'isOffTheRecord', lambda: False)
     monkeypatch.setattr(webenginesettings, 'default_profile', profile)
@@ -51,7 +51,7 @@ def default_profile(monkeypatch):
 @pytest.fixture
 def private_profile(monkeypatch):
     """A profile to use which is set as private_profile."""
-    profile = QtWebEngineWidgets.QWebEngineProfile()
+    profile = QtWebEngineCore.QWebEngineProfile()
     profile.setter = webenginesettings.ProfileSetter(profile)
     monkeypatch.setattr(webenginesettings, 'private_profile', profile)
     return profile

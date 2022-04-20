@@ -22,3 +22,4 @@ if machinery.IS_QT5:
     del QWebEngineCertificateError
     del QWebEngineScript
     del QWebEngineHistory
+    del QWebEngineScriptCollection

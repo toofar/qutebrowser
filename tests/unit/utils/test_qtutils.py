@@ -29,7 +29,7 @@ import unittest.mock
 
 import pytest
 from qutebrowser.qt.core import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo)
+                          QTimer, QBuffer, QFile, QProcess, QFileDevice, QLibraryInfo, Qt)
 from qutebrowser.qt.gui import QColor
 
 from qutebrowser.utils import qtutils, utils, usertypes

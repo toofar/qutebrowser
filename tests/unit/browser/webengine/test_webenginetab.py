@@ -23,7 +23,7 @@ import logging
 import textwrap
 
 import pytest
-QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
+QtWebEngineWidgets = pytest.importorskip("qutebrowser.qt.webenginewidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
 QWebEngineScript = QtWebEngineWidgets.QWebEngineScript

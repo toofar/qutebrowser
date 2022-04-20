@@ -123,7 +123,7 @@ class ErrorNetworkReply(QNetworkReply):
         self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
         QTimer.singleShot(0, lambda:
-                          self.error.emit(error))  # type: ignore[attr-defined]
+                          self.errorOccurred.emit(error))  # type: ignore[attr-defined]
         QTimer.singleShot(0, lambda:
                           self.finished.emit())  # type: ignore[attr-defined]
 

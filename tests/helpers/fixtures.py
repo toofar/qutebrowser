@@ -177,7 +177,7 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from qutebrowser.qt.webenginewidgets import QWebEngineProfile
+        from qutebrowser.qt.webenginecore import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)

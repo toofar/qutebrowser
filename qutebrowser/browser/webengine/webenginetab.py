@@ -31,7 +31,7 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTim
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.widgets import QWidget
 from qutebrowser.qt.webenginecore import (QWebEnginePage, QWebEngineScript, QWebEngineHistory,
-                                          QWebEngineFindTextResult)
+                                          QWebEngineFindTextResult, QWebEngineClientCertificateSelection)
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -1636,16 +1636,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
-
-        try:
-            # pylint: disable=unused-import
-            from qutebrowser.qt.webenginewidgets import (
-                QWebEngineClientCertificateSelection)
-        except ImportError:
-            pass
-        else:
-            page.selectClientCertificate.connect(
-                self._on_select_client_certificate)
+        page.selectClientCertificate.connect(self._on_select_client_certificate)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)

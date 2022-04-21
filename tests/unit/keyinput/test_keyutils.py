@@ -205,7 +205,7 @@ def test_surrogates(key, modifiers, text, expected):
     ([0x1f468, 0x200d, 0x1f468, 0x200d, 0x1f466], '<👨><‍><👨><‍><👦>'),
 ])
 def test_surrogate_sequences(keys, expected):
-    infos = [utils.KeyInfo(key) for key in keys]
+    infos = [keyutils.KeyInfo(key) for key in keys]
     seq = keyutils.KeySequence(*infos)
     assert str(seq) == expected
 

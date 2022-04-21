@@ -1046,6 +1046,8 @@ class TestLibraryPath:
 
     @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
     def test_all(self, which):
+        if utils.is_windows and which == qtutils.LibraryPath.settings:
+            pytest.skip("Settings path not supported on Windows")
         qtutils.library_path(which)
         # The returned path doesn't necessarily exist.
 

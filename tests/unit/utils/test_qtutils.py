@@ -1036,18 +1036,18 @@ class TestLibraryPath:
     def test_simple(self):
         try:
             # Qt 6
-            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataLocation)
+            path = QLibraryInfo.path(QLibraryInfo.LibraryPath.DataPath)
         except AttributeError:
             # Qt 5
-            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataLocation)
+            path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
 
         assert path
         assert str(qtutils.library_path(qtutils.LibraryPath.data)) == path
 
     @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
     def test_all(self, which):
-        path = qtutils.library_path(which)
-        assert path.exists()
+        qtutils.library_path(which)
+        # The returned path doesn't necessarily exist.
 
 
 def test_extract_enum_val():

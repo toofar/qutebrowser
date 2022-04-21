@@ -13,6 +13,9 @@ if machinery.USE_PYQT5:
         QWebEngineHistory,
         QWebEngineHistoryItem,
         QWebEngineScriptCollection,
+        QWebEngineClientCertificateSelection,
+        QWebEngineFullScreenRequest,
+        QWebEngineContextMenuData as QWebEngineContextMenuRequest,
     )
     # FIXME:qt6 is there a PySide2 equivalent to those?
     from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION, PYQT_WEBENGINE_VERSION_STR
@@ -30,6 +33,9 @@ elif machinery.USE_PYSIDE2:
         QWebEngineHistory,
         QWebEngineHistoryItem,
         QWebEngineScriptCollection,
+        QWebEngineClientCertificateSelection,
+        QWebEngineFullScreenRequest,
+        QWebEngineContextMenuData as QWebEngineContextMenuRequest,
     )
 elif machinery.USE_PYSIDE6:
     from PySide6.QtWebEngineCore import *

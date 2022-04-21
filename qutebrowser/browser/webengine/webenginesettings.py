@@ -236,8 +236,8 @@ class ProfileSetter:
             'content.cache.size': self.set_http_cache_size,
             'content.cookies.store': self.set_persistent_cookie_policy,
             'spellcheck.languages': self.set_dictionary_language,
-            'user_agent': self.set_http_headers,
-            'accept_language': self.set_http_headers,
+            'content.headers.user_agent': self.set_http_headers,
+            'content.headers.accept_language': self.set_http_headers,
         }
 
     def update_setting(self, name):

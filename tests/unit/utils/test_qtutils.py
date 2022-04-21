@@ -1051,6 +1051,18 @@ class TestLibraryPath:
         qtutils.library_path(which)
         # The returned path doesn't necessarily exist.
 
+    def test_values_match_qt(self):
+        try:
+            # Qt 6
+            enumtype = QLibraryInfo.LibraryPath
+        except AttributeError:
+            enumtype = QLibraryInfo.LibraryLocation
+
+        our_names = set(member.value for member in qtutils.LibraryPath)
+        qt_names = set(testutils.enum_members(QLibraryInfo, enumtype))
+        qt_names.discard("ImportsPath")  # Moved to QmlImportsPath in Qt 6
+        assert qt_names == our_names
+
 
 def test_extract_enum_val():
     value = qtutils.extract_enum_val(Qt.KeyboardModifier.ShiftModifier)

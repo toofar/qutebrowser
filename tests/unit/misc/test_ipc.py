@@ -657,6 +657,7 @@ class TestSendOrListen:
     def qlocalserver_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalServer', autospec=True)
         m().errorString.return_value = "Error string"
+        m.SocketOption = QLocalServer.SocketOption
         m().newConnection = stubs.FakeSignal()
         return m
 

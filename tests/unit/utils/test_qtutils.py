@@ -1042,7 +1042,7 @@ class TestLibraryPath:
             path = QLibraryInfo.location(QLibraryInfo.LibraryLocation.DataPath)
 
         assert path
-        assert str(qtutils.library_path(qtutils.LibraryPath.data)) == path
+        assert qtutils.library_path(qtutils.LibraryPath.data).as_posix() == path
 
     @pytest.mark.parametrize("which", list(qtutils.LibraryPath))
     def test_all(self, which):

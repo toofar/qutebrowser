@@ -130,7 +130,9 @@ def qenum_key(base: Type[_EnumValueType],
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
         idx = meta_obj.indexOfEnumerator(klass.__name__)
         meta_enum = meta_obj.enumerator(idx)
-        return meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
+        if key is not None:
+            return key
     except AttributeError:
         pass
 

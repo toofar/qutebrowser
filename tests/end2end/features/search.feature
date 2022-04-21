@@ -249,7 +249,7 @@ Feature: Searching on a page
 
     ## wrapping prevented
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Preventing wrapping at the top of the page with QtWebEngine
         When I set search.ignore_case to always
         And I set search.wrap to false
@@ -261,7 +261,7 @@ Feature: Searching on a page
         And I wait for "Search hit TOP" in the log
         Then "foo" should be found
 
-    @qtwebkit_skip @qt>=5.14
+    @qtwebkit_skip
     Scenario: Preventing wrapping at the bottom of the page with QtWebEngine
         When I set search.ignore_case to always
         And I set search.wrap to false

@@ -30,7 +30,8 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTim
                           QObject)
 from qutebrowser.qt.network import QAuthenticator
 from qutebrowser.qt.widgets import QWidget
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from qutebrowser.qt.webenginecore import (QWebEnginePage, QWebEngineScript, QWebEngineHistory,
+                                          QWebEngineFindTextResult)
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -105,41 +106,15 @@ class _WebEngineSearchWrapHandler:
         _active_match: The 1-based index of the currently active match
                        on the page.
         _total_matches: The total number of search matches on the page.
-        _nowrap_available: Whether the functionality to prevent wrapping
-                           is available.
     """
 
     def __init__(self):
         self._active_match = 0
         self._total_matches = 0
         self.flag_wrap = True
-        self._nowrap_available = False
 
-    def connect_signal(self, page):
-        """Connect to the findTextFinished signal of the page.
-
-        Args:
-            page: The QtWebEnginePage to connect to this handler.
-        """
-        if not qtutils.version_check("5.14"):
-            return
-
-        try:
-            # pylint: disable=unused-import
-            from qutebrowser.qt.webenginecore import QWebEngineFindTextResult
-        except ImportError:
-            # WORKAROUND for some odd PyQt/packaging bug where the
-            # findTextResult signal is available, but QWebEngineFindTextResult
-            # is not. Seems to happen on e.g. Gentoo.
-            log.webview.warning("Could not import QWebEngineFindTextResult "
-                                "despite running on Qt 5.14. You might need "
-                                "to rebuild PyQtWebEngine.")
-            return
-
-        page.findTextFinished.connect(self._store_match_data)
-        self._nowrap_available = True
-
-    def _store_match_data(self, result):
+    # No @pyqtSlot, as connection fails for some reason with it
+    def store_match_data(self, result):
         """Store information on the last match.
 
         The information will be checked against when wrapping is turned off.
@@ -168,8 +143,7 @@ class _WebEngineSearchWrapHandler:
         Args:
             going_up: Whether the search would scroll the page up or down.
         """
-        if (not self._nowrap_available or
-                self.flag_wrap or self._total_matches == 0):
+        if self.flag_wrap or self._total_matches == 0:
             return False
         elif going_up and self._active_match == 1:
             message.info("Search hit TOP")
@@ -238,7 +212,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._flags.backward = reverse
 
     def connect_signals(self):
-        self._wrap_handler.connect_signal(self._widget.page())
+        self._widget.page().findTextFinished.connect(self._wrap_handler.store_match_data)
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
@@ -425,6 +399,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         # https://bugreports.qt.io/browse/QTBUG-53134
         # Even on Qt 5.10 selectedText() seems to work poorly, see
         # https://github.com/qutebrowser/qutebrowser/issues/3523
+        # FIXME:qt6 Reevaluate?
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
 
@@ -673,10 +648,13 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         self._tab.load_url(url)
 
     def load_items(self, items):
-        webengine_version = version.qtwebengine_versions().webengine
-        if webengine_version >= utils.VersionNumber(5, 15):
-            self._load_items_workaround(items)
-            return
+        self._load_items_workaround(items)
+
+    def _load_items_proper(self, items):
+        """Load session items properly.
+
+        Currently unused, but should be revived. 
+        """
 
         if items:
             self._tab.before_load_started.emit(items[-1].url)
@@ -861,15 +839,10 @@ class WebEngineAudio(browsertab.AbstractAudio):
             timer.start()
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
-        was_muted = self.is_muted()
         self._overridden = override
         assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
-        if was_muted != muted and qtutils.version_check('5.15'):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85118
-            # so that the tab title at least updates the muted indicator
-            self.muted_changed.emit(muted)
 
     def is_muted(self):
         page = self._widget.page()
@@ -895,12 +868,7 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
-    # Using 0 as WORKAROUND for:
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
-    # Fixed in PyQt 5.13.1
-
     _options = {
-        0: 'content.notifications.enabled',
         QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
         QWebEnginePage.Feature.Geolocation: 'content.geolocation',
         QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
@@ -912,7 +880,6 @@ class _WebEnginePermissions(QObject):
     }
 
     _messages = {
-        0: 'show notifications',
         QWebEnginePage.Feature.Notifications: 'show notifications',
         QWebEnginePage.Feature.Geolocation: 'access your location',
         QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
@@ -969,14 +936,7 @@ class _WebEnginePermissions(QObject):
         permission_str = debug.qenum_key(QWebEnginePage, feature)
 
         if not url.isValid():
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-85116
-            is_qtbug = (qtutils.version_check('5.15.0',
-                                              compiled=False,
-                                              exact=True) and
-                        self._tab.is_private and
-                        feature == QWebEnginePage.Feature.Notifications)
-            logger = log.webview.debug if is_qtbug else log.webview.warning
-            logger("Ignoring feature permission {} for invalid URL {}".format(
+            log.webview.warning("Ignoring feature permission {} for invalid URL {}".format(
                 permission_str, url))
             deny_permission()
             return
@@ -984,18 +944,6 @@ class _WebEnginePermissions(QObject):
         if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
                 permission_str))
-            deny_permission()
-            return
-
-        if (
-                feature in [QWebEnginePage.Feature.DesktopVideoCapture,
-                            QWebEnginePage.Feature.DesktopAudioVideoCapture] and
-                qtutils.version_check('5.13', compiled=False) and
-                not qtutils.version_check('5.13.2', compiled=False)
-        ):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
-            log.webview.warning("Ignoring desktop sharing request due to "
-                                "crashes in Qt < 5.13.2")
             deny_permission()
             return
 
@@ -1423,13 +1371,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def title(self):
         return self._widget.title()
 
-    def renderer_process_pid(self) -> Optional[int]:
+    def renderer_process_pid(self) -> int:
         page = self._widget.page()
-        try:
-            return page.renderProcessPid()
-        except AttributeError:
-            # Added in Qt 5.15
-            return None
+        return page.renderProcessPid()
 
     def icon(self):
         return self._widget.icon()
@@ -1629,28 +1573,6 @@ class WebEngineTab(browsertab.AbstractTab):
         log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
-        # WORKAROUND for https://codereview.qt-project.org/c/qt/qtwebengine/+/270556
-        show_non_overr_cert_error = (
-            not error.is_overridable() and (
-                # Affected Qt versions:
-                # 5.13 before 5.13.2
-                # 5.12 before 5.12.6
-                # < 5.12 (which is unsupported)
-                (qtutils.version_check('5.13') and
-                 not qtutils.version_check('5.13.2')) or
-                (qtutils.version_check('5.12') and
-                 not qtutils.version_check('5.12.6'))
-            )
-        )
-
-        # We can't really know when to show an error page, as the error might
-        # have happened when loading some resource.
-        is_resource = (
-            first_party_url.isValid() and
-            url.matches(first_party_url, QUrl.UrlFormattingOption.RemoveScheme))
-        if show_non_overr_cert_error and is_resource:
-            self._show_error_page(url, str(error))
-
     @pyqtSlot()
     def _on_print_requested(self):
         """Slot for window.print() in JS."""
@@ -1658,23 +1580,6 @@ class WebEngineTab(browsertab.AbstractTab):
             self.printing.show_dialog()
         except browsertab.WebTabError as e:
             message.error(str(e))
-
-    @pyqtSlot(QUrl)
-    def _on_url_changed(self, url: QUrl) -> None:
-        """Update settings for the current URL.
-
-        Normally this is done below in _on_navigation_request, but we also need
-        to do it here as WORKAROUND for
-        https://bugreports.qt.io/browse/QTBUG-77137
-
-        Since update_for_url() is idempotent, it doesn't matter much if we end
-        up doing it twice.
-        """
-        super()._on_url_changed(url)
-        if (url.isValid() and
-                qtutils.version_check('5.13') and
-                not qtutils.version_check('5.14')):
-            self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
@@ -1751,12 +1656,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
-
-        try:
-            page.renderProcessPidChanged.connect(self._on_renderer_process_pid_changed)
-        except AttributeError:
-            # Added in Qt 5.15.0
-            pass
+        page.renderProcessPidChanged.connect(self._on_renderer_process_pid_changed)
 
         self.shutting_down.connect(self.abort_questions)
         self.load_started.connect(self.abort_questions)

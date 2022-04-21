@@ -11,6 +11,7 @@ if machinery.USE_PYQT5:
         QWebEngineCertificateError,
         QWebEngineScript,
         QWebEngineHistory,
+        QWebEngineHistoryItem,
         QWebEngineScriptCollection,
     )
     # FIXME:qt6 is there a PySide2 equivalent to those?
@@ -27,6 +28,7 @@ elif machinery.USE_PYSIDE2:
         QWebEngineCertificateError,
         QWebEngineScript,
         QWebEngineHistory,
+        QWebEngineHistoryItem,
         QWebEngineScriptCollection,
     )
 elif machinery.USE_PYSIDE6:

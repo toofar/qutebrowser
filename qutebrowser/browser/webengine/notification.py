@@ -49,20 +49,18 @@ import itertools
 import functools
 import subprocess
 from typing import Any, List, Dict, Optional, Iterator, TYPE_CHECKING
-from qutebrowser.qt import widgets
 
 if TYPE_CHECKING:
     # putting these behind TYPE_CHECKING also means this module is importable
     # on installs that don't have these
-    from qutebrowser.qt import webenginewidgets, webenginecore, QWebEngineNotification
-    from qutebrowser.qt import QWebEngineProfile
+    from qutebrowser.qt import webenginewidgets, webenginecore
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.utils import (
     qtutils, log, utils, debug, message, version, objreg, resources,
 )
-from qutebrowser.qt import gui, dbus, core, sip
+from qutebrowser.qt import widgets, gui, dbus, core, sip
 
 
 bridge: Optional['NotificationBridgePresenter'] = None
@@ -114,7 +112,7 @@ class AbstractNotificationAdapter(core.QObject):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -158,7 +156,7 @@ class NotificationBridgePresenter(core.QObject):
     def __init__(self, parent: core.QObject = None) -> None:
         super().__init__(parent)
 
-        self._active_notifications: Dict[int, 'QWebEngineNotification'] = {}
+        self._active_notifications: Dict[int, 'webenginecore.QWebEngineNotification'] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
         config.instance.changed.connect(self._init_adapter)
@@ -216,11 +214,11 @@ class NotificationBridgePresenter(core.QObject):
         self._adapter.error.connect(self._on_adapter_error)
         self._adapter.clear_all.connect(self._on_adapter_clear_all)
 
-    def install(self, profile: "QWebEngineProfile") -> None:
+    def install(self, profile: "webenginewidgets.QWebEngineProfile") -> None:
         """Set the profile to use this bridge as the presenter."""
         profile.setNotificationPresenter(self.present)
 
-    def present(self, qt_notification: "QWebEngineNotification") -> None:
+    def present(self, qt_notification: "webenginecore.QWebEngineNotification") -> None:
         """Show a notification using the configured adapter.
 
         Lazily initializes a suitable adapter if none exists yet.
@@ -259,7 +257,7 @@ class NotificationBridgePresenter(core.QObject):
 
     def _find_replaces_id(
         self,
-        new_notification: "QWebEngineNotification",
+        new_notification: "webenginecore.QWebEngineNotification",
     ) -> Optional[int]:
         """Find an existing notification to replace.
 
@@ -319,7 +317,7 @@ class NotificationBridgePresenter(core.QObject):
         notification.click()
         self._focus_first_matching_tab(notification)
 
-    def _focus_first_matching_tab(self, notification: "QWebEngineNotification") -> None:
+    def _focus_first_matching_tab(self, notification: "webenginecore.QWebEngineNotification") -> None:
         for win_id in objreg.window_registry:
             tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
             for idx, tab in enumerate(tabbedbrowser.widgets()):
@@ -399,7 +397,7 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -461,7 +459,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -480,7 +478,7 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
 
-    def _format_message(self, qt_notification: "QWebEngineNotification") -> str:
+    def _format_message(self, qt_notification: "webenginecore.QWebEngineNotification") -> str:
         title = html.escape(qt_notification.title())
         body = html.escape(qt_notification.message())
         hint = "" if qt_notification.icon().isNull() else " (image not shown)"
@@ -521,7 +519,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:
@@ -542,7 +540,7 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
 
     def _message_lines(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
     ) -> Iterator[str]:
         """Get the lines to display for this notification."""
         yield qt_notification.title()
@@ -893,7 +891,7 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def present(
         self,
-        qt_notification: "QWebEngineNotification",
+        qt_notification: "webenginecore.QWebEngineNotification",
         *,
         replaces_id: Optional[int],
     ) -> int:

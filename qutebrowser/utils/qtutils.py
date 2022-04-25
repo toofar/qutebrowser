@@ -40,8 +40,7 @@ try:
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
-    from qutebrowser.qt import QWebHistory
-    from qutebrowser.qt import QWebEngineHistory
+    from qutebrowser.qt import webkit, webengine
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -186,8 +185,8 @@ _QtSerializableType = Union[
     core.QObject,
     core.QByteArray,
     core.QUrl,
-    'QWebEngineHistory',
-    'QWebHistory'
+    'webengine.QWebEngineHistory',
+    'webkit.QWebHistory'
 ]
 
 

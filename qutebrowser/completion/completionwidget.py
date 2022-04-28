@@ -266,19 +266,19 @@ class CompletionView(QTreeView):
         while True:
             idx = idx.sibling(idx.row() + direction, 0)
 
-            if not idx.isValid() and upwards:
-                # wrap around to the first item of the last category
-                return self.model().last_item().sibling(0, 0)
-            elif not idx.isValid() and not upwards:
-                # wrap around to the first item of the first category
-                idx = self.model().first_item()
-                self.scrollTo(idx.parent())
-                return idx
-            elif idx.isValid():
+            if idx.isValid():
                 child = self.model().index(0, 0, idx)
                 if child.isValid():
                     self.scrollTo(idx)  # scroll to ensure the category is visible
                     return child
+            elif upwards:
+                # wrap around to the first item of the last category
+                return self.model().last_item().sibling(0, 0)
+            else:
+                # wrap around to the first item of the first category
+                idx = self.model().first_item()
+                self.scrollTo(idx.parent())
+                return idx
 
         raise utils.Unreachable
 

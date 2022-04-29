@@ -59,7 +59,6 @@ def test_element_js_webkit(webview, js_enabled, expected):
 def test_simple_js_webengine(qtbot, webengineview, qapp,
                              js_enabled, world, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
-
     assert world in [webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
                      webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
                      webenginecore.QWebEngineScript.ScriptWorldId.UserWorld]

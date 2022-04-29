@@ -267,7 +267,7 @@ def is_ignored_chromium_message(line):
         # ContextResult::kTransientFailure: Failed to send
         # GpuChannelMsg_CreateCommandBuffer.
         'ContextResult::kTransientFailure: Failed to send '
-        'GpuChannelMsg_CreateCommandBuffer.',
+        'Gpu*CreateCommandBuffer.',
         # [156330:156350:1121/120052.060701:WARNING:
         # important_file_writer.cc(97)]
         # temp file failure: /home/florian/.local/share/qutebrowser/

@@ -364,8 +364,8 @@ class KeyInfo:
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            key=debug.qenum_key(Qt, self.key),
-            modifiers=debug.qflags_key(Qt, self.modifiers),
+            key=debug.qenum_key(Qt, self.key, klass=Qt.Key),
+            modifiers=debug.qflags_key(Qt, self.modifiers, klass=Qt.KeyboardModifier),
             text=str(self),
         )
 

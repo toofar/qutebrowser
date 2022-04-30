@@ -100,7 +100,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                 "Fedora package."
             )
 
-    def inspect(self, page: webenginecore.QWebEnginePage) -> None:  # type: ignore[override]
+    def inspect(
+        self,
+        page: webenginecore.QWebEnginePage
+    ) -> None:  # type: ignore[override]
         if not self._widget:
             view = WebEngineInspectorView()
             inspector_page = webenginecore.QWebEnginePage(page.profile(), self)

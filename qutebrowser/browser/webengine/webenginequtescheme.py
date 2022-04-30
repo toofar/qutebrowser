@@ -92,12 +92,13 @@ class QuteSchemeHandler(webenginecore.QWebEngineUrlSchemeHandler):
         try:
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
+            url_request_job = webenginecore.QWebEngineUrlRequestJob.Error
             errors = {
-                qutescheme.NotFoundError: webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
-                qutescheme.UrlInvalidError: webenginecore.QWebEngineUrlRequestJob.Error.UrlInvalid,
-                qutescheme.RequestDeniedError: webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied,
-                qutescheme.SchemeOSError: webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
-                qutescheme.Error: webenginecore.QWebEngineUrlRequestJob.Error.RequestFailed,
+                qutescheme.NotFoundError: url_request_job.UrlNotFound,
+                qutescheme.UrlInvalidError: url_request_job.UrlInvalid,
+                qutescheme.RequestDeniedError: url_request_job.RequestDenied,
+                qutescheme.SchemeOSError: url_request_job.UrlNotFound,
+                qutescheme.Error: url_request_job.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -125,11 +126,12 @@ def init():
     Note this needs to be called early, before constructing any QtWebEngine
     classes.
     """
-    if webenginecore.QWebEngineUrlScheme is not None:
-        assert not webenginecore.QWebEngineUrlScheme.schemeByName(b'qute').name()
-        scheme = webenginecore.QWebEngineUrlScheme(b'qute')
+    url_scheme = webenginecore.QWebEngineUrlScheme
+    if url_scheme is not None:
+        assert not url_scheme.schemeByName(b'qute').name()
+        scheme = url_scheme(b'qute')
         scheme.setFlags(
-            webenginecore.QWebEngineUrlScheme.Flag.LocalScheme
-            | webenginecore.QWebEngineUrlScheme.Flag.LocalAccessAllowed  # type: ignore[arg-type]
+            url_scheme.Flag.LocalScheme
+            | url_scheme.Flag.LocalAccessAllowed  # type: ignore[arg-type]
         )
-        webenginecore.QWebEngineUrlScheme.registerScheme(scheme)
+        url_scheme.registerScheme(scheme)

@@ -62,9 +62,10 @@ class BrowserPage(QWebPage):
         self._win_id = win_id
         self._tabdata = tabdata
         self._is_shutting_down = False
+        extension_enum = QWebPage.Extension
         self._extension_handlers = {
-            QWebPage.Extension.ErrorPageExtension: self._handle_errorpage,
-            QWebPage.Extension.ChooseMultipleFilesExtension: self._handle_multiple_files,
+            extension_enum.ErrorPageExtension: self._handle_errorpage,
+            extension_enum.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
         self.error_occurred = False
@@ -517,19 +518,15 @@ class BrowserPage(QWebPage):
         Checks if it should open it in a tab (middle-click or control) or not,
         and then conditionally opens the URL here or in another tab/window.
         """
+        nav_type = QtWebKitWidgets.QWebPage.NavigationType
+        nav_request = usertypes.NavigationRequest
         type_map = {
-            QWebPage.NavigationType.NavigationTypeLinkClicked:
-                usertypes.NavigationRequest.Type.link_clicked,
-            QWebPage.NavigationType.NavigationTypeFormSubmitted:
-                usertypes.NavigationRequest.Type.form_submitted,
-            QWebPage.NavigationType.NavigationTypeFormResubmitted:
-                usertypes.NavigationRequest.Type.form_resubmitted,
-            QWebPage.NavigationType.NavigationTypeBackOrForward:
-                usertypes.NavigationRequest.Type.back_forward,
-            QWebPage.NavigationType.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            QWebPage.NavigationType.NavigationTypeOther:
-                usertypes.NavigationRequest.Type.other,
+            nav_type.NavigationTypeLinkClicked: nav_request.Type.link_clicked,
+            nav_type.NavigationTypeFormSubmitted: nav_request.Type.form_submitted,
+            nav_type.NavigationTypeFormResubmitted: nav_request.Type.form_resubmitted,
+            nav_type.NavigationTypeBackOrForward: nav_request.Type.back_forward,
+            nav_type.NavigationTypeReload: nav_request.Type.reloaded,
+            nav_type.NavigationTypeOther: nav_request.Type.other,
         }
         is_main_frame = frame is self.mainFrame()
         navigation = usertypes.NavigationRequest(url=request.url(),

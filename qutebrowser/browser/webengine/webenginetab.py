@@ -41,12 +41,16 @@ from qutebrowser.qt import core, sip
 from qutebrowser.misc import objects, miscwidgets
 
 
+world_enum = webenginecore.QWebEngineScript.ScriptWorldId
+feature_enum = webenginecore.QWebEnginePage.Feature
+
+
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
-    usertypes.JsWorld.main: webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
-    usertypes.JsWorld.application: webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
-    usertypes.JsWorld.user: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld,
-    usertypes.JsWorld.jseval: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld
+    usertypes.JsWorld.main: world_enum.MainWorld,
+    usertypes.JsWorld.application: world_enum.ApplicationWorld,
+    usertypes.JsWorld.user: world_enum.UserWorld,
+    usertypes.JsWorld.jseval: world_enum.UserWorld
     + 1,
 }
 
@@ -872,25 +876,25 @@ class _WebEnginePermissions(core.QObject):
     """Handling of various permission-related signals."""
 
     _options = {
-        webenginecore.QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
-        webenginecore.QWebEnginePage.Feature.Geolocation: 'content.geolocation',
-        webenginecore.QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
-        webenginecore.QWebEnginePage.Feature.MediaVideoCapture: 'content.media.video_capture',
-        webenginecore.QWebEnginePage.Feature.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        webenginecore.QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
-        webenginecore.QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
-        webenginecore.QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
+        feature_enum.Notifications: 'content.notifications.enabled',
+        feature_enum.Geolocation: 'content.geolocation',
+        feature_enum.MediaAudioCapture: 'content.media.audio_capture',
+        feature_enum.MediaVideoCapture: 'content.media.video_capture',
+        feature_enum.MediaAudioVideoCapture: 'content.media.audio_video_capture',
+        feature_enum.MouseLock: 'content.mouse_lock',
+        feature_enum.DesktopVideoCapture: 'content.desktop_capture',
+        feature_enum.DesktopAudioVideoCapture: 'content.desktop_capture',
     }
 
     _messages = {
-        webenginecore.QWebEnginePage.Feature.Notifications: 'show notifications',
-        webenginecore.QWebEnginePage.Feature.Geolocation: 'access your location',
-        webenginecore.QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
-        webenginecore.QWebEnginePage.Feature.MediaVideoCapture: 'record video',
-        webenginecore.QWebEnginePage.Feature.MediaAudioVideoCapture: 'record audio/video',
-        webenginecore.QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
-        webenginecore.QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
-        webenginecore.QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
+        feature_enum.Notifications: 'show notifications',
+        feature_enum.Geolocation: 'access your location',
+        feature_enum.MediaAudioCapture: 'record audio',
+        feature_enum.MediaVideoCapture: 'record video',
+        feature_enum.MediaAudioVideoCapture: 'record audio/video',
+        feature_enum.MouseLock: 'hide your mouse pointer',
+        feature_enum.DesktopVideoCapture: 'capture your desktop',
+        feature_enum.DesktopAudioVideoCapture: 'capture your desktop and audio',
     }
 
     def __init__(self, tab, parent=None):
@@ -1520,11 +1524,13 @@ class WebEngineTab(browsertab.AbstractTab):
                 webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus
             )
 
+        abstract_enum = browsertab.TerminationStatus
+        qt_enum = webenginecore.QWebEnginePage.RenderProcessTerminationStatus
         status_map = {
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus: browsertab.TerminationStatus.normal,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus: browsertab.TerminationStatus.abnormal,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus: browsertab.TerminationStatus.crashed,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus: browsertab.TerminationStatus.killed,
+            qt_enum.NormalTerminationStatus: abstract_enum.normal,
+            qt_enum.AbnormalTerminationStatus: abstract_enum.abnormal,
+            qt_enum.CrashedTerminationStatus: abstract_enum.crashed,
+            qt_enum.KilledTerminationStatus: abstract_enum.killed,
             -1: browsertab.TerminationStatus.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)

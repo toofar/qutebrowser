@@ -64,31 +64,33 @@ class RequestInterceptor(webenginecore.QWebEngineUrlRequestInterceptor):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        req_info = webenginecore.QWebEngineUrlRequestInfo.ResourceType
+        resource_type = interceptors.ResourceType
         # This dict should be from QWebEngine Resource Types to qutebrowser
         # extension ResourceTypes. If a ResourceType is added to Qt, this table
         # should be updated too.
         self._resource_types = {
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame: interceptors.ResourceType.main_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame: interceptors.ResourceType.sub_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet: interceptors.ResourceType.stylesheet,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript: interceptors.ResourceType.script,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage: interceptors.ResourceType.image,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource: interceptors.ResourceType.font_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource: interceptors.ResourceType.sub_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject: interceptors.ResourceType.object,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia: interceptors.ResourceType.media,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker: interceptors.ResourceType.worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker: interceptors.ResourceType.shared_worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch: interceptors.ResourceType.prefetch,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon: interceptors.ResourceType.favicon,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr: interceptors.ResourceType.xhr,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing: interceptors.ResourceType.ping,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker: interceptors.ResourceType.service_worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport: interceptors.ResourceType.csp_report,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource: interceptors.ResourceType.plugin_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown: interceptors.ResourceType.unknown,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame: interceptors.ResourceType.preload_main_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame: interceptors.ResourceType.preload_sub_frame,
+            req_info.ResourceTypeMainFrame: resource_type.main_frame,
+            req_info.ResourceTypeSubFrame: resource_type.sub_frame,
+            req_info.ResourceTypeStylesheet: resource_type.stylesheet,
+            req_info.ResourceTypeScript: resource_type.script,
+            req_info.ResourceTypeImage: resource_type.image,
+            req_info.ResourceTypeFontResource: resource_type.font_resource,
+            req_info.ResourceTypeSubResource: resource_type.sub_resource,
+            req_info.ResourceTypeObject: resource_type.object,
+            req_info.ResourceTypeMedia: resource_type.media,
+            req_info.ResourceTypeWorker: resource_type.worker,
+            req_info.ResourceTypeSharedWorker: resource_type.shared_worker,
+            req_info.ResourceTypePrefetch: resource_type.prefetch,
+            req_info.ResourceTypeFavicon: resource_type.favicon,
+            req_info.ResourceTypeXhr: resource_type.xhr,
+            req_info.ResourceTypePing: resource_type.ping,
+            req_info.ResourceTypeServiceWorker: resource_type.service_worker,
+            req_info.ResourceTypeCspReport: resource_type.csp_report,
+            req_info.ResourceTypePluginResource: resource_type.plugin_resource,
+            req_info.ResourceTypeUnknown: resource_type.unknown,
+            req_info.ResourceTypeNavigationPreloadMainFrame: resource_type.preload_main_frame,
+            req_info.ResourceTypeNavigationPreloadSubFrame: resource_type.preload_sub_frame,
         }
 
     def install(self, profile):

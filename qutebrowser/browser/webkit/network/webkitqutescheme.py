@@ -61,12 +61,13 @@ def handler(request, operation, current_url):
     try:
         mimetype, data = qutescheme.data_for_url(url)
     except qutescheme.Error as e:
+        error_enum = network.QNetworkReply.NetworkError
         errors = {
-            qutescheme.NotFoundError: network.QNetworkReply.NetworkError.ContentNotFoundError,
-            qutescheme.UrlInvalidError: network.QNetworkReply.NetworkError.ContentOperationNotPermittedError,
-            qutescheme.RequestDeniedError: network.QNetworkReply.NetworkError.ContentAccessDenied,
-            qutescheme.SchemeOSError: network.QNetworkReply.NetworkError.ContentNotFoundError,
-            qutescheme.Error: network.QNetworkReply.NetworkError.InternalServerError,
+            qutescheme.NotFoundError: error_enum.ContentNotFoundError,
+            qutescheme.UrlInvalidError: error_enum.ContentOperationNotPermittedError,
+            qutescheme.RequestDeniedError: error_enum.ContentAccessDenied,
+            qutescheme.SchemeOSError: error_enum.ContentNotFoundError,
+            qutescheme.Error: error_enum.InternalServerError,
         }
         exctype = type(e)
         log.misc.error("{} while handling qute://* URL".format(

@@ -29,9 +29,12 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes
 
 
+FileSelectionMode = webenginecore.QWebEnginePage.FileSelectionMode
+
+
 _QB_FILESELECTION_MODES = {
-    webenginecore.QWebEnginePage.FileSelectionMode.FileSelectOpen: shared.FileSelectionMode.single_file,
-    webenginecore.QWebEnginePage.FileSelectionMode.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
+    FileSelectionMode.FileSelectOpen: shared.FileSelectionMode.single_file,
+    FileSelectionMode.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91489
     #
     # QtWebEngine doesn't expose this value from its internal
@@ -39,7 +42,7 @@ _QB_FILESELECTION_MODES = {
     # the public QWebEnginePage::FileSelectionMode enum).
     # However, QWebEnginePage::chooseFiles is still called with the matching value
     # (2) when a file input with "webkitdirectory" is used.
-    webenginecore.QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
+    FileSelectionMode(2): shared.FileSelectionMode.folder,
 }
 
 
@@ -227,10 +230,11 @@ class WebEnginePage(webenginecore.QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
         # FIXME:qt6 Add tests to ensure this is complete
+        levels = webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel
         level_map = {
-            webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel: usertypes.JsLogLevel.info,
-            webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel: usertypes.JsLogLevel.warning,
-            webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel: usertypes.JsLogLevel.error,
+            levels.InfoMessageLevel: usertypes.JsLogLevel.info,
+            levels.WarningMessageLevel: usertypes.JsLogLevel.warning,
+            levels.ErrorMessageLevel: usertypes.JsLogLevel.error,
         }
         shared.javascript_log_message(level_map[level], source, line, msg)
 
@@ -242,27 +246,28 @@ class WebEnginePage(webenginecore.QWebEnginePage):
     ) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         # FIXME:qt6 Add tests to ensure this is complete
+        nav_type_enum = webenginecore.QWebEnginePage.NavigationType
+        nav_request_type = usertypes.NavigationRequest.Type
         type_map = {
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeLinkClicked: usertypes.NavigationRequest.Type.link_clicked,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeTyped: usertypes.NavigationRequest.Type.typed,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeFormSubmitted: usertypes.NavigationRequest.Type.form_submitted,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeBackForward: usertypes.NavigationRequest.Type.back_forward,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeReload: usertypes.NavigationRequest.Type.reloaded,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeOther: usertypes.NavigationRequest.Type.other,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeRedirect: usertypes.NavigationRequest.Type.redirect,
+            nav_type_enum.NavigationTypeLinkClicked: nav_request_type.link_clicked,
+            nav_type_enum.NavigationTypeTyped: nav_request_type.typed,
+            nav_type_enum.NavigationTypeFormSubmitted: nav_request_type.form_submitted,
+            nav_type_enum.NavigationTypeBackForward: nav_request_type.back_forward,
+            nav_type_enum.NavigationTypeReload: nav_request_type.reloaded,
+            nav_type_enum.NavigationTypeOther: nav_request_type.other,
+            nav_type_enum.NavigationTypeRedirect: nav_request_type.redirect,
         }
 
         navigation = usertypes.NavigationRequest(
             url=url,
-            navigation_type=type_map.get(
-                typ, usertypes.NavigationRequest.Type.other),
+            navigation_type=type_map.get(typ, nav_request_type.other),
             is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
 
     def chooseFiles(
         self,
-        mode: webenginecore.QWebEnginePage.FileSelectionMode,
+        mode: FileSelectionMode,
         old_files: Iterable[str],
         accepted_mimetypes: Iterable[str],
     ) -> List[str]:

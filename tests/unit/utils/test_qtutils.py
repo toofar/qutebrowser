@@ -216,12 +216,12 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
         (
             core.QDataStream.Status.ReadCorruptData,
             True,
-            "The data stream has read corrupt " "data.",
+            "The data stream has read corrupt data.",
         ),
         (
             core.QDataStream.Status.WriteFailed,
             True,
-            "The data stream cannot write to the " "underlying device.",
+            "The data stream cannot write to the underlying device.",
         ),
     ],
 )

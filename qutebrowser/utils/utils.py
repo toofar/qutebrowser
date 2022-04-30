@@ -43,6 +43,8 @@ except ImportError:  # pragma: no cover
         class Protocol:
 
             """Empty stub at runtime."""
+
+
 from qutebrowser.qt import widgets
 
 import yaml
@@ -533,7 +535,11 @@ def set_clipboard(data: str, selection: bool = False) -> None:
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
         fake_clipboard = data
     else:
-        mode = gui.QClipboard.Mode.Selection if selection else gui.QClipboard.Mode.Clipboard
+        mode = (
+            gui.QClipboard.Mode.Selection
+            if selection
+            else gui.QClipboard.Mode.Clipboard
+        )
         widgets.QApplication.clipboard().setText(data, mode=mode)
 
 
@@ -559,7 +565,11 @@ def get_clipboard(selection: bool = False, fallback: bool = False) -> str:
         data = fake_clipboard
         fake_clipboard = None
     else:
-        mode = gui.QClipboard.Mode.Selection if selection else gui.QClipboard.Mode.Clipboard
+        mode = (
+            gui.QClipboard.Mode.Selection
+            if selection
+            else gui.QClipboard.Mode.Clipboard
+        )
         data = widgets.QApplication.clipboard().text(mode=mode)
 
     target = "Primary selection" if selection else "Clipboard"

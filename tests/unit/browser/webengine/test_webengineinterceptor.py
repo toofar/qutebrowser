@@ -34,10 +34,12 @@ from helpers import testutils
 def test_no_missing_resource_types():
     request_interceptor = interceptor.RequestInterceptor()
     qb_keys = set(request_interceptor._resource_types.keys())
-    qt_keys = set(testutils.enum_members(
-        webenginecore.QWebEngineUrlRequestInfo,
-        webenginecore.QWebEngineUrlRequestInfo.ResourceType,
-    ).values())
+    qt_keys = set(
+        testutils.enum_members(
+            webenginecore.QWebEngineUrlRequestInfo,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType,
+        ).values()
+    )
     assert qt_keys == qb_keys
 
 

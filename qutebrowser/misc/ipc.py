@@ -109,7 +109,8 @@ class SocketError(Error):
 
     def __str__(self):
         return "Error while {}: {} ({})".format(
-            self.action, self.message, debug.qenum_key(network.QLocalSocket, self.code))
+            self.action, self.message, debug.qenum_key(network.QLocalSocket, self.code)
+        )
 
 
 class ListenError(Error):
@@ -133,7 +134,8 @@ class ListenError(Error):
 
     def __str__(self):
         return "Error while listening to IPC server: {} ({})".format(
-            self.message, debug.qenum_key(network.QAbstractSocket, self.code))
+            self.message, debug.qenum_key(network.QAbstractSocket, self.code)
+        )
 
 
 class AddressInUseError(ListenError):
@@ -202,7 +204,9 @@ class IPCServer(core.QObject):
             # Thus, we only do so on Windows, and handle permissions manually in
             # listen() on Linux.
             log.ipc.debug("Calling setSocketOptions")
-            self._server.setSocketOptions(network.QLocalServer.SocketOption.UserAccessOption)
+            self._server.setSocketOptions(
+                network.QLocalServer.SocketOption.UserAccessOption
+            )
         else:  # pragma: no cover
             log.ipc.debug("Not calling setSocketOptions")
 
@@ -221,7 +225,10 @@ class IPCServer(core.QObject):
         self._remove_server()
         ok = self._server.listen(self._socketname)
         if not ok:
-            if self._server.serverError() == network.QAbstractSocket.SocketError.AddressInUseError:
+            if (
+                self._server.serverError()
+                == network.QAbstractSocket.SocketError.AddressInUseError
+            ):
                 raise AddressInUseError(self._server)
             raise ListenError(self._server)
 
@@ -275,8 +282,10 @@ class IPCServer(core.QObject):
 
         socket.errorOccurred.connect(self.on_error)
 
-        if socket.error() not in [network.QLocalSocket.LocalSocketError.UnknownSocketError,
-                                  network.QLocalSocket.LocalSocketError.PeerClosedError]:
+        if socket.error() not in [
+            network.QLocalSocket.LocalSocketError.UnknownSocketError,
+            network.QLocalSocket.LocalSocketError.PeerClosedError,
+        ]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
         socket.disconnected.connect(  # type: ignore[attr-defined]
@@ -499,11 +508,16 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
             socket.waitForDisconnected(CONNECT_TIMEOUT)
         return True
     else:
-        if socket.error() not in [network.QLocalSocket.LocalSocketError.ConnectionRefusedError,
-                                  network.QLocalSocket.LocalSocketError.ServerNotFoundError]:
+        if socket.error() not in [
+            network.QLocalSocket.LocalSocketError.ConnectionRefusedError,
+            network.QLocalSocket.LocalSocketError.ServerNotFoundError,
+        ]:
             raise SocketError("connecting to running instance", socket)
-        log.ipc.debug("No existing instance present ({})".format(
-            debug.qenum_key(network.QLocalSocket, socket.error())))
+        log.ipc.debug(
+            "No existing instance present ({})".format(
+                debug.qenum_key(network.QLocalSocket, socket.error())
+            )
+        )
         return False
 
 

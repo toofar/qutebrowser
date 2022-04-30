@@ -179,7 +179,9 @@ class NetworkManager(network.QNetworkAccessManager):
         self.proxyAuthenticationRequired.connect(self.on_proxy_authentication_required)
         self.netrc_used = False
         # Needed for Qt 5
-        self.setRedirectPolicy(network.QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
+        self.setRedirectPolicy(
+            network.QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy
+        )
 
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""
@@ -239,7 +241,9 @@ class NetworkManager(network.QNetworkAccessManager):
     def shutdown(self):
         """Abort all running requests."""
         try:
-            self.setNetworkAccessible(network.QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+            self.setNetworkAccessible(
+                network.QNetworkAccessManager.NetworkAccessibility.NotAccessible
+            )
         except AttributeError:
             # Qt 5 only, deprecated seemingly without replacement.
             pass
@@ -409,15 +413,21 @@ class NetworkManager(network.QNetworkAccessManager):
             proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
-                    req, proxy_error, network.QNetworkReply.NetworkError.UnknownProxyError,
-                    self)
+                    req,
+                    proxy_error,
+                    network.QNetworkReply.NetworkError.UnknownProxyError,
+                    self,
+                )
 
         if not req.url().isValid():
             log.network.debug("Ignoring invalid requested URL: {}".format(
                 req.url().errorString()))
             return networkreply.ErrorNetworkReply(
-                req, "Invalid request URL", network.QNetworkReply.NetworkError.HostNotFoundError,
-                self)
+                req,
+                "Invalid request URL",
+                network.QNetworkReply.NetworkError.HostNotFoundError,
+                self,
+            )
 
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
@@ -436,8 +446,11 @@ class NetworkManager(network.QNetworkAccessManager):
         interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, network.QNetworkReply.NetworkError.ContentAccessDenied,
-                self)
+                req,
+                HOSTBLOCK_ERROR_STRING,
+                network.QNetworkReply.NetworkError.ContentAccessDenied,
+                self,
+            )
 
         if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(network.QNetworkAccessManager, op)

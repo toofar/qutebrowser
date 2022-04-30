@@ -855,7 +855,9 @@ class QuteProc(testprocess.Process):
 
         # We really need the same representation that the webview uses in
         # its __repr__
-        url = utils.elide(qurl.toDisplayString(core.QUrl.ComponentFormattingOption.EncodeUnicode), 100)
+        url = utils.elide(
+            qurl.toDisplayString(core.QUrl.ComponentFormattingOption.EncodeUnicode), 100
+        )
         assert url
 
         pattern = re.compile(
@@ -907,10 +909,10 @@ class QuteProc(testprocess.Process):
             return path.read_text(encoding='utf-8')
 
     def get_screenshot(
-            self,
-            *,
-            probe_pos: core.QPoint = None,
-            probe_color: gui.QColor = testutils.Color(0, 0, 0),
+        self,
+        *,
+        probe_pos: core.QPoint = None,
+        probe_color: gui.QColor = testutils.Color(0, 0, 0),
     ) -> gui.QImage:
         """Get a screenshot of the current page.
 

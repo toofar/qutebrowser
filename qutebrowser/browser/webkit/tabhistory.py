@@ -49,10 +49,14 @@ def _serialize_items(items, current_idx, stream):
 
 def _serialize_item(item):
     data = {
-        'originalURLString': item.original_url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        'originalURLString': item.original_url.toString(
+            core.QUrl.ComponentFormattingOption.FullyEncoded
+        ),
         'scrollPosition': {'x': 0, 'y': 0},
         'title': item.title,
-        'urlString': item.url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        'urlString': item.url.toString(
+            core.QUrl.ComponentFormattingOption.FullyEncoded
+        ),
     }
     try:
         data['scrollPosition']['x'] = item.user_data['scroll-pos'].x()

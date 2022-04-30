@@ -39,8 +39,10 @@ def handler(request, operation, current_url):
     """
     if operation != network.QNetworkAccessManager.Operation.GetOperation:
         return networkreply.ErrorNetworkReply(
-            request, "Unsupported request type",
-            network.QNetworkReply.NetworkError.ContentOperationNotPermittedError)
+            request,
+            "Unsupported request type",
+            network.QNetworkReply.NetworkError.ContentOperationNotPermittedError,
+        )
 
     url = request.url()
 
@@ -51,23 +53,20 @@ def handler(request, operation, current_url):
                                 .format(current_url.toDisplayString(),
                                         url.toDisplayString()))
             return networkreply.ErrorNetworkReply(
-                request, "Invalid qute://settings request",
-                network.QNetworkReply.NetworkError.ContentAccessDenied)
+                request,
+                "Invalid qute://settings request",
+                network.QNetworkReply.NetworkError.ContentAccessDenied,
+            )
 
     try:
         mimetype, data = qutescheme.data_for_url(url)
     except qutescheme.Error as e:
         errors = {
-            qutescheme.NotFoundError:
-                network.QNetworkReply.NetworkError.ContentNotFoundError,
-            qutescheme.UrlInvalidError:
-                network.QNetworkReply.NetworkError.ContentOperationNotPermittedError,
-            qutescheme.RequestDeniedError:
-                network.QNetworkReply.NetworkError.ContentAccessDenied,
-            qutescheme.SchemeOSError:
-                network.QNetworkReply.NetworkError.ContentNotFoundError,
-            qutescheme.Error:
-                network.QNetworkReply.NetworkError.InternalServerError,
+            qutescheme.NotFoundError: network.QNetworkReply.NetworkError.ContentNotFoundError,
+            qutescheme.UrlInvalidError: network.QNetworkReply.NetworkError.ContentOperationNotPermittedError,
+            qutescheme.RequestDeniedError: network.QNetworkReply.NetworkError.ContentAccessDenied,
+            qutescheme.SchemeOSError: network.QNetworkReply.NetworkError.ContentNotFoundError,
+            qutescheme.Error: network.QNetworkReply.NetworkError.InternalServerError,
         }
         exctype = type(e)
         log.misc.error("{} while handling qute://* URL".format(

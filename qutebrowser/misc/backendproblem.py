@@ -95,11 +95,15 @@ class _Dialog(widgets.QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""
 
-    def __init__(self, *, because: str,
-                 text: str,
-                 backend: usertypes.Backend,
-                 buttons: Sequence[_Button] = None,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        *,
+        because: str,
+        text: str,
+        backend: usertypes.Backend,
+        buttons: Sequence[_Button] = None,
+        parent: widgets.QWidget = None,
+    ) -> None:
         super().__init__(parent)
         vbox = widgets.QVBoxLayout(self)
 
@@ -246,11 +250,13 @@ class _BackendProblemChecker:
                 "affects downloads and :adblock-update.")
 
         if fatal:
-            errbox = msgbox.msgbox(parent=None,
-                                   title="SSL error",
-                                   text="Could not initialize SSL support.",
-                                   icon=widgets.QMessageBox.Icon.Critical,
-                                   plain_text=False)
+            errbox = msgbox.msgbox(
+                parent=None,
+                title="SSL error",
+                text="Could not initialize SSL support.",
+                icon=widgets.QMessageBox.Icon.Critical,
+                plain_text=False,
+            )
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 
@@ -264,19 +270,24 @@ class _BackendProblemChecker:
         if not imports.webkit_error and not imports.webengine_error:
             return
         elif imports.webkit_error and imports.webengine_error:
-            text = ("<p>qutebrowser needs QtWebKit or QtWebEngine, but "
-                    "neither could be imported!</p>"
-                    "<p>The errors encountered were:<ul>"
-                    "<li><b>QtWebKit:</b> {webkit_error}"
-                    "<li><b>QtWebEngine:</b> {webengine_error}"
-                    "</ul></p>".format(
-                        webkit_error=html.escape(imports.webkit_error),
-                        webengine_error=html.escape(imports.webengine_error)))
-            errbox = msgbox.msgbox(parent=None,
-                                   title="No backend library found!",
-                                   text=text,
-                                   icon=widgets.QMessageBox.Icon.Critical,
-                                   plain_text=False)
+            text = (
+                "<p>qutebrowser needs QtWebKit or QtWebEngine, but "
+                "neither could be imported!</p>"
+                "<p>The errors encountered were:<ul>"
+                "<li><b>QtWebKit:</b> {webkit_error}"
+                "<li><b>QtWebEngine:</b> {webengine_error}"
+                "</ul></p>".format(
+                    webkit_error=html.escape(imports.webkit_error),
+                    webengine_error=html.escape(imports.webengine_error),
+                )
+            )
+            errbox = msgbox.msgbox(
+                parent=None,
+                title="No backend library found!",
+                text=text,
+                icon=widgets.QMessageBox.Icon.Critical,
+                plain_text=False,
+            )
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
         elif objects.backend == usertypes.Backend.QtWebKit:
@@ -338,12 +349,15 @@ class _BackendProblemChecker:
         if versions.webengine < utils.VersionNumber(5, 15, 2):
             text = (
                 "QtWebEngine >= 5.15.2 is required for qutebrowser, but "
-                f"{versions.webengine} is installed.")
-            errbox = msgbox.msgbox(parent=None,
-                                   title="QtWebEngine too old",
-                                   text=text,
-                                   icon=widgets.QMessageBox.Icon.Critical,
-                                   plain_text=False)
+                f"{versions.webengine} is installed."
+            )
+            errbox = msgbox.msgbox(
+                parent=None,
+                title="QtWebEngine too old",
+                text=text,
+                icon=widgets.QMessageBox.Icon.Critical,
+                plain_text=False,
+            )
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
 

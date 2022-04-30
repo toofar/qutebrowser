@@ -162,8 +162,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Inserting text into element {!r}".format(self))
         self._js_call('insert_text', text)
 
-    def rect_on_view(self, *, elem_geometry: core.QRect = None,
-                     no_js: bool = False) -> core.QRect:
+    def rect_on_view(
+        self, *, elem_geometry: core.QRect = None, no_js: bool = False
+    ) -> core.QRect:
         """Get the geometry of the element relative to the webview.
 
         Skipping of small rectangles is due to <a> elements containing other
@@ -192,8 +193,12 @@ class WebEngineElement(webelem.AbstractWebElement):
                 # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect = core.QRect(int(left * zoom), int(top * zoom),
-                             int(width * zoom), int(height * zoom))
+                rect = core.QRect(
+                    int(left * zoom),
+                    int(top * zoom),
+                    int(width * zoom),
+                    int(height * zoom),
+                )
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
                 # while frame is not None:
@@ -238,7 +243,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         view = self._tab._widget
         assert view is not None
         # pylint: enable=protected-access
-        attribute = webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
+        attribute = (
+            webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
+        )
         could_open_windows = view.settings().testAttribute(attribute)
         view.settings().setAttribute(attribute, True)
 
@@ -247,8 +254,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
         widgets.QApplication.processEvents(  # type: ignore[call-overload]
-            core.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers |
-            core.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
+            core.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
+            | core.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
+        )
 
         def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

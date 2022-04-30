@@ -252,7 +252,10 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        flags = core.QUrl.ComponentFormattingOption.FullyEncoded | core.QUrl.UrlFormattingOption.RemovePassword
+        flags = (
+            core.QUrl.ComponentFormattingOption.FullyEncoded
+            | core.QUrl.UrlFormattingOption.RemovePassword
+        )
         if url.scheme() == 'mailto':
             flags |= core.QUrl.UrlFormattingOption.RemoveScheme
         urlstr = url.toString(flags)  # type: ignore[arg-type]
@@ -357,7 +360,9 @@ class HintActions:
             context: The HintContext to use.
         """
         urlstr = url.toString(
-            core.QUrl.ComponentFormattingOption.FullyEncoded | core.QUrl.UrlFormattingOption.RemovePassword)  # type: ignore[arg-type]
+            core.QUrl.ComponentFormattingOption.FullyEncoded
+            | core.QUrl.UrlFormattingOption.RemovePassword
+        )  # type: ignore[arg-type]
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely('spawn ' + ' '.join(args))

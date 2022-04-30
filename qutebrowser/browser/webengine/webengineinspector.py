@@ -37,8 +37,9 @@ class WebEngineInspectorView(webenginewidgets.QWebEngineView):
     customization which doesn't apply to the inspector.
     """
 
-    def createWindow(self,
-                     wintype: webenginecore.QWebEnginePage.WebWindowType) -> webenginewidgets.QWebEngineView:
+    def createWindow(
+        self, wintype: webenginecore.QWebEnginePage.WebWindowType
+    ) -> webenginewidgets.QWebEngineView:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -60,9 +61,12 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine with Qt API support."""
 
-    def __init__(self, splitter: miscwidgets.InspectorSplitter,
-                 win_id: int,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        splitter: miscwidgets.InspectorSplitter,
+        win_id: int,
+        parent: widgets.QWidget = None,
+    ) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
         self._settings = None
@@ -90,19 +94,19 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         data_path = qtutils.library_path(qtutils.LibraryPath.data)
         pak = data_path / 'resources' / 'qtwebengine_devtools_resources.pak'
         if not pak.exists():
-            raise inspector.Error("QtWebEngine devtools resources not found, "
-                                  "please install the qt5-qtwebengine-devtools "
-                                  "Fedora package.")
+            raise inspector.Error(
+                "QtWebEngine devtools resources not found, "
+                "please install the qt5-qtwebengine-devtools "
+                "Fedora package."
+            )
 
     def inspect(self, page: webenginecore.QWebEnginePage) -> None:  # type: ignore[override]
         if not self._widget:
             view = WebEngineInspectorView()
-            inspector_page = webenginecore.QWebEnginePage(
-                page.profile(),
-                self
-            )
+            inspector_page = webenginecore.QWebEnginePage(page.profile(), self)
             inspector_page.windowCloseRequested.connect(  # type: ignore[attr-defined]
-                self._on_window_close_requested)
+                self._on_window_close_requested
+            )
             view.setPage(inspector_page)
             self._settings = webenginesettings.WebEngineSettings(view.settings())
             self._set_widget(view)

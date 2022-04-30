@@ -27,7 +27,9 @@ from qutebrowser.qt import webkit, webenginecore
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, None)])
 def test_simple_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript works when JS is on."""
-    webview.settings().setAttribute(webkit.QWebSettings.WebAttribute.JavascriptEnabled, js_enabled)
+    webview.settings().setAttribute(
+        webkit.QWebSettings.WebAttribute.JavascriptEnabled, js_enabled
+    )
     result = webview.page().mainFrame().evaluateJavaScript('1 + 1')
     assert result == expected
 
@@ -35,7 +37,9 @@ def test_simple_js_webkit(webview, js_enabled, expected):
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, 2.0)])
 def test_element_js_webkit(webview, js_enabled, expected):
     """With QtWebKit, evaluateJavaScript on an element works with JS off."""
-    webview.settings().setAttribute(webkit.QWebSettings.WebAttribute.JavascriptEnabled, js_enabled)
+    webview.settings().setAttribute(
+        webkit.QWebSettings.WebAttribute.JavascriptEnabled, js_enabled
+    )
     elem = webview.page().mainFrame().documentElement()
     result = elem.evaluateJavaScript('1 + 1')
     assert result == expected
@@ -56,12 +60,16 @@ def test_element_js_webkit(webview, js_enabled, expected):
 def test_simple_js_webengine(qtbot, webengineview, qapp,
                              js_enabled, world, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
-    assert world in [webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
-                     webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
-                     webenginecore.QWebEngineScript.ScriptWorldId.UserWorld]
+    assert world in [
+        webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
+        webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
+        webenginecore.QWebEngineScript.ScriptWorldId.UserWorld,
+    ]
 
     settings = webengineview.settings()
-    settings.setAttribute(webenginecore.QWebEngineSettings.WebAttribute.JavascriptEnabled, js_enabled)
+    settings.setAttribute(
+        webenginecore.QWebEngineSettings.WebAttribute.JavascriptEnabled, js_enabled
+    )
     qapp.processEvents()
 
     page = webengineview.page()

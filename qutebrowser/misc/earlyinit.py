@@ -90,8 +90,9 @@ def _die(message, exception=None):
     else:
         if exception is not None:
             message = message.replace('%ERROR%', str(exception))
-        msgbox = widgets.QMessageBox(widgets.QMessageBox.Icon.Critical, "qutebrowser: Fatal error!",
-                             message)
+        msgbox = widgets.QMessageBox(
+            widgets.QMessageBox.Icon.Critical, "qutebrowser: Fatal error!", message
+        )
         msgbox.setTextFormat(core.Qt.TextFormat.RichText)
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec()
@@ -185,10 +186,17 @@ def check_qt_version():
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
 
-    if core.QT_VERSION < 0x050F00 or core.PYQT_VERSION < 0x050500 or not recent_qt_runtime:
-        text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
-                "but Qt {} / PyQt {} is installed.".format(qt_version(),
-                                                           core.PYQT_VERSION_STR))
+    if (
+        core.QT_VERSION < 0x050F00
+        or core.PYQT_VERSION < 0x050500
+        or not recent_qt_runtime
+    ):
+        text = (
+            "Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
+            "but Qt {} / PyQt {} is installed.".format(
+                qt_version(), core.PYQT_VERSION_STR
+            )
+        )
         _die(text)
 
 
@@ -196,7 +204,7 @@ def check_ssl_support():
     """Check if SSL support is available."""
     try:
         from qutebrowser.qt import network
-    except ImportError
+    except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
 
@@ -248,6 +256,7 @@ def configure_pyqt():
     anyways), but we can use pdb instead.
     """
     from qutebrowser.qt import core
+
     core.pyqtRemoveInputHook()
 
     from qutebrowser.qt import sip

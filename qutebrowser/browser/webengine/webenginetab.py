@@ -46,7 +46,8 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.main: webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
     usertypes.JsWorld.application: webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
     usertypes.JsWorld.user: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld,
-    usertypes.JsWorld.jseval: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld + 1,
+    usertypes.JsWorld.jseval: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld
+    + 1,
 }
 
 
@@ -57,7 +58,9 @@ class WebEngineAction(browsertab.AbstractAction):
     action_base = webenginecore.QWebEnginePage.WebAction
 
     def exit_fullscreen(self):
-        self._widget.triggerPageAction(webenginecore.QWebEnginePage.WebAction.ExitFullScreen)
+        self._widget.triggerPageAction(
+            webenginecore.QWebEnginePage.WebAction.ExitFullScreen
+        )
 
     def save_page(self):
         """Save the current page."""
@@ -68,7 +71,9 @@ class WebEngineAction(browsertab.AbstractAction):
             self._show_source_pygments()
             return
 
-        self._widget.triggerPageAction(webenginecore.QWebEnginePage.WebAction.ViewSource)
+        self._widget.triggerPageAction(
+            webenginecore.QWebEnginePage.WebAction.ViewSource
+        )
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -499,7 +504,9 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
 
-    def _repeated_key_press(self, key, count=1, modifier=core.Qt.KeyboardModifier.NoModifier):
+    def _repeated_key_press(
+        self, key, count=1, modifier=core.Qt.KeyboardModifier.NoModifier
+    ):
         """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 1000)):
             self._tab.fake_key_press(key, modifier)
@@ -665,8 +672,9 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if cur_data is not None:
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
-            if ('scroll-pos' in cur_data and
-                    self._tab.scroller.pos_px() == core.QPoint(0, 0)):
+            if 'scroll-pos' in cur_data and self._tab.scroller.pos_px() == core.QPoint(
+                0, 0
+            ):
                 self._tab.load_finished.connect(_on_load_finished)
 
 
@@ -922,11 +930,17 @@ class _WebEnginePermissions(core.QObject):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
         grant_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
-            webenginecore.QWebEnginePage.PermissionPolicy.PermissionGrantedByUser)
+            page.setFeaturePermission,
+            url,
+            feature,
+            webenginecore.QWebEnginePage.PermissionPolicy.PermissionGrantedByUser,
+        )
         deny_permission = functools.partial(
-            page.setFeaturePermission, url, feature,
-            webenginecore.QWebEnginePage.PermissionPolicy.PermissionDeniedByUser)
+            page.setFeaturePermission,
+            url,
+            feature,
+            webenginecore.QWebEnginePage.PermissionPolicy.PermissionDeniedByUser,
+        )
 
         permission_str = debug.qenum_key(webenginecore.QWebEnginePage, feature)
 
@@ -992,8 +1006,11 @@ class _Quirk:
 
     filename: str
     injection_point: webenginecore.QWebEngineScript.InjectionPoint = (
-        webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation)
-    world: webenginecore.QWebEngineScript.ScriptWorldId = webenginecore.QWebEngineScript.ScriptWorldId.MainWorld
+        webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation
+    )
+    world: webenginecore.QWebEngineScript.ScriptWorldId = (
+        webenginecore.QWebEngineScript.ScriptWorldId.MainWorld
+    )
     predicate: bool = True
     name: Optional[str] = None
 
@@ -1031,10 +1048,15 @@ class _WebEngineScripts(core.QObject):
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
-    def _inject_js(self, name, js_code, *,
-                   world=webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
-                   injection_point=webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation,
-                   subframes=False):
+    def _inject_js(
+        self,
+        name,
+        js_code,
+        *,
+        world=webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
+        injection_point=webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation,
+        subframes=False,
+    ):
         """Inject the given script to run early on a page load."""
         script = webenginecore.QWebEngineScript()
         script.setInjectionPoint(injection_point)
@@ -1154,7 +1176,9 @@ class _WebEngineScripts(core.QObject):
             # NOTE that this needs to be done before setSourceCode, so that
             # QtWebEngine's parsing of GreaseMonkey tags will override it if there is a
             # @run-at comment.
-            new_script.setInjectionPoint(webenginecore.QWebEngineScript.InjectionPoint.DocumentReady)
+            new_script.setInjectionPoint(
+                webenginecore.QWebEngineScript.InjectionPoint.DocumentReady
+            )
 
             new_script.setSourceCode(script.code())
             new_script.setName(script.full_name())
@@ -1162,8 +1186,11 @@ class _WebEngineScripts(core.QObject):
 
             if script.needs_document_end_workaround():
                 log.greasemonkey.debug(
-                    f"Forcing @run-at document-end for {script.name}")
-                new_script.setInjectionPoint(webenginecore.QWebEngineScript.InjectionPoint.DocumentReady)
+                    f"Forcing @run-at document-end for {script.name}"
+                )
+                new_script.setInjectionPoint(
+                    webenginecore.QWebEngineScript.InjectionPoint.DocumentReady
+                )
 
             log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
@@ -1338,7 +1365,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         world_id_type = Union[webenginecore.QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id: world_id_type = webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld
+            world_id: world_id_type = (
+                webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld
+            )
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1410,7 +1439,8 @@ class WebEngineTab(browsertab.AbstractTab):
         title_url = core.QUrl(url)
         title_url.setScheme('')
         title_url_str = title_url.toDisplayString(
-            core.QUrl.UrlFormattingOption.RemoveScheme)  # type: ignore[arg-type]
+            core.QUrl.UrlFormattingOption.RemoveScheme
+        )  # type: ignore[arg-type]
         if title == title_url_str.strip('/'):
             title = ""
 
@@ -1426,8 +1456,12 @@ class WebEngineTab(browsertab.AbstractTab):
                                           proxy_host):
         """Called when a proxy needs authentication."""
         msg = "<b>{}</b> requires a username and password.".format(
-            html_utils.escape(proxy_host))
-        urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
+            html_utils.escape(proxy_host)
+        )
+        urlstr = url.toString(
+            core.QUrl.UrlFormattingOption.RemovePassword
+            | core.QUrl.ComponentFormattingOption.FullyEncoded
+        )
         answer = message.ask(
             title="Proxy authentication required", text=msg,
             mode=usertypes.PromptMode.user_pwd,
@@ -1476,22 +1510,22 @@ class WebEngineTab(browsertab.AbstractTab):
     @core.pyqtSlot(webenginecore.QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
-        if (status == webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus and
-                exitcode == 256):
+        if (
+            status
+            == webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus
+            and exitcode == 256
+        ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
-            status = webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus
+            status = (
+                webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus
+            )
 
         status_map = {
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus:
-                browsertab.TerminationStatus.normal,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus:
-                browsertab.TerminationStatus.abnormal,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus:
-                browsertab.TerminationStatus.crashed,
-            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus:
-                browsertab.TerminationStatus.killed,
-            -1:
-                browsertab.TerminationStatus.unknown,
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus: browsertab.TerminationStatus.normal,
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus: browsertab.TerminationStatus.abnormal,
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus: browsertab.TerminationStatus.crashed,
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus: browsertab.TerminationStatus.killed,
+            -1: browsertab.TerminationStatus.unknown,
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 

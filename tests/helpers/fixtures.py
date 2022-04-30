@@ -431,7 +431,9 @@ def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
     nam = network.QNetworkAccessManager()
     try:
-        nam.setNetworkAccessible(network.QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+        nam.setNetworkAccessible(
+            network.QNetworkAccessManager.NetworkAccessibility.NotAccessible
+        )
     except AttributeError:
         # Qt 5 only, deprecated seemingly without replacement.
         pass

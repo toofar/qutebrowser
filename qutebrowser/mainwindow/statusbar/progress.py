@@ -45,7 +45,9 @@ class Progress(widgets.QProgressBar):
         super().__init__(parent)
         stylesheet.set_register(self)
         self.enabled = False
-        self.setSizePolicy(widgets.QSizePolicy.Policy.Fixed, widgets.QSizePolicy.Policy.Fixed)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.Fixed, widgets.QSizePolicy.Policy.Fixed
+        )
         self.setTextVisible(False)
         self.hide()
 

@@ -33,8 +33,16 @@ class DummyBox:
         pass
 
 
-def msgbox(parent, title, text, *, icon, buttons=widgets.QMessageBox.StandardButton.Ok,
-           on_finished=None, plain_text=None):
+def msgbox(
+    parent,
+    title,
+    text,
+    *,
+    icon,
+    buttons=widgets.QMessageBox.StandardButton.Ok,
+    on_finished=None,
+    plain_text=None,
+):
     """Display a QMessageBox with the given icon.
 
     Args:

@@ -478,7 +478,10 @@ class LineEdit(widgets.QLineEdit):
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
-        if e.key() == core.Qt.Key.Key_Insert and e.modifiers() == core.Qt.KeyboardModifier.ShiftModifier:
+        if (
+            e.key() == core.Qt.Key.Key_Insert
+            and e.modifiers() == core.Qt.KeyboardModifier.ShiftModifier
+        ):
             try:
                 text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:  # pragma: no cover
@@ -519,7 +522,9 @@ class _BasePrompt(widgets.QWidget):
             # Not doing any HTML escaping here as the text can be formatted
             text_label = widgets.QLabel(question.text)
             text_label.setWordWrap(True)
-            text_label.setTextInteractionFlags(core.Qt.TextInteractionFlag.TextSelectableByMouse)
+            text_label.setTextInteractionFlags(
+                core.Qt.TextInteractionFlag.TextSelectableByMouse
+            )
             self._vbox.addWidget(text_label)
 
     def _init_key_label(self):
@@ -545,7 +550,9 @@ class _BasePrompt(widgets.QWidget):
                     binding = bindings[0]
                 key_label = widgets.QLabel('<b>{}</b>'.format(html.escape(binding)))
             else:
-                key_label = widgets.QLabel(f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)')
+                key_label = widgets.QLabel(
+                    f'<b>unbound</b> (<tt>{html.escape(cmd)}</tt>)'
+                )
 
             text_label = widgets.QLabel(text)
             labels.append((key_label, text_label))
@@ -636,7 +643,10 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         if config.val.prompt.filebrowser:
-            self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Preferred)
+            self.setSizePolicy(
+                widgets.QSizePolicy.Policy.Expanding,
+                widgets.QSizePolicy.Policy.Preferred,
+            )
 
         self._to_complete = ''
         self._root_index = core.QModelIndex()
@@ -779,8 +789,9 @@ class FilenamePrompt(_BasePrompt):
 
         selmodel.setCurrentIndex(
             idx,
-            core.QItemSelectionModel.SelectionFlag.ClearAndSelect |  # type: ignore[arg-type]
-            core.QItemSelectionModel.SelectionFlag.Rows)
+            core.QItemSelectionModel.SelectionFlag.ClearAndSelect
+            | core.QItemSelectionModel.SelectionFlag.Rows,  # type: ignore[arg-type]
+        )
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -803,7 +814,10 @@ class DownloadFilenamePrompt(FilenamePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._file_model.setFilter(
-            core.QDir.Filter.AllDirs | core.QDir.Filter.Drives | core.QDir.Filter.NoDotAndDotDot)  # type: ignore[arg-type]
+            core.QDir.Filter.AllDirs
+            | core.QDir.Filter.Drives
+            | core.QDir.Filter.NoDotAndDotDot
+        )  # type: ignore[arg-type]
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)
@@ -982,4 +996,5 @@ def init():
     global prompt_queue
     prompt_queue = PromptQueue()
     message.global_bridge.ask_question.connect(  # type: ignore[call-arg]
-        prompt_queue.ask_question, core.Qt.ConnectionType.DirectConnection)
+        prompt_queue.ask_question, core.Qt.ConnectionType.DirectConnection
+    )

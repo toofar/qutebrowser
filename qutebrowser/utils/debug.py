@@ -43,8 +43,12 @@ def log_events(klass: Type[core.QObject]) -> Type[core.QObject]:
         """Wrapper for event() which logs events."""
         # Passing klass as a WORKAROUND because with PyQt6, QEvent.type() returns int:
         # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044583.html
-        log.misc.debug("Event in {}: {}".format(
-            utils.qualname(klass), qenum_key(core.QEvent, e.type(), klass=core.QEvent.Type)))
+        log.misc.debug(
+            "Event in {}: {}".format(
+                utils.qualname(klass),
+                qenum_key(core.QEvent, e.type(), klass=core.QEvent.Type),
+            )
+        )
         return old_event(self, e)
 
     klass.event = new_event  # type: ignore[assignment]
@@ -56,6 +60,7 @@ def log_signals(obj: core.QObject) -> core.QObject:
 
     Can be used as class decorator.
     """
+
     def log_slot(obj: core.QObject, signal: core.pyqtBoundSignal, *args: Any) -> None:
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
@@ -332,11 +337,13 @@ def _get_widgets() -> Sequence[str]:
     return [repr(w) for w in widgets]
 
 
-def _get_pyqt_objects(lines: MutableSequence[str],
-                      obj: core.QObject,
-                      depth: int = 0) -> None:
+def _get_pyqt_objects(
+    lines: MutableSequence[str], obj: core.QObject, depth: int = 0
+) -> None:
     """Recursive method for get_all_objects to get Qt objects."""
-    for kid in obj.findChildren(core.QObject, '', core.Qt.FindChildOption.FindDirectChildrenOnly):
+    for kid in obj.findChildren(
+        core.QObject, '', core.Qt.FindChildOption.FindDirectChildrenOnly
+    ):
         lines.append('    ' * depth + repr(kid))
         _get_pyqt_objects(lines, kid, depth + 1)
 

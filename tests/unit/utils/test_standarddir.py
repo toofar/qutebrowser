@@ -115,7 +115,9 @@ def test_fake_haiku(tmpdir, monkeypatch):
     """Test getting data dir on HaikuOS."""
     locations = {
         core.QStandardPaths.StandardLocation.AppDataLocation: '',
-        core.QStandardPaths.StandardLocation.ConfigLocation: str(tmpdir / 'config' / APPNAME),
+        core.QStandardPaths.StandardLocation.ConfigLocation: str(
+            tmpdir / 'config' / APPNAME
+        ),
     }
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         locations.get)
@@ -135,14 +137,19 @@ class TestWritableLocation:
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
-            standarddir._writable_location(core.QStandardPaths.StandardLocation.AppDataLocation)
+            standarddir._writable_location(
+                core.QStandardPaths.StandardLocation.AppDataLocation
+            )
 
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
         monkeypatch.setattr(standarddir.os, 'sep', '\\')
-        monkeypatch.setattr(standarddir.os.path, 'join',
-                            lambda *parts: '\\'.join(parts))
-        loc = standarddir._writable_location(core.QStandardPaths.StandardLocation.AppDataLocation)
+        monkeypatch.setattr(
+            standarddir.os.path, 'join', lambda *parts: '\\'.join(parts)
+        )
+        loc = standarddir._writable_location(
+            core.QStandardPaths.StandardLocation.AppDataLocation
+        )
         assert '/' not in loc
         assert '\\' in loc
 

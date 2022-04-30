@@ -53,8 +53,11 @@ def shutdown_server():
 def ipc_server(qapp, qtbot):
     server = ipc.IPCServer('qute-test')
     yield server
-    if (server._socket is not None and
-            server._socket.state() != network.QLocalSocket.LocalSocketState.UnconnectedState):
+    if (
+        server._socket is not None
+        and server._socket.state()
+        != network.QLocalSocket.LocalSocketState.UnconnectedState
+    ):
         with qtbot.wait_signal(server._socket.disconnected, raising=False):
             server._socket.abort()
     try:
@@ -102,8 +105,15 @@ class FakeSocket(core.QObject):
     disconnected = core.pyqtSignal()
     errorOccurred = core.pyqtSignal(network.QLocalSocket.LocalSocketError)
 
-    def __init__(self, *, error=network.QLocalSocket.LocalSocketError.UnknownSocketError, state=None,
-                 data=None, connect_successful=True, parent=None):
+    def __init__(
+        self,
+        *,
+        error=network.QLocalSocket.LocalSocketError.UnknownSocketError,
+        state=None,
+        data=None,
+        connect_successful=True,
+        parent=None
+    ):
         super().__init__(parent)
         self._error_val = error
         self._state_val = state
@@ -278,7 +288,9 @@ class TestExceptions:
             raise exc
 
     def test_socket_error(self, qlocalserver):
-        socket = FakeSocket(error=network.QLocalSocket.LocalSocketError.ConnectionRefusedError)
+        socket = FakeSocket(
+            error=network.QLocalSocket.LocalSocketError.ConnectionRefusedError
+        )
         exc = ipc.SocketError("testing", socket)
         assert exc.code == network.QLocalSocket.LocalSocketError.ConnectionRefusedError
         assert exc.message == "Error string"
@@ -410,15 +422,22 @@ class TestOnError:
     def test_other_error(self, ipc_server, monkeypatch):
         socket = network.QLocalSocket()
         ipc_server._socket = socket
-        monkeypatch.setattr(socket, 'error',
-                            lambda: network.QLocalSocket.LocalSocketError.ConnectionRefusedError)
-        monkeypatch.setattr(socket, 'errorString',
-                            lambda: "Connection refused")
+        monkeypatch.setattr(
+            socket,
+            'error',
+            lambda: network.QLocalSocket.LocalSocketError.ConnectionRefusedError,
+        )
+        monkeypatch.setattr(socket, 'errorString', lambda: "Connection refused")
         socket.setErrorString("Connection refused.")
 
-        with pytest.raises(ipc.Error, match=r"Error while handling IPC "
-                           r"connection: Connection refused \(ConnectionRefusedError\)"):
-            ipc_server.on_error(network.QLocalSocket.LocalSocketError.ConnectionRefusedError)
+        with pytest.raises(
+            ipc.Error,
+            match=r"Error while handling IPC "
+            r"connection: Connection refused \(ConnectionRefusedError\)",
+        ):
+            ipc_server.on_error(
+                network.QLocalSocket.LocalSocketError.ConnectionRefusedError
+            )
 
 
 class TestHandleConnection:
@@ -442,7 +461,9 @@ class TestHandleConnection:
         assert any(message.startswith(msg) for message in caplog.messages)
 
     def test_disconnected_immediately(self, ipc_server, caplog):
-        socket = FakeSocket(state=network.QLocalSocket.LocalSocketState.UnconnectedState)
+        socket = FakeSocket(
+            state=network.QLocalSocket.LocalSocketState.UnconnectedState
+        )
         ipc_server._server = FakeServer(socket)
         ipc_server.handle_connection()
         assert "Socket was disconnected immediately." in caplog.messages
@@ -597,10 +618,15 @@ class TestSendToRunningInstance:
         ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
     def test_socket_error_no_server(self):
-        socket = FakeSocket(error=network.QLocalSocket.LocalSocketError.ConnectionError,
-                            connect_successful=False)
-        with pytest.raises(ipc.Error, match=r"Error while connecting to "
-                           r"running instance: Error string \(ConnectionError\)"):
+        socket = FakeSocket(
+            error=network.QLocalSocket.LocalSocketError.ConnectionError,
+            connect_successful=False,
+        )
+        with pytest.raises(
+            ipc.Error,
+            match=r"Error while connecting to "
+            r"running instance: Error string \(ConnectionError\)",
+        ):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
 
@@ -811,7 +837,10 @@ def test_connect_inexistent(qlocalsocket):
     would not work properly.
     """
     qlocalsocket.connectToServer('qute-test-inexistent')
-    assert qlocalsocket.error() == network.QLocalSocket.LocalSocketError.ServerNotFoundError
+    assert (
+        qlocalsocket.error()
+        == network.QLocalSocket.LocalSocketError.ServerNotFoundError
+    )
 
 
 @pytest.mark.posix

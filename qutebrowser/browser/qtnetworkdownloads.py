@@ -300,7 +300,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.fileobj.write(self._reply.readAll())
         if self._autoclose:
             self.fileobj.close()
-        self.successful = self._reply.error() == network.QNetworkReply.NetworkError.NoError
+        self.successful = (
+            self._reply.error() == network.QNetworkReply.NetworkError.NoError
+        )
         self._reply.close()
         self._reply.deleteLater()
         self._reply = None
@@ -350,7 +352,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
         if self._reply is None:
             error = "Unknown error: {}".format(
-                debug.qenum_key(network.QNetworkReply, code))
+                debug.qenum_key(network.QNetworkReply, code)
+            )
         else:
             error = self._reply.errorString()
 
@@ -429,7 +432,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         user_agent = websettings.user_agent(url)
         req.setHeader(network.QNetworkRequest.KnownHeaders.UserAgentHeader, user_agent)
         if not cache:
-            req.setAttribute(network.QNetworkRequest.Attribute.CacheSaveControlAttribute, False)
+            req.setAttribute(
+                network.QNetworkRequest.Attribute.CacheSaveControlAttribute, False
+            )
         req.setMaximumRedirectsAllowed(self._MAX_REDIRECTS)
 
         return self.get_request(req, **kwargs)
@@ -490,8 +495,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt.io/browse/QTBUG-42757
-        request.setAttribute(network.QNetworkRequest.Attribute.CacheLoadControlAttribute,
-                             network.QNetworkRequest.CacheLoadControl.AlwaysNetwork)
+        request.setAttribute(
+            network.QNetworkRequest.Attribute.CacheLoadControlAttribute,
+            network.QNetworkRequest.CacheLoadControl.AlwaysNetwork,
+        )
 
         if suggested_fn is None:
             suggested_fn = self._get_suggested_filename(request)

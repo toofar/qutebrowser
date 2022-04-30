@@ -81,7 +81,8 @@ def _init_config(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(
-                core.QStandardPaths.StandardLocation.AppDataLocation)
+                core.QStandardPaths.StandardLocation.AppDataLocation
+            )
             path = os.path.join(app_data_path, 'config')
         else:
             path = _writable_location(typ)
@@ -135,7 +136,9 @@ def _init_data(args: Optional[argparse.Namespace]) -> None:
             path = os.path.join(app_data_path, 'data')
         elif sys.platform.startswith('haiku'):
             # HaikuOS returns an empty value for AppDataLocation
-            config_path = _writable_location(core.QStandardPaths.StandardLocation.ConfigLocation)
+            config_path = _writable_location(
+                core.QStandardPaths.StandardLocation.ConfigLocation
+            )
             path = os.path.join(config_path, 'data')
         else:
             path = _writable_location(typ)
@@ -173,7 +176,9 @@ def _init_cache(args: Optional[argparse.Namespace]) -> None:
     if path is None:
         if utils.is_windows:
             # Local, not Roaming!
-            data_path = _writable_location(core.QStandardPaths.StandardLocation.AppLocalDataLocation)
+            data_path = _writable_location(
+                core.QStandardPaths.StandardLocation.AppLocalDataLocation
+            )
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
@@ -220,7 +225,8 @@ def _init_runtime(args: Optional[argparse.Namespace]) -> None:
             if typ == core.QStandardPaths.StandardLocation.TempLocation:
                 raise
             path = _writable_location(  # pragma: no cover
-                core.QStandardPaths.StandardLocation.TempLocation)
+                core.QStandardPaths.StandardLocation.TempLocation
+            )
 
         # This is generic, but per-user.
         # _writable_location makes sure we have a qutebrowser-specific subdir.
@@ -262,10 +268,14 @@ def _writable_location(typ: core.QStandardPaths.StandardLocation) -> str:
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        core.QStandardPaths.StandardLocation.ConfigLocation, core.QStandardPaths.StandardLocation.AppLocalDataLocation,
-        core.QStandardPaths.StandardLocation.CacheLocation, core.QStandardPaths.StandardLocation.DownloadLocation,
-        core.QStandardPaths.StandardLocation.RuntimeLocation, core.QStandardPaths.StandardLocation.TempLocation,
-        core.QStandardPaths.StandardLocation.AppDataLocation], typ_str
+        core.QStandardPaths.StandardLocation.ConfigLocation,
+        core.QStandardPaths.StandardLocation.AppLocalDataLocation,
+        core.QStandardPaths.StandardLocation.CacheLocation,
+        core.QStandardPaths.StandardLocation.DownloadLocation,
+        core.QStandardPaths.StandardLocation.RuntimeLocation,
+        core.QStandardPaths.StandardLocation.TempLocation,
+        core.QStandardPaths.StandardLocation.AppDataLocation,
+    ], typ_str
 
     with _unset_organization():
         path = core.QStandardPaths.writableLocation(typ)
@@ -280,16 +290,17 @@ def _writable_location(typ: core.QStandardPaths.StandardLocation) -> str:
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
     # QStandardsPaths not knowing the application name).
-    if (typ != core.QStandardPaths.StandardLocation.DownloadLocation and
-            path.split(os.sep)[-1] != APPNAME):
+    if (
+        typ != core.QStandardPaths.StandardLocation.DownloadLocation
+        and path.split(os.sep)[-1] != APPNAME
+    ):
         path = os.path.join(path, APPNAME)
 
     return path
 
 
 def _from_args(
-        typ: core.QStandardPaths.StandardLocation,
-        args: Optional[argparse.Namespace]
+    typ: core.QStandardPaths.StandardLocation, args: Optional[argparse.Namespace]
 ) -> Optional[str]:
     """Get the standard directory from an argparse namespace.
 

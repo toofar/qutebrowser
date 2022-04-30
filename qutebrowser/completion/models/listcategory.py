@@ -32,12 +32,14 @@ class ListCategory(core.QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self,
-                 name: str,
-                 items: Iterable[Tuple[str, ...]],
-                 sort: bool = True,
-                 delete_func: util.DeleteFuncType = None,
-                 parent: widgets.QWidget = None):
+    def __init__(
+        self,
+        name: str,
+        items: Iterable[Tuple[str, ...]],
+        sort: bool = True,
+        delete_func: util.DeleteFuncType = None,
+        parent: widgets.QWidget = None,
+    ):
         super().__init__(parent)
         self.name = name
         self.srcmodel = gui.QStandardItemModel(parent=self)
@@ -64,7 +66,9 @@ class ListCategory(core.QSortFilterProxyModel):
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
-        rx = core.QRegularExpression(val, core.QRegularExpression.PatternOption.CaseInsensitiveOption)
+        rx = core.QRegularExpression(
+            val, core.QRegularExpression.PatternOption.CaseInsensitiveOption
+        )
         qtutils.ensure_valid(rx)
         self.setFilterRegularExpression(rx)
         self.invalidate()

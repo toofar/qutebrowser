@@ -51,8 +51,11 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            error=debug.qenum_key(webenginecore.QWebEngineCertificateError, self._type()),
-            string=str(self))
+            error=debug.qenum_key(
+                webenginecore.QWebEngineCertificateError, self._type()
+            ),
+            string=str(self),
+        )
 
     def url(self) -> core.QUrl:
         return self._error.url()

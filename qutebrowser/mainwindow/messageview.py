@@ -31,11 +31,11 @@ class Message(widgets.QLabel):
     """A single error/warning/info message."""
 
     def __init__(
-            self,
-            level: usertypes.MessageLevel,
-            text: str,
-            replace: Optional[str],
-            parent: widgets.QWidget = None,
+        self,
+        level: usertypes.MessageLevel,
+        text: str,
+        replace: Optional[str],
+        parent: widgets.QWidget = None,
     ) -> None:
         super().__init__(text, parent)
         self.replace = replace
@@ -85,7 +85,9 @@ class MessageView(widgets.QWidget):
         self._vbox = widgets.QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
-        self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed
+        )
 
         self._clear_timer = core.QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
@@ -150,5 +152,9 @@ class MessageView(widgets.QWidget):
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""
-        if e.button() in [core.Qt.MouseButton.LeftButton, core.Qt.MouseButton.MiddleButton, core.Qt.MouseButton.RightButton]:
+        if e.button() in [
+            core.Qt.MouseButton.LeftButton,
+            core.Qt.MouseButton.MiddleButton,
+            core.Qt.MouseButton.RightButton,
+        ]:
             self.clear_messages()

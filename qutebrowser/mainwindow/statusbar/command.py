@@ -56,9 +56,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = core.pyqtSignal()
     hide_cmd = core.pyqtSignal()
 
-    def __init__(self, *, win_id: int,
-                 private: bool,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self, *, win_id: int, private: bool, parent: widgets.QWidget = None
+    ) -> None:
         misc.CommandLineEdit.__init__(self, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
@@ -66,7 +66,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             command_history = objreg.get('command-history')
             self.history.history = command_history.data
             self.history.changed.connect(command_history.changed)
-        self.setSizePolicy(widgets.QSizePolicy.Policy.MinimumExpanding, widgets.QSizePolicy.Policy.Ignored)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.MinimumExpanding,
+            widgets.QSizePolicy.Policy.Ignored,
+        )
 
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)

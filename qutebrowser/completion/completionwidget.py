@@ -109,10 +109,9 @@ class CompletionView(widgets.QTreeView):
     update_geometry = core.pyqtSignal()
     selection_changed = core.pyqtSignal(str)
 
-    def __init__(self, *,
-                 cmd: 'command.Command',
-                 win_id: int,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self, *, cmd: 'command.Command', win_id: int, parent: widgets.QWidget = None
+    ) -> None:
         super().__init__(parent)
         self.pattern: Optional[str] = None
         self._win_id = win_id
@@ -125,7 +124,9 @@ class CompletionView(widgets.QTreeView):
         self.setItemDelegate(self._delegate)
         self.setStyle(widgets.QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed
+        )
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
         self.setIndentation(0)
@@ -328,8 +329,9 @@ class CompletionView(widgets.QTreeView):
 
         selmodel.setCurrentIndex(
             idx,
-            core.QItemSelectionModel.SelectionFlag.ClearAndSelect |  # type: ignore[arg-type]
-            core.QItemSelectionModel.SelectionFlag.Rows)
+            core.QItemSelectionModel.SelectionFlag.ClearAndSelect
+            | core.QItemSelectionModel.SelectionFlag.Rows,  # type: ignore[arg-type]
+        )
 
         # if the last item is focused, try to fetch more
         next_idx = self.indexBelow(idx)

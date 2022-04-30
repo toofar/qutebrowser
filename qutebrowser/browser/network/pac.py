@@ -104,7 +104,10 @@ class _PACContext(core.QObject):
             host: hostname to resolve.
         """
         ips = network.QHostInfo.fromName(host)
-        if ips.error() != network.QHostInfo.HostInfoError.NoError or not ips.addresses():
+        if (
+            ips.error() != network.QHostInfo.HostInfoError.NoError
+            or not ips.addresses()
+        ):
             err_f = "Failed to resolve host during PAC evaluation: {}"
             log.network.info(err_f.format(host))
             return qml.QJSValue(qml.QJSValue.SpecialValue.NullValue)
@@ -118,7 +121,9 @@ class _PACContext(core.QObject):
         Return the server IP address of the current machine, as a string in
         the dot-separated integer format.
         """
-        return network.QHostAddress(network.QHostAddress.SpecialAddress.LocalHost).toString()
+        return network.QHostAddress(
+            network.QHostAddress.SpecialAddress.LocalHost
+        ).toString()
 
 
 class PACResolver:
@@ -150,12 +155,16 @@ class PACResolver:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for PROXY")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return network.QNetworkProxy(network.QNetworkProxy.ProxyType.HttpProxy, host, port)
+            return network.QNetworkProxy(
+                network.QNetworkProxy.ProxyType.HttpProxy, host, port
+            )
         elif config[0] in ["SOCKS", "SOCKS5"]:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for SOCKS")
             host, port = PACResolver._parse_proxy_host(config[1])
-            return network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, host, port)
+            return network.QNetworkProxy(
+                network.QNetworkProxy.ProxyType.Socks5Proxy, host, port
+            )
         else:
             err = "Unknown proxy type: {}"
             raise ParseProxyError(err.format(config[0]))
@@ -249,8 +258,12 @@ class PACFetcher(core.QObject):
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
-            self._manager: Optional[network.QNetworkAccessManager] = network.QNetworkAccessManager()
-        self._manager.setProxy(network.QNetworkProxy(network.QNetworkProxy.ProxyType.NoProxy))
+            self._manager: Optional[
+                network.QNetworkAccessManager
+            ] = network.QNetworkAccessManager()
+        self._manager.setProxy(
+            network.QNetworkProxy(network.QNetworkProxy.ProxyType.NoProxy)
+        )
         self._pac = None
         self._error_message = None
         self._reply = None
@@ -330,4 +343,8 @@ class PACFetcher(core.QObject):
             # Later NetworkManager.createRequest will detect this and display
             # an error message.
             error_host = "pac-resolve-error.qutebrowser.invalid"
-            return [network.QNetworkProxy(network.QNetworkProxy.ProxyType.HttpProxy, error_host, 9)]
+            return [
+                network.QNetworkProxy(
+                    network.QNetworkProxy.ProxyType.HttpProxy, error_host, 9
+                )
+            ]

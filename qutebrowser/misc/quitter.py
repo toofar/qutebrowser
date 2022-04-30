@@ -59,9 +59,9 @@ class Quitter(core.QObject):
 
     shutting_down = core.pyqtSignal()  # Emitted immediately before shut down
 
-    def __init__(self, *,
-                 args: argparse.Namespace,
-                 parent: core.QObject = None) -> None:
+    def __init__(
+        self, *, args: argparse.Namespace, parent: core.QObject = None
+    ) -> None:
         super().__init__(parent)
         self.quit_status = {
             'crash': True,
@@ -227,10 +227,10 @@ class Quitter(core.QObject):
             # one.
             # This means we need to defer the real shutdown to when we're back
             # in the real main event loop, or we'll get a segfault.
-            log.destroy.debug("Deferring real shutdown because question was "
-                              "active.")
-            core.QTimer.singleShot(0, functools.partial(self._shutdown_2, status,
-                                                   is_restart=is_restart))
+            log.destroy.debug("Deferring real shutdown because question was " "active.")
+            core.QTimer.singleShot(
+                0, functools.partial(self._shutdown_2, status, is_restart=is_restart)
+            )
         else:
             # If we have no questions to shut down, we are already in the real
             # event loop, so we can shut down immediately.

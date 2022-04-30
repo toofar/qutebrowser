@@ -154,12 +154,15 @@ def test_replacing_geometry(qtbot, view):
         view.show_message(usertypes.MessageLevel.info, 'test 2', replace='testid')
 
 
-@pytest.mark.parametrize('button, count', [
-    (core.Qt.MouseButton.LeftButton, 0),
-    (core.Qt.MouseButton.MiddleButton, 0),
-    (core.Qt.MouseButton.RightButton, 0),
-    (core.Qt.MouseButton.BackButton, 2),
-])
+@pytest.mark.parametrize(
+    'button, count',
+    [
+        (core.Qt.MouseButton.LeftButton, 0),
+        (core.Qt.MouseButton.MiddleButton, 0),
+        (core.Qt.MouseButton.RightButton, 0),
+        (core.Qt.MouseButton.BackButton, 2),
+    ],
+)
 def test_click_messages(qtbot, view, button, count):
     """Messages should disappear when we click on them."""
     view.show_message(usertypes.MessageLevel.info, 'test mouse click')

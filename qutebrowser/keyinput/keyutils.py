@@ -171,15 +171,18 @@ def _assert_plain_modifier(key: _ModifierType) -> None:
 
 def _is_printable(key: core.Qt.Key) -> bool:
     _assert_plain_key(key)
-    return key <= 0xff and key not in [core.Qt.Key.Key_Space, _NIL_KEY]
+    return key <= 0xFF and key not in [core.Qt.Key.Key_Space, _NIL_KEY]
 
 
 def is_special(key: core.Qt.Key, modifiers: _ModifierType) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
-    return not (_is_printable(key) and
-                modifiers in [core.Qt.KeyboardModifier.ShiftModifier, core.Qt.KeyboardModifier.NoModifier])
+    return not (
+        _is_printable(key)
+        and modifiers
+        in [core.Qt.KeyboardModifier.ShiftModifier, core.Qt.KeyboardModifier.NoModifier]
+    )
 
 
 def is_modifier_key(key: core.Qt.Key) -> bool:
@@ -374,7 +377,9 @@ class KeyInfo:
         return utils.get_repr(
             self,
             key=debug.qenum_key(core.Qt, self.key, klass=core.Qt.Key),
-            modifiers=debug.qflags_key(core.Qt, self.modifiers, klass=core.Qt.KeyboardModifier),
+            modifiers=debug.qflags_key(
+                core.Qt, self.modifiers, klass=core.Qt.KeyboardModifier
+            ),
             text=str(self),
         )
 
@@ -398,13 +403,15 @@ class KeyInfo:
         """Construct a KeyInfo from a Qt5-style int or Qt6-style QKeyCombination."""
         if isinstance(combination, int):
             key = core.Qt.Key(
-                int(combination) & ~core.Qt.KeyboardModifier.KeyboardModifierMask)
+                int(combination) & ~core.Qt.KeyboardModifier.KeyboardModifierMask
+            )
             modifiers = core.Qt.KeyboardModifier(
-                int(combination) & core.Qt.KeyboardModifier.KeyboardModifierMask)
+                int(combination) & core.Qt.KeyboardModifier.KeyboardModifierMask
+            )
             return cls(key, modifiers)
         else:
             # QKeyCombination is now guaranteed to be available here
-            assert isinstance(combination, core.QKeyCombination)  
+            assert isinstance(combination, core.QKeyCombination)
             try:
                 key = combination.key()
             except ValueError as e:
@@ -471,7 +478,9 @@ class KeyInfo:
             text = text.lower()
         return text
 
-    def to_event(self, typ: core.QEvent.Type = core.QEvent.Type.KeyPress) -> gui.QKeyEvent:
+    def to_event(
+        self, typ: core.QEvent.Type = core.QEvent.Type.KeyPress
+    ) -> gui.QKeyEvent:
         """Get a QKeyEvent from this KeyInfo."""
         return gui.QKeyEvent(typ, self.key, self.modifiers, self.text())
 
@@ -592,7 +601,10 @@ class KeySequence:
     def _validate(self, keystr: str = None) -> None:
         try:
             for info in self:
-                if info.key < core.Qt.Key.Key_Space or info.key >= core.Qt.Key.Key_unknown:
+                if (
+                    info.key < core.Qt.Key.Key_Space
+                    or info.key >= core.Qt.Key.Key_unknown
+                ):
                     raise KeyParseError(keystr, "Got invalid key!")
         except InvalidKeyError as e:
             raise KeyParseError(keystr, f"Got invalid key: {e}")
@@ -658,7 +670,10 @@ class KeySequence:
 
         # We change Qt.Key.Key_Backtab to Key_Tab here because nobody would
         # configure "Shift-Backtab" in their config.
-        if modifiers & core.Qt.KeyboardModifier.ShiftModifier and key == core.Qt.Key.Key_Backtab:
+        if (
+            modifiers & core.Qt.KeyboardModifier.ShiftModifier
+            and key == core.Qt.Key.Key_Backtab
+        ):
             key = core.Qt.Key.Key_Tab
 
         # We don't care about a shift modifier with symbols (Shift-: should
@@ -671,9 +686,11 @@ class KeySequence:
         #
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
-        if (modifiers == core.Qt.KeyboardModifier.ShiftModifier and
-                _is_printable(key) and
-                not ev.text().isupper()):
+        if (
+            modifiers == core.Qt.KeyboardModifier.ShiftModifier
+            and _is_printable(key)
+            and not ev.text().isupper()
+        ):
             modifiers = core.Qt.KeyboardModifier.NoModifier
 
         # On macOS, swap Ctrl and Meta back
@@ -683,7 +700,10 @@ class KeySequence:
         # (or "Cmd") in a key binding name to actually represent what's on the
         # keyboard.
         if utils.is_mac:
-            if modifiers & core.Qt.KeyboardModifier.ControlModifier and modifiers & core.Qt.KeyboardModifier.MetaModifier:
+            if (
+                modifiers & core.Qt.KeyboardModifier.ControlModifier
+                and modifiers & core.Qt.KeyboardModifier.MetaModifier
+            ):
                 pass
             elif modifiers & core.Qt.KeyboardModifier.ControlModifier:
                 modifiers &= ~core.Qt.KeyboardModifier.ControlModifier

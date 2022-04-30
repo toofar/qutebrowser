@@ -184,8 +184,12 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q = usertypes.Question(parent)
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
-        html.escape(url.toDisplayString()))
-    q.url = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
+        html.escape(url.toDisplayString())
+    )
+    q.url = url.toString(
+        core.QUrl.UrlFormattingOption.RemovePassword
+        | core.QUrl.ComponentFormattingOption.FullyEncoded
+    )
     q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
@@ -939,7 +943,8 @@ class AbstractDownloadManager(core.QObject):
         delay = config.val.downloads.remove_finished
         if delay > -1:
             download.finished.connect(
-                lambda: core.QTimer.singleShot(delay, download.remove))
+                lambda: core.QTimer.singleShot(delay, download.remove)
+            )
         elif auto_remove:
             download.finished.connect(download.remove)
 
@@ -1265,8 +1270,11 @@ class DownloadModel(core.QAbstractListModel):
 
     def headerData(self, section, orientation, role=core.Qt.ItemDataRole.DisplayRole):
         """Simple constant header."""
-        if (section == 0 and orientation == core.Qt.Orientation.Horizontal and
-                role == core.Qt.ItemDataRole.DisplayRole):
+        if (
+            section == 0
+            and orientation == core.Qt.Orientation.Horizontal
+            and role == core.Qt.ItemDataRole.DisplayRole
+        ):
             return "Downloads"
         else:
             return ""

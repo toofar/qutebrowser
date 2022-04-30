@@ -196,9 +196,11 @@ class FakeProcess(core.QProcess):
         self.start = mock.Mock(spec=core.QProcess.start)
         self.startDetached = mock.Mock(spec=core.QProcess.startDetached)
         self.readAllStandardOutput = mock.Mock(
-            spec=core.QProcess.readAllStandardOutput, return_value=core.QByteArray(b''))
+            spec=core.QProcess.readAllStandardOutput, return_value=core.QByteArray(b'')
+        )
         self.readAllStandardError = mock.Mock(
-            spec=core.QProcess.readAllStandardError, return_value=core.QByteArray(b''))
+            spec=core.QProcess.readAllStandardError, return_value=core.QByteArray(b'')
+        )
         self.terminate = mock.Mock(spec=core.QProcess.terminate)
         self.kill = mock.Mock(spec=core.QProcess.kill)
 
@@ -252,10 +254,18 @@ class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
 
-    def __init__(self, url=core.QUrl(), title='', tab_id=0, *,
-                 scroll_pos_perc=(0, 0),
-                 load_status=usertypes.LoadStatus.success,
-                 progress=0, can_go_back=None, can_go_forward=None):
+    def __init__(
+        self,
+        url=core.QUrl(),
+        title='',
+        tab_id=0,
+        *,
+        scroll_pos_perc=(0, 0),
+        load_status=usertypes.LoadStatus.success,
+        progress=0,
+        can_go_back=None,
+        can_go_forward=None
+    ):
         super().__init__(win_id=0, mode_manager=None, private=False)
         self._load_status = load_status
         self._title = title

@@ -68,48 +68,27 @@ class RequestInterceptor(webenginecore.QWebEngineUrlRequestInterceptor):
         # extension ResourceTypes. If a ResourceType is added to Qt, this table
         # should be updated too.
         self._resource_types = {
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame:
-                interceptors.ResourceType.main_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame:
-                interceptors.ResourceType.sub_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet:
-                interceptors.ResourceType.stylesheet,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript:
-                interceptors.ResourceType.script,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage:
-                interceptors.ResourceType.image,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource:
-                interceptors.ResourceType.font_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource:
-                interceptors.ResourceType.sub_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject:
-                interceptors.ResourceType.object,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia:
-                interceptors.ResourceType.media,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker:
-                interceptors.ResourceType.worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker:
-                interceptors.ResourceType.shared_worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch:
-                interceptors.ResourceType.prefetch,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon:
-                interceptors.ResourceType.favicon,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr:
-                interceptors.ResourceType.xhr,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing:
-                interceptors.ResourceType.ping,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker:
-                interceptors.ResourceType.service_worker,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport:
-                interceptors.ResourceType.csp_report,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource:
-                interceptors.ResourceType.plugin_resource,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown:
-                interceptors.ResourceType.unknown,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame:
-                interceptors.ResourceType.preload_main_frame,
-            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame:
-                interceptors.ResourceType.preload_sub_frame,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame: interceptors.ResourceType.main_frame,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame: interceptors.ResourceType.sub_frame,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet: interceptors.ResourceType.stylesheet,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript: interceptors.ResourceType.script,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage: interceptors.ResourceType.image,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource: interceptors.ResourceType.font_resource,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource: interceptors.ResourceType.sub_resource,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject: interceptors.ResourceType.object,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia: interceptors.ResourceType.media,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker: interceptors.ResourceType.worker,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker: interceptors.ResourceType.shared_worker,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch: interceptors.ResourceType.prefetch,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon: interceptors.ResourceType.favicon,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr: interceptors.ResourceType.xhr,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing: interceptors.ResourceType.ping,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker: interceptors.ResourceType.service_worker,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport: interceptors.ResourceType.csp_report,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource: interceptors.ResourceType.plugin_resource,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown: interceptors.ResourceType.unknown,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame: interceptors.ResourceType.preload_main_frame,
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame: interceptors.ResourceType.preload_sub_frame,
         }
 
     def install(self, profile):
@@ -129,16 +108,22 @@ class RequestInterceptor(webenginecore.QWebEngineUrlRequestInterceptor):
             info: QWebEngineUrlRequestInfo &info
         """
         if 'log-requests' in objects.debug_flags:
-            resource_type_str = debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
-                                                info.resourceType())
-            navigation_type_str = debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
-                                                  info.navigationType())
-            log.network.debug("{} {}, first-party {}, resource {}, "
-                              "navigation {}".format(
-                                  bytes(info.requestMethod()).decode('ascii'),
-                                  info.requestUrl().toDisplayString(),
-                                  info.firstPartyUrl().toDisplayString(),
-                                  resource_type_str, navigation_type_str))
+            resource_type_str = debug.qenum_key(
+                webenginecore.QWebEngineUrlRequestInfo, info.resourceType()
+            )
+            navigation_type_str = debug.qenum_key(
+                webenginecore.QWebEngineUrlRequestInfo, info.navigationType()
+            )
+            log.network.debug(
+                "{} {}, first-party {}, resource {}, "
+                "navigation {}".format(
+                    bytes(info.requestMethod()).decode('ascii'),
+                    info.requestUrl().toDisplayString(),
+                    info.firstPartyUrl().toDisplayString(),
+                    resource_type_str,
+                    navigation_type_str,
+                )
+            )
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
@@ -153,12 +138,18 @@ class RequestInterceptor(webenginecore.QWebEngineUrlRequestInterceptor):
             resource_type = self._resource_types[info.resourceType()]
         except KeyError:
             log.network.warning(
-                "Resource type {} not found in RequestInterceptor dict."
-                .format(debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
-                                        info.resourceType())))
+                "Resource type {} not found in RequestInterceptor dict.".format(
+                    debug.qenum_key(
+                        webenginecore.QWebEngineUrlRequestInfo, info.resourceType()
+                    )
+                )
+            )
             resource_type = interceptors.ResourceType.unknown
 
-        is_xhr = info.resourceType() == webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr
+        is_xhr = (
+            info.resourceType()
+            == webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr
+        )
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):

@@ -115,7 +115,10 @@ class WebEngineView(webenginewidgets.QWebEngineView):
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == webenginecore.QWebEnginePage.WebWindowType.WebBrowserBackgroundTab:
+        elif (
+            wintype
+            == webenginecore.QWebEnginePage.WebWindowType.WebBrowserBackgroundTab
+        ):
             # Middle-click / Ctrl-Click
             if background:
                 target = usertypes.ClickTarget.tab_bg
@@ -231,27 +234,22 @@ class WebEnginePage(webenginecore.QWebEnginePage):
         }
         shared.javascript_log_message(level_map[level], source, line, msg)
 
-    def acceptNavigationRequest(self,
-                                url: core.QUrl,
-                                typ: webenginecore.QWebEnginePage.NavigationType,
-                                is_main_frame: bool) -> bool:
+    def acceptNavigationRequest(
+        self,
+        url: core.QUrl,
+        typ: webenginecore.QWebEnginePage.NavigationType,
+        is_main_frame: bool,
+    ) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         # FIXME:qt6 Add tests to ensure this is complete
         type_map = {
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
-                usertypes.NavigationRequest.Type.link_clicked,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeTyped:
-                usertypes.NavigationRequest.Type.typed,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
-                usertypes.NavigationRequest.Type.form_submitted,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeBackForward:
-                usertypes.NavigationRequest.Type.back_forward,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeReload:
-                usertypes.NavigationRequest.Type.reloaded,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeOther:
-                usertypes.NavigationRequest.Type.other,
-            webenginecore.QWebEnginePage.NavigationType.NavigationTypeRedirect:
-                usertypes.NavigationRequest.Type.redirect,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeLinkClicked: usertypes.NavigationRequest.Type.link_clicked,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeTyped: usertypes.NavigationRequest.Type.typed,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeFormSubmitted: usertypes.NavigationRequest.Type.form_submitted,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeBackForward: usertypes.NavigationRequest.Type.back_forward,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeReload: usertypes.NavigationRequest.Type.reloaded,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeOther: usertypes.NavigationRequest.Type.other,
+            webenginecore.QWebEnginePage.NavigationType.NavigationTypeRedirect: usertypes.NavigationRequest.Type.redirect,
         }
 
         navigation = usertypes.NavigationRequest(

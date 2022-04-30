@@ -165,7 +165,9 @@ class StatusBar(widgets.QWidget):
         self.setAttribute(core.Qt.WidgetAttribute.WA_StyledBackground)
         stylesheet.set_register(self)
 
-        self.setSizePolicy(widgets.QSizePolicy.Policy.Ignored, widgets.QSizePolicy.Policy.Fixed)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.Ignored, widgets.QSizePolicy.Policy.Fixed
+        )
 
         self._win_id = win_id
         self._color_flags = ColorFlags()

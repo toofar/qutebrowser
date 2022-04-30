@@ -89,8 +89,12 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
         """Draw the background of an ItemViewItem."""
         assert self._opt is not None
         assert self._style is not None
-        self._style.drawPrimitive(widgets.QStyle.PrimitiveElement.PE_PanelItemViewItem, self._opt,
-                                  self._painter, self._opt.widget)
+        self._style.drawPrimitive(
+            widgets.QStyle.PrimitiveElement.PE_PanelItemViewItem,
+            self._opt,
+            self._painter,
+            self._opt.widget,
+        )
 
     def _draw_icon(self):
         """Draw the icon of an ItemViewItem."""
@@ -98,7 +102,10 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
         assert self._style is not None
 
         icon_rect = self._style.subElementRect(
-            widgets.QStyle.SubElement.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
+            widgets.QStyle.SubElement.SE_ItemViewItemDecoration,
+            self._opt,
+            self._opt.widget,
+        )
         if not icon_rect.isValid():
             # The rect seems to be wrong in all kind of ways if no icon should
             # be displayed.
@@ -109,9 +116,14 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
             mode = gui.QIcon.Mode.Disabled
         elif self._opt.state & widgets.QStyle.StateFlag.State_Selected:
             mode = gui.QIcon.Mode.Selected
-        state = gui.QIcon.State.On if self._opt.state & widgets.QStyle.StateFlag.State_Open else gui.QIcon.State.Off
-        self._opt.icon.paint(self._painter, icon_rect,
-                             self._opt.decorationAlignment, mode, state)
+        state = (
+            gui.QIcon.State.On
+            if self._opt.state & widgets.QStyle.StateFlag.State_Open
+            else gui.QIcon.State.Off
+        )
+        self._opt.icon.paint(
+            self._painter, icon_rect, self._opt.decorationAlignment, mode, state
+        )
 
     def _draw_text(self, index):
         """Draw the text of an ItemViewItem.
@@ -129,10 +141,17 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
             return
 
         text_rect_ = self._style.subElementRect(
-            widgets.QStyle.SubElement.SE_ItemViewItemText, self._opt, self._opt.widget)
+            widgets.QStyle.SubElement.SE_ItemViewItemText, self._opt, self._opt.widget
+        )
         qtutils.ensure_valid(text_rect_)
-        margin = self._style.pixelMetric(widgets.QStyle.PixelMetric.PM_FocusFrameHMargin,
-                                         self._opt, self._opt.widget) + 1
+        margin = (
+            self._style.pixelMetric(
+                widgets.QStyle.PixelMetric.PM_FocusFrameHMargin,
+                self._opt,
+                self._opt.widget,
+            )
+            + 1
+        )
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
         qtutils.ensure_valid(text_rect)
@@ -143,7 +162,10 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
             text_rect.adjust(0, -2, 0, -2)
         self._painter.save()
         state = self._opt.state
-        if state & widgets.QStyle.StateFlag.State_Enabled and state & widgets.QStyle.StateFlag.State_Active:
+        if (
+            state & widgets.QStyle.StateFlag.State_Enabled
+            and state & widgets.QStyle.StateFlag.State_Active
+        ):
             cg = gui.QPalette.ColorGroup.Normal
         elif state & widgets.QStyle.StateFlag.State_Enabled:
             cg = gui.QPalette.ColorGroup.Inactive
@@ -151,16 +173,21 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
             cg = gui.QPalette.ColorGroup.Disabled
 
         if state & widgets.QStyle.StateFlag.State_Selected:
-            self._painter.setPen(self._opt.palette.color(
-                cg, gui.QPalette.ColorRole.HighlightedText))
+            self._painter.setPen(
+                self._opt.palette.color(cg, gui.QPalette.ColorRole.HighlightedText)
+            )
             # This is a dirty fix for the text jumping by one pixel for
             # whatever reason.
             text_rect.adjust(0, -1, 0, 0)
         else:
-            self._painter.setPen(self._opt.palette.color(cg, gui.QPalette.ColorRole.Text))
+            self._painter.setPen(
+                self._opt.palette.color(cg, gui.QPalette.ColorRole.Text)
+            )
 
         if state & widgets.QStyle.StateFlag.State_Editing:
-            self._painter.setPen(self._opt.palette.color(cg, gui.QPalette.ColorRole.Text))
+            self._painter.setPen(
+                self._opt.palette.color(cg, gui.QPalette.ColorRole.Text)
+            )
             self._painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self._painter.translate(text_rect.left(), text_rect.top())
@@ -216,8 +243,11 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
         else:
             text_option.setWrapMode(gui.QTextOption.WrapMode.ManualWrap)
         text_option.setTextDirection(self._opt.direction)
-        text_option.setAlignment(widgets.QStyle.visualAlignment(
-            self._opt.direction, self._opt.displayAlignment))
+        text_option.setAlignment(
+            widgets.QStyle.visualAlignment(
+                self._opt.direction, self._opt.displayAlignment
+            )
+        )
 
         if self._doc is not None:
             self._doc.deleteLater()
@@ -252,8 +282,14 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
             return
         o = self._opt
         o.rect = self._style.subElementRect(
-            widgets.QStyle.SubElement.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
-        o.state |= int(widgets.QStyle.StateFlag.State_KeyboardFocusChange | widgets.QStyle.StateFlag.State_Item)
+            widgets.QStyle.SubElement.SE_ItemViewItemFocusRect,
+            self._opt,
+            self._opt.widget,
+        )
+        o.state |= int(
+            widgets.QStyle.StateFlag.State_KeyboardFocusChange
+            | widgets.QStyle.StateFlag.State_Item
+        )
         qtutils.ensure_valid(o.rect)
         if state & widgets.QStyle.StateFlag.State_Enabled:
             cg = gui.QPalette.ColorGroup.Normal
@@ -264,8 +300,12 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
         else:
             role = gui.QPalette.ColorRole.Window
         o.backgroundColor = self._opt.palette.color(cg, role)
-        self._style.drawPrimitive(widgets.QStyle.PrimitiveElement.PE_FrameFocusRect, o, self._painter,
-                                  self._opt.widget)
+        self._style.drawPrimitive(
+            widgets.QStyle.PrimitiveElement.PE_FrameFocusRect,
+            o,
+            self._painter,
+            self._opt.widget,
+        )
 
     def sizeHint(self, option, index):
         """Override sizeHint of QStyledItemDelegate.
@@ -291,8 +331,12 @@ class CompletionItemDelegate(widgets.QStyledItemDelegate):
         assert self._doc is not None
 
         docsize = self._doc.size().toSize()
-        size = self._style.sizeFromContents(widgets.QStyle.ContentsType.CT_ItemViewItem, self._opt,
-                                            docsize, self._opt.widget)
+        size = self._style.sizeFromContents(
+            widgets.QStyle.ContentsType.CT_ItemViewItem,
+            self._opt,
+            docsize,
+            self._opt.widget,
+        )
         qtutils.ensure_valid(size)
         return size + core.QSize(10, 3)  # type: ignore[operator]
 

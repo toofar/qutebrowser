@@ -379,9 +379,9 @@ def change_console_formatter(level: int) -> None:
         assert isinstance(old_formatter, JSONFormatter), old_formatter
 
 
-def qt_message_handler(msg_type: core.QtMsgType,
-                       context: core.QMessageLogContext,
-                       msg: str) -> None:
+def qt_message_handler(
+    msg_type: core.QtMsgType, context: core.QMessageLogContext, msg: str
+) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:

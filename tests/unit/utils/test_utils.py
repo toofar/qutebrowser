@@ -657,8 +657,9 @@ class TestGetSetClipboard:
 
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
-        clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=gui.QClipboard.Mode.Clipboard)
+        clipboard_mock.setText.assert_called_with(
+            'Hello World', mode=gui.QClipboard.Mode.Clipboard
+        )
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):
@@ -978,11 +979,13 @@ class TestCleanupFileContext:
 
 
 class TestParseRect:
-
-    @pytest.mark.parametrize('value, expected', [
-        ('1x1+0+0', core.QRect(0, 0, 1, 1)),
-        ('123x789+12+34', core.QRect(12, 34, 123, 789)),
-    ])
+    @pytest.mark.parametrize(
+        'value, expected',
+        [
+            ('1x1+0+0', core.QRect(0, 0, 1, 1)),
+            ('123x789+12+34', core.QRect(12, 34, 123, 789)),
+        ],
+    )
     def test_valid(self, value, expected):
         assert utils.parse_rect(value) == expected
 

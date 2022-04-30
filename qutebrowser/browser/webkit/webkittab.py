@@ -193,10 +193,12 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     """QtWebKit implementations related to moving the cursor/selection."""
 
-    def __init__(self,
-                 tab: 'WebKitTab',
-                 mode_manager: modeman.ModeManager,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        tab: 'WebKitTab',
+        mode_manager: modeman.ModeManager,
+        parent: widgets.QWidget = None,
+    ) -> None:
         super().__init__(tab, mode_manager, parent)
         self._selection_state = browsertab.SelectionState.none
 
@@ -211,7 +213,9 @@ class WebKitCaret(browsertab.AbstractCaret):
             self._selection_state = browsertab.SelectionState.none
         self.selection_toggled.emit(self._selection_state)
         settings = self._widget.settings()
-        settings.setAttribute(webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled, True)
+        settings.setAttribute(
+            webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled, True
+        )
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -231,12 +235,18 @@ class WebKitCaret(browsertab.AbstractCaret):
     @core.pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, _mode):
         settings = self._widget.settings()
-        if settings.testAttribute(webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled):
-            if (self._selection_state is not browsertab.SelectionState.none and
-                    self._widget.hasSelection()):
+        if settings.testAttribute(
+            webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled
+        ):
+            if (
+                self._selection_state is not browsertab.SelectionState.none
+                and self._widget.hasSelection()
+            ):
                 # Remove selection if it exists
                 self._widget.triggerPageAction(QWebPage.WebAction.MoveToNextChar)
-            settings.setAttribute(webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled, False)
+            settings.setAttribute(
+                webkit.QWebSettings.WebAttribute.CaretBrowsingEnabled, False
+            )
             self._selection_state = browsertab.SelectionState.none
 
     def move_to_next_line(self, count=1):
@@ -459,7 +469,8 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def _follow_selected(self, *, tab=False):
         if webkit.QWebSettings.globalSettings().testAttribute(
-                webkit.QWebSettings.WebAttribute.JavascriptEnabled):
+            webkit.QWebSettings.WebAttribute.JavascriptEnabled
+        ):
             if tab:
                 self._tab.data.override_target = usertypes.ClickTarget.tab
             self._tab.run_js_async("""
@@ -557,7 +568,10 @@ class WebKitScroller(browsertab.AbstractScroller):
         elif x is None and y == 100:
             self.bottom()
         else:
-            for val, orientation in [(x, core.Qt.Orientation.Horizontal), (y, core.Qt.Orientation.Vertical)]:
+            for val, orientation in [
+                (x, core.Qt.Orientation.Horizontal),
+                (y, core.Qt.Orientation.Vertical),
+            ]:
                 if val is not None:
                     frame = self._widget.page().mainFrame()
                     maximum = frame.scrollBarMaximum(orientation)
@@ -582,16 +596,33 @@ class WebKitScroller(browsertab.AbstractScroller):
             self._tab.fake_key_press(key)
 
     def up(self, count=1):
-        self._key_press(core.Qt.Key.Key_Up, count, 'scrollBarMinimum', core.Qt.Orientation.Vertical)
+        self._key_press(
+            core.Qt.Key.Key_Up, count, 'scrollBarMinimum', core.Qt.Orientation.Vertical
+        )
 
     def down(self, count=1):
-        self._key_press(core.Qt.Key.Key_Down, count, 'scrollBarMaximum', core.Qt.Orientation.Vertical)
+        self._key_press(
+            core.Qt.Key.Key_Down,
+            count,
+            'scrollBarMaximum',
+            core.Qt.Orientation.Vertical,
+        )
 
     def left(self, count=1):
-        self._key_press(core.Qt.Key.Key_Left, count, 'scrollBarMinimum', core.Qt.Orientation.Horizontal)
+        self._key_press(
+            core.Qt.Key.Key_Left,
+            count,
+            'scrollBarMinimum',
+            core.Qt.Orientation.Horizontal,
+        )
 
     def right(self, count=1):
-        self._key_press(core.Qt.Key.Key_Right, count, 'scrollBarMaximum', core.Qt.Orientation.Horizontal)
+        self._key_press(
+            core.Qt.Key.Key_Right,
+            count,
+            'scrollBarMaximum',
+            core.Qt.Orientation.Horizontal,
+        )
 
     def top(self):
         self._key_press(core.Qt.Key.Key_Home)
@@ -600,11 +631,20 @@ class WebKitScroller(browsertab.AbstractScroller):
         self._key_press(core.Qt.Key.Key_End)
 
     def page_up(self, count=1):
-        self._key_press(core.Qt.Key.Key_PageUp, count, 'scrollBarMinimum', core.Qt.Orientation.Vertical)
+        self._key_press(
+            core.Qt.Key.Key_PageUp,
+            count,
+            'scrollBarMinimum',
+            core.Qt.Orientation.Vertical,
+        )
 
     def page_down(self, count=1):
-        self._key_press(core.Qt.Key.Key_PageDown, count, 'scrollBarMaximum',
-                        core.Qt.Orientation.Vertical)
+        self._key_press(
+            core.Qt.Key.Key_PageDown,
+            count,
+            'scrollBarMaximum',
+            core.Qt.Orientation.Vertical,
+        )
 
     def at_top(self):
         return self.pos_px().y() == 0
@@ -641,10 +681,15 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
         if cur_data is not None:
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
-            if ('scroll-pos' in cur_data and
-                    self._tab.scroller.pos_px() == core.QPoint(0, 0)):
-                core.QTimer.singleShot(0, functools.partial(
-                    self._tab.scroller.to_point, cur_data['scroll-pos']))
+            if 'scroll-pos' in cur_data and self._tab.scroller.pos_px() == core.QPoint(
+                0, 0
+            ):
+                core.QTimer.singleShot(
+                    0,
+                    functools.partial(
+                        self._tab.scroller.to_point, cur_data['scroll-pos']
+                    ),
+                )
 
 
 class WebKitHistory(browsertab.AbstractHistory):
@@ -699,7 +744,9 @@ class WebKitElements(browsertab.AbstractElements):
         elems = []
         frames = webkitelem.get_child_frames(mainframe)
         for f in frames:
-            frame_elems = cast(Iterable[webkit.QWebElement], f.findAllElements(selector))
+            frame_elems = cast(
+                Iterable[webkit.QWebElement], f.findAllElements(selector)
+            )
             for elem in frame_elems:
                 elems.append(webkitelem.WebKitElement(elem, tab=self._tab))
 
@@ -847,7 +894,9 @@ class WebKitTab(browsertab.AbstractTab):
 
     def _make_private(self, widget):
         settings = widget.settings()
-        settings.setAttribute(webkit.QWebSettings.WebAttribute.PrivateBrowsingEnabled, True)
+        settings.setAttribute(
+            webkit.QWebSettings.WebAttribute.PrivateBrowsingEnabled, True
+        )
 
     def load_url(self, url):
         self._load_url_prepare(url)

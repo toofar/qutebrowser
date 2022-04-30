@@ -127,8 +127,9 @@ def data_for_url(url: core.QUrl) -> Tuple[str, bytes]:
         A (mimetype, data) tuple.
     """
     norm_url = url.adjusted(
-        core.QUrl.UrlFormattingOption.NormalizePathSegments |  # type: ignore[arg-type]
-        core.QUrl.UrlFormattingOption.StripTrailingSlash)
+        core.QUrl.UrlFormattingOption.NormalizePathSegments
+        | core.QUrl.UrlFormattingOption.StripTrailingSlash  # type: ignore[arg-type]
+    )
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -423,8 +424,12 @@ def qute_help(url: core.QUrl) -> _HandlerRet:
 def _qute_settings_set(url: core.QUrl) -> _HandlerRet:
     """Handler for qute://settings/set."""
     query = core.QUrlQuery(url)
-    option = query.queryItemValue('option', core.QUrl.ComponentFormattingOption.FullyDecoded)
-    value = query.queryItemValue('value', core.QUrl.ComponentFormattingOption.FullyDecoded)
+    option = query.queryItemValue(
+        'option', core.QUrl.ComponentFormattingOption.FullyDecoded
+    )
+    value = query.queryItemValue(
+        'value', core.QUrl.ComponentFormattingOption.FullyDecoded
+    )
 
     # https://github.com/qutebrowser/qutebrowser/issues/727
     if option == 'content.javascript.enabled' and value == 'false':

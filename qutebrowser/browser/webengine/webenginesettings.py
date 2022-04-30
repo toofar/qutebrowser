@@ -107,65 +107,74 @@ class WebEngineSettings(websettings.AbstractSettings):
     """A wrapper for the config for QWebEngineSettings."""
 
     _ATTRIBUTES = {
-        'content.xss_auditing':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.XSSAuditingEnabled),
-        'content.images':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.AutoLoadImages),
-        'content.javascript.enabled':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.JavascriptEnabled),
-        'content.javascript.can_open_tabs_automatically':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows),
-        'content.javascript.can_access_clipboard':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard),
-        'content.plugins':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.PluginsEnabled),
-        'content.hyperlink_auditing':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.HyperlinkAuditingEnabled),
-        'content.local_content_can_access_remote_urls':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
-        'content.local_content_can_access_file_urls':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls),
-        'content.webgl':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.WebGLEnabled),
-        'content.local_storage':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.LocalStorageEnabled),
-        'content.desktop_capture':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.ScreenCaptureEnabled,
-                 converter=lambda val: True if val == 'ask' else val),
+        'content.xss_auditing': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.XSSAuditingEnabled
+        ),
+        'content.images': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.AutoLoadImages
+        ),
+        'content.javascript.enabled': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.JavascriptEnabled
+        ),
+        'content.javascript.can_open_tabs_automatically': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
+        ),
+        'content.javascript.can_access_clipboard': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanAccessClipboard
+        ),
+        'content.plugins': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.PluginsEnabled
+        ),
+        'content.hyperlink_auditing': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.HyperlinkAuditingEnabled
+        ),
+        'content.local_content_can_access_remote_urls': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls
+        ),
+        'content.local_content_can_access_file_urls': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls
+        ),
+        'content.webgl': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.WebGLEnabled
+        ),
+        'content.local_storage': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.LocalStorageEnabled
+        ),
+        'content.desktop_capture': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.ScreenCaptureEnabled,
+            converter=lambda val: True if val == 'ask' else val,
+        ),
         # 'ask' is handled via the permission system
-
-        'input.spatial_navigation':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.SpatialNavigationEnabled),
-        'input.links_included_in_focus_chain':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.LinksIncludedInFocusChain),
-
-        'scrolling.smooth':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled),
-
-        'content.print_element_backgrounds':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.PrintElementBackgrounds),
-
-        'content.autoplay':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture,
-                 converter=operator.not_),
-
-        'content.dns_prefetch':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.DnsPrefetchEnabled),
-
-        'tabs.favicons.show':
-            Attr(webenginecore.QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
-                 converter=lambda val: val != 'never'),
+        'input.spatial_navigation': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.SpatialNavigationEnabled
+        ),
+        'input.links_included_in_focus_chain': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.LinksIncludedInFocusChain
+        ),
+        'scrolling.smooth': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled
+        ),
+        'content.print_element_backgrounds': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.PrintElementBackgrounds
+        ),
+        'content.autoplay': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture,
+            converter=operator.not_,
+        ),
+        'content.dns_prefetch': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.DnsPrefetchEnabled
+        ),
+        'tabs.favicons.show': Attr(
+            webenginecore.QWebEngineSettings.WebAttribute.AutoLoadIconsForPage,
+            converter=lambda val: val != 'never',
+        ),
     }
 
     _FONT_SIZES = {
-        'fonts.web.size.minimum':
-            webenginecore.QWebEngineSettings.FontSize.MinimumFontSize,
-        'fonts.web.size.minimum_logical':
-            webenginecore.QWebEngineSettings.FontSize.MinimumLogicalFontSize,
-        'fonts.web.size.default':
-            webenginecore.QWebEngineSettings.FontSize.DefaultFontSize,
-        'fonts.web.size.default_fixed':
-            webenginecore.QWebEngineSettings.FontSize.DefaultFixedFontSize,
+        'fonts.web.size.minimum': webenginecore.QWebEngineSettings.FontSize.MinimumFontSize,
+        'fonts.web.size.minimum_logical': webenginecore.QWebEngineSettings.FontSize.MinimumLogicalFontSize,
+        'fonts.web.size.default': webenginecore.QWebEngineSettings.FontSize.DefaultFontSize,
+        'fonts.web.size.default_fixed': webenginecore.QWebEngineSettings.FontSize.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
@@ -178,12 +187,9 @@ class WebEngineSettings(websettings.AbstractSettings):
     }
 
     _UNKNOWN_URL_SCHEME_POLICY = {
-        'disallow':
-            webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.DisallowUnknownUrlSchemes,
-        'allow-from-user-interaction':
-            webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.AllowUnknownUrlSchemesFromUserInteraction,
-        'allow-all':
-            webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
+        'disallow': webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.DisallowUnknownUrlSchemes,
+        'allow-from-user-interaction': webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.AllowUnknownUrlSchemesFromUserInteraction,
+        'allow-all': webenginecore.QWebEngineSettings.UnknownUrlSchemePolicy.AllowAllUnknownUrlSchemes,
     }
 
     # Mapping from WebEngineSettings::initDefaults in
@@ -258,10 +264,15 @@ class ProfileSetter:
         settings = self._profile.settings()
 
         settings.setAttribute(
-            webenginecore.QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
+            webenginecore.QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True
+        )
         settings.setAttribute(
-            webenginecore.QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled, False)
-        settings.setAttribute(webenginecore.QWebEngineSettings.WebAttribute.PdfViewerEnabled, False)
+            webenginecore.QWebEngineSettings.WebAttribute.FocusOnNavigationEnabled,
+            False,
+        )
+        settings.setAttribute(
+            webenginecore.QWebEngineSettings.WebAttribute.PdfViewerEnabled, False
+        )
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
@@ -293,9 +304,13 @@ class ProfileSetter:
         if self._profile.isOffTheRecord():
             return
         if config.val.content.cookies.store:
-            value = webenginecore.QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies
+            value = (
+                webenginecore.QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies
+            )
         else:
-            value = webenginecore.QWebEngineProfile.PersistentCookiesPolicy.NoPersistentCookies
+            value = (
+                webenginecore.QWebEngineProfile.PersistentCookiesPolicy.NoPersistentCookies
+            )
         self._profile.setPersistentCookiesPolicy(value)
 
     def set_dictionary_language(self):
@@ -331,7 +346,9 @@ def _init_user_agent_str(ua):
 
 
 def init_user_agent():
-    _init_user_agent_str(webenginecore.QWebEngineProfile.defaultProfile().httpUserAgent())
+    _init_user_agent_str(
+        webenginecore.QWebEngineProfile.defaultProfile().httpUserAgent()
+    )
 
 
 def _init_profile(profile: webenginecore.QWebEngineProfile) -> None:

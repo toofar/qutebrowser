@@ -237,7 +237,9 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded)
+        self._url_string = url.toString(
+            core.QUrl.ComponentFormattingOption.FullyEncoded
+        )
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):
@@ -409,10 +411,10 @@ class GreasemonkeyManager(core.QObject):
         download_manager = objreg.get('qtnetwork-download-manager')
 
         for url, target_path in required_dls:
-            target = downloads.FileDownloadTarget(target_path,
-                                                  force_overwrite=True)
-            download = download_manager.get(core.QUrl(url), target=target,
-                                            auto_remove=True)
+            target = downloads.FileDownloadTarget(target_path, force_overwrite=True)
+            download = download_manager.get(
+                core.QUrl(url), target=target, auto_remove=True
+            )
             download.requested_url = url
             self._in_progress_dls.append(download)
             if download.successful:

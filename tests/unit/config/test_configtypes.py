@@ -1265,22 +1265,22 @@ class TestQtColor:
     def klass(self):
         return configtypes.QtColor
 
-    @pytest.mark.parametrize('val, expected', [
-        ('#123', gui.QColor('#123')),
-        ('#112233', gui.QColor('#112233')),
-        ('#44112233', gui.QColor('#44112233')),
-        ('#111222333', gui.QColor('#111222333')),
-        ('#111122223333', gui.QColor('#111122223333')),
-        ('red', gui.QColor('red')),
-
-        ('rgb(0, 0, 0)', gui.QColor.fromRgb(0, 0, 0)),
-        ('rgb(0,0,0)', gui.QColor.fromRgb(0, 0, 0)),
-
-        ('rgba(255, 255, 255, 1.0)', gui.QColor.fromRgb(255, 255, 255, 255)),
-
-        ('hsv(10%,10%,10%)', gui.QColor.fromHsv(35, 25, 25)),
-        ('hsva(10%,20%,30%,40%)', gui.QColor.fromHsv(35, 51, 76, 102)),
-    ])
+    @pytest.mark.parametrize(
+        'val, expected',
+        [
+            ('#123', gui.QColor('#123')),
+            ('#112233', gui.QColor('#112233')),
+            ('#44112233', gui.QColor('#44112233')),
+            ('#111222333', gui.QColor('#111222333')),
+            ('#111122223333', gui.QColor('#111122223333')),
+            ('red', gui.QColor('red')),
+            ('rgb(0, 0, 0)', gui.QColor.fromRgb(0, 0, 0)),
+            ('rgb(0,0,0)', gui.QColor.fromRgb(0, 0, 0)),
+            ('rgba(255, 255, 255, 1.0)', gui.QColor.fromRgb(255, 255, 255, 255)),
+            ('hsv(10%,10%,10%)', gui.QColor.fromHsv(35, 25, 25)),
+            ('hsva(10%,20%,30%,40%)', gui.QColor.fromHsv(35, 51, 76, 102)),
+        ],
+    )
     def test_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
@@ -1366,47 +1366,95 @@ class TestFont:
 
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
-        '"Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
-        'inconsolatazi4':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, -1, -1,
-                     'inconsolatazi4'),
-        'Terminus (TTF)':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, -1, -1,
-                     'Terminus (TTF)'),
-        '10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, 10, None, 'Foobar Neue'),
-        '10PT "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, 10, None, 'Foobar Neue'),
-        '10px "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, None, 10, 'Foobar Neue'),
-        '10PX "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, None, 10, 'Foobar Neue'),
-        'bold "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
-        'italic "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleItalic, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
-        'oblique "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleOblique, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'),
-        'normal bold "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
-        'bold italic "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleItalic, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'),
-        'bold 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'),
-        'italic 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleItalic, gui.QFont.Weight.Normal, 10, None, 'Foobar Neue'),
-        'oblique 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleOblique, gui.QFont.Weight.Normal, 10, None,
-                     'Foobar Neue'),
-        'normal bold 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'),
-        'bold italic 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleItalic, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'),
-        'normal 300 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, 37, 10, None, 'Foobar Neue'),
-        'normal 800 10pt "Foobar Neue"':
-            FontDesc(gui.QFont.Style.StyleNormal, 99, 10, None, 'Foobar Neue'),
+        '"Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'
+        ),
+        'inconsolatazi4': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            -1,
+            -1,
+            'inconsolatazi4',
+        ),
+        'Terminus (TTF)': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            -1,
+            -1,
+            'Terminus (TTF)',
+        ),
+        '10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            10,
+            None,
+            'Foobar Neue',
+        ),
+        '10PT "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            10,
+            None,
+            'Foobar Neue',
+        ),
+        '10px "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            None,
+            10,
+            'Foobar Neue',
+        ),
+        '10PX "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal,
+            gui.QFont.Weight.Normal,
+            None,
+            10,
+            'Foobar Neue',
+        ),
+        'bold "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'
+        ),
+        'italic "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleItalic, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'
+        ),
+        'oblique "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleOblique, gui.QFont.Weight.Normal, -1, -1, 'Foobar Neue'
+        ),
+        'normal bold "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'
+        ),
+        'bold italic "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleItalic, gui.QFont.Weight.Bold, -1, -1, 'Foobar Neue'
+        ),
+        'bold 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'
+        ),
+        'italic 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleItalic,
+            gui.QFont.Weight.Normal,
+            10,
+            None,
+            'Foobar Neue',
+        ),
+        'oblique 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleOblique,
+            gui.QFont.Weight.Normal,
+            10,
+            None,
+            'Foobar Neue',
+        ),
+        'normal bold 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'
+        ),
+        'bold italic 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleItalic, gui.QFont.Weight.Bold, 10, None, 'Foobar Neue'
+        ),
+        'normal 300 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, 37, 10, None, 'Foobar Neue'
+        ),
+        'normal 800 10pt "Foobar Neue"': FontDesc(
+            gui.QFont.Style.StyleNormal, 99, 10, None, 'Foobar Neue'
+        ),
     }
 
     font_xfail = pytest.mark.xfail(reason='FIXME: #103')
@@ -1881,19 +1929,37 @@ class TestProxy:
     def klass(self):
         return configtypes.Proxy
 
-    @pytest.mark.parametrize('val, expected', [
-        ('system', configtypes.SYSTEM_PROXY),
-        ('none', network.QNetworkProxy(network.QNetworkProxy.ProxyType.NoProxy)),
-        ('socks://example.com/',
-         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
-        ('socks5://foo:bar@example.com:2323',
-         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
-                       'foo', 'bar')),
-        ('pac+http://example.com/proxy.pac',
-         pac.PACFetcher(core.QUrl('pac+http://example.com/proxy.pac'))),
-        ('pac+file:///tmp/proxy.pac',
-         pac.PACFetcher(core.QUrl('pac+file:///tmp/proxy.pac'))),
-    ])
+    @pytest.mark.parametrize(
+        'val, expected',
+        [
+            ('system', configtypes.SYSTEM_PROXY),
+            ('none', network.QNetworkProxy(network.QNetworkProxy.ProxyType.NoProxy)),
+            (
+                'socks://example.com/',
+                network.QNetworkProxy(
+                    network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com'
+                ),
+            ),
+            (
+                'socks5://foo:bar@example.com:2323',
+                network.QNetworkProxy(
+                    network.QNetworkProxy.ProxyType.Socks5Proxy,
+                    'example.com',
+                    2323,
+                    'foo',
+                    'bar',
+                ),
+            ),
+            (
+                'pac+http://example.com/proxy.pac',
+                pac.PACFetcher(core.QUrl('pac+http://example.com/proxy.pac')),
+            ),
+            (
+                'pac+file:///tmp/proxy.pac',
+                pac.PACFetcher(core.QUrl('pac+file:///tmp/proxy.pac')),
+            ),
+        ],
+    )
     def test_to_py_valid(self, klass, val, expected):
         actual = klass().to_py(val)
         if isinstance(actual, network.QNetworkProxy):
@@ -1949,10 +2015,13 @@ class TestFuzzyUrl:
     def klass(self):
         return configtypes.FuzzyUrl
 
-    @pytest.mark.parametrize('val, expected', [
-        ('http://example.com/?q={}', core.QUrl('http://example.com/?q={}')),
-        ('example.com', core.QUrl('http://example.com')),
-    ])
+    @pytest.mark.parametrize(
+        'val, expected',
+        [
+            ('http://example.com/?q={}', core.QUrl('http://example.com/?q={}')),
+            ('example.com', core.QUrl('http://example.com')),
+        ],
+    )
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 

@@ -89,7 +89,10 @@ class BindingTrie:
         node.command = command
 
     def __contains__(self, sequence: keyutils.KeySequence) -> bool:
-        return self.matches(sequence).match_type == gui.QKeySequence.SequenceMatch.ExactMatch
+        return (
+            self.matches(sequence).match_type
+            == gui.QKeySequence.SequenceMatch.ExactMatch
+        )
 
     def __repr__(self) -> str:
         return utils.get_repr(self, children=self.children,
@@ -131,22 +134,30 @@ class BindingTrie:
             try:
                 node = node.children[key]
             except KeyError:
-                return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
-                                   command=None,
-                                   sequence=sequence)
+                return MatchResult(
+                    match_type=gui.QKeySequence.SequenceMatch.NoMatch,
+                    command=None,
+                    sequence=sequence,
+                )
 
         if node.command is not None:
-            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.ExactMatch,
-                               command=node.command,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=gui.QKeySequence.SequenceMatch.ExactMatch,
+                command=node.command,
+                sequence=sequence,
+            )
         elif node.children:
-            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.PartialMatch,
-                               command=None,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=gui.QKeySequence.SequenceMatch.PartialMatch,
+                command=None,
+                sequence=sequence,
+            )
         else:  # This can only happen when there are no bindings at all.
-            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
-                               command=None,
-                               sequence=sequence)
+            return MatchResult(
+                match_type=gui.QKeySequence.SequenceMatch.NoMatch,
+                command=None,
+                sequence=sequence,
+            )
 
 
 class BaseKeyParser(core.QObject):
@@ -179,12 +190,16 @@ class BaseKeyParser(core.QObject):
     keystring_updated = core.pyqtSignal(str)
     request_leave = core.pyqtSignal(usertypes.KeyMode, str, bool)
 
-    def __init__(self, *, mode: usertypes.KeyMode,
-                 win_id: int,
-                 parent: core.QObject = None,
-                 do_log: bool = True,
-                 passthrough: bool = False,
-                 supports_count: bool = True) -> None:
+    def __init__(
+        self,
+        *,
+        mode: usertypes.KeyMode,
+        win_id: int,
+        parent: core.QObject = None,
+        do_log: bool = True,
+        passthrough: bool = False,
+        supports_count: bool = True,
+    ) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._sequence = keyutils.KeySequence()
@@ -247,9 +262,11 @@ class BaseKeyParser(core.QObject):
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
             return self._match_key(mapped)
-        return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
-                           command=None,
-                           sequence=sequence)
+        return MatchResult(
+            match_type=gui.QKeySequence.SequenceMatch.NoMatch,
+            command=None,
+            sequence=sequence,
+        )
 
     def _match_count(self, sequence: keyutils.KeySequence,
                      dry_run: bool) -> bool:
@@ -268,8 +285,9 @@ class BaseKeyParser(core.QObject):
             return True
         return False
 
-    def handle(self, e: gui.QKeyEvent, *,
-               dry_run: bool = False) -> gui.QKeySequence.SequenceMatch:
+    def handle(
+        self, e: gui.QKeyEvent, *, dry_run: bool = False
+    ) -> gui.QKeySequence.SequenceMatch:
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches

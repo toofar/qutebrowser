@@ -41,25 +41,33 @@ class Error(Exception):
 # Note that the getters must not use FullyDecoded decoded mode to prevent loss
 # of information. (host and path use FullyDecoded by default)
 _URL_SEGMENTS = [
-    ('host',
-     lambda url: url.host(core.QUrl.ComponentFormattingOption.FullyEncoded),
-     lambda url, host: url.setHost(host, core.QUrl.ParsingMode.StrictMode)),
-
-    ('port',
-     lambda url: str(url.port()) if url.port() > 0 else '',
-     lambda url, x: url.setPort(int(x))),
-
-    ('path',
-     lambda url: url.path(core.QUrl.ComponentFormattingOption.FullyEncoded),
-     lambda url, path: url.setPath(path, core.QUrl.ParsingMode.StrictMode)),
-
-    ('query',
-     lambda url: url.query(core.QUrl.ComponentFormattingOption.FullyEncoded),
-     lambda url, query: url.setQuery(query, core.QUrl.ParsingMode.StrictMode)),
-
-    ('anchor',
-     lambda url: url.fragment(core.QUrl.ComponentFormattingOption.FullyEncoded),
-     lambda url, fragment: url.setFragment(fragment, core.QUrl.ParsingMode.StrictMode)),
+    (
+        'host',
+        lambda url: url.host(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        lambda url, host: url.setHost(host, core.QUrl.ParsingMode.StrictMode),
+    ),
+    (
+        'port',
+        lambda url: str(url.port()) if url.port() > 0 else '',
+        lambda url, x: url.setPort(int(x)),
+    ),
+    (
+        'path',
+        lambda url: url.path(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        lambda url, path: url.setPath(path, core.QUrl.ParsingMode.StrictMode),
+    ),
+    (
+        'query',
+        lambda url: url.query(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        lambda url, query: url.setQuery(query, core.QUrl.ParsingMode.StrictMode),
+    ),
+    (
+        'anchor',
+        lambda url: url.fragment(core.QUrl.ComponentFormattingOption.FullyEncoded),
+        lambda url, fragment: url.setFragment(
+            fragment, core.QUrl.ParsingMode.StrictMode
+        ),
+    ),
 ]
 
 
@@ -130,7 +138,10 @@ def path_up(url, count):
         count: The number of levels to go up in the url.
     """
     urlutils.ensure_valid(url)
-    url = url.adjusted(core.QUrl.UrlFormattingOption.RemoveFragment | core.QUrl.UrlFormattingOption.RemoveQuery)
+    url = url.adjusted(
+        core.QUrl.UrlFormattingOption.RemoveFragment
+        | core.QUrl.UrlFormattingOption.RemoveQuery
+    )
     path = url.path(core.QUrl.ComponentFormattingOption.FullyEncoded)
     if not path or path == '/':
         raise Error("Can't go up!")
@@ -146,7 +157,10 @@ def strip(url, count):
     if count != 1:
         raise Error("Count is not supported when stripping URL components")
     urlutils.ensure_valid(url)
-    return url.adjusted(core.QUrl.UrlFormattingOption.RemoveFragment | core.QUrl.UrlFormattingOption.RemoveQuery)
+    return url.adjusted(
+        core.QUrl.UrlFormattingOption.RemoveFragment
+        | core.QUrl.UrlFormattingOption.RemoveQuery
+    )
 
 
 def _find_prevnext(prev, elems):

@@ -156,7 +156,9 @@ class NotificationBridgePresenter(core.QObject):
     def __init__(self, parent: core.QObject = None) -> None:
         super().__init__(parent)
 
-        self._active_notifications: Dict[int, 'webenginecore.QWebEngineNotification'] = {}
+        self._active_notifications: Dict[
+            int, 'webenginecore.QWebEngineNotification'
+        ] = {}
         self._adapter: Optional[AbstractNotificationAdapter] = None
 
         config.instance.changed.connect(self._init_adapter)
@@ -317,11 +319,15 @@ class NotificationBridgePresenter(core.QObject):
         notification.click()
         self._focus_first_matching_tab(notification)
 
-    def _focus_first_matching_tab(self, notification: "webenginecore.QWebEngineNotification") -> None:
+    def _focus_first_matching_tab(
+        self, notification: "webenginecore.QWebEngineNotification"
+    ) -> None:
         for win_id in objreg.window_registry:
             tabbedbrowser = objreg.get("tabbed-browser", window=win_id, scope="window")
             for idx, tab in enumerate(tabbedbrowser.widgets()):
-                if tab.url().matches(notification.origin(), core.QUrl.UrlFormattingOption.RemovePath):
+                if tab.url().matches(
+                    notification.origin(), core.QUrl.UrlFormattingOption.RemovePath
+                ):
                     tabbedbrowser.widget.setCurrentIndex(idx)
                     return
         log.misc.debug(f"No matching tab found for {notification.origin()}")
@@ -416,7 +422,9 @@ class SystrayNotificationAdapter(AbstractNotificationAdapter):
         """Convert a QImage to a QIcon."""
         if image.isNull():
             return gui.QIcon()
-        pixmap = gui.QPixmap.fromImage(image, core.Qt.ImageConversionFlag.NoFormatConversion)
+        pixmap = gui.QPixmap.fromImage(
+            image, core.Qt.ImageConversionFlag.NoFormatConversion
+        )
         assert not pixmap.isNull()
         icon = gui.QIcon(pixmap)
         assert not icon.isNull()
@@ -478,7 +486,9 @@ class MessagesNotificationAdapter(AbstractNotificationAdapter):
     def on_web_closed(self, _notification_id: int) -> None:
         """We can't close messages."""
 
-    def _format_message(self, qt_notification: "webenginecore.QWebEngineNotification") -> str:
+    def _format_message(
+        self, qt_notification: "webenginecore.QWebEngineNotification"
+    ) -> str:
         title = html.escape(qt_notification.title())
         body = html.escape(qt_notification.message())
         hint = "" if qt_notification.icon().isNull() else " (image not shown)"
@@ -554,7 +564,9 @@ class HerbeNotificationAdapter(AbstractNotificationAdapter):
         if not qt_notification.icon().isNull():
             yield "(icon not shown)"
 
-    def _on_finished(self, pid: int, code: int, status: core.QProcess.ExitStatus) -> None:
+    def _on_finished(
+        self, pid: int, code: int, status: core.QProcess.ExitStatus
+    ) -> None:
         """Handle a closing herbe process.
 
         From the GitHub page:
@@ -818,7 +830,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
 
     def _get_server_info(self) -> None:
         """Query notification server information and set quirks."""
-        reply = self.interface.call(dbus.QDBus.CallMode.BlockWithGui, "GetServerInformation")
+        reply = self.interface.call(
+            dbus.QDBus.CallMode.BlockWithGui, "GetServerInformation"
+        )
         self._verify_message(reply, "ssss", dbus.QDBusMessage.MessageType.ReplyMessage)
         name, vendor, ver, spec_version = reply.arguments()
 
@@ -884,7 +898,9 @@ class DBusNotificationAdapter(AbstractNotificationAdapter):
         typ = msg.type()
         if typ != expected_type:
             type_str = debug.qenum_key(dbus.QDBusMessage.MessageType, typ)
-            expected_type_str = debug.qenum_key(dbus.QDBusMessage.MessageType, expected_type)
+            expected_type_str = debug.qenum_key(
+                dbus.QDBusMessage.MessageType, expected_type
+            )
             raise Error(
                 f"Got a message of type {type_str} but expected {expected_type_str}"
                 f"(args: {msg.arguments()})")

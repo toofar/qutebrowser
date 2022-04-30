@@ -203,15 +203,28 @@ def test_ensure_valid(obj, raising, exc_reason, exc_str):
         qtutils.ensure_valid(obj)
 
 
-@pytest.mark.parametrize('status, raising, message', [
-    (core.QDataStream.Status.Ok, False, None),
-    (core.QDataStream.Status.ReadPastEnd, True, "The data stream has read past the end of "
-                                                "the data in the underlying device."),
-    (core.QDataStream.Status.ReadCorruptData, True, "The data stream has read corrupt "
-                                                    "data."),
-    (core.QDataStream.Status.WriteFailed, True, "The data stream cannot write to the "
-                                                "underlying device."),
-])
+@pytest.mark.parametrize(
+    'status, raising, message',
+    [
+        (core.QDataStream.Status.Ok, False, None),
+        (
+            core.QDataStream.Status.ReadPastEnd,
+            True,
+            "The data stream has read past the end of "
+            "the data in the underlying device.",
+        ),
+        (
+            core.QDataStream.Status.ReadCorruptData,
+            True,
+            "The data stream has read corrupt " "data.",
+        ),
+        (
+            core.QDataStream.Status.WriteFailed,
+            True,
+            "The data stream cannot write to the " "underlying device.",
+        ),
+    ],
+)
 def test_check_qdatastream(status, raising, message):
     """Test check_qdatastream.
 
@@ -235,11 +248,14 @@ def test_qdatastream_status_count():
     assert len(status_vals) == 4
 
 
-@pytest.mark.parametrize('color, expected', [
-    (gui.QColor('red'), 'rgba(255, 0, 0, 255)'),
-    (gui.QColor('blue'), 'rgba(0, 0, 255, 255)'),
-    (gui.QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
-])
+@pytest.mark.parametrize(
+    'color, expected',
+    [
+        (gui.QColor('red'), 'rgba(255, 0, 0, 255)'),
+        (gui.QColor('blue'), 'rgba(0, 0, 255, 255)'),
+        (gui.QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
+    ],
+)
 def test_qcolor_to_qsscolor(color, expected):
     assert qtutils.qcolor_to_qsscolor(color) == expected
 
@@ -249,10 +265,13 @@ def test_qcolor_to_qsscolor_invalid():
         qtutils.qcolor_to_qsscolor(gui.QColor())
 
 
-@pytest.mark.parametrize('obj', [
-    core.QPoint(23, 42),
-    core.QUrl('http://www.qutebrowser.org/'),
-])
+@pytest.mark.parametrize(
+    'obj',
+    [
+        core.QPoint(23, 42),
+        core.QUrl('http://www.qutebrowser.org/'),
+    ],
+)
 def test_serialize(obj):
     """Test a serialize/deserialize round trip.
 
@@ -293,7 +312,8 @@ class TestSerializeStream:
         """Test serialize_stream with an error while serializing."""
         obj = core.QPoint()
         stream_mock.__lshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, core.QDataStream.Status.ReadCorruptData)
+            stream_mock, core.QDataStream.Status.ReadCorruptData
+        )
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -315,7 +335,8 @@ class TestSerializeStream:
         """Test deserialize_stream with an error while deserializing."""
         obj = core.QPoint()
         stream_mock.__rshift__.side_effect = lambda _other: self._set_status(
-            stream_mock, core.QDataStream.Status.ReadCorruptData)
+            stream_mock, core.QDataStream.Status.ReadCorruptData
+        )
 
         with pytest.raises(OSError, match="The data stream has read corrupt "
                                           "data."):
@@ -386,7 +407,9 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 pass
 
-        qsavefile_mock.open.assert_called_once_with(core.QIODevice.OpenModeFlag.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(
+            core.QIODevice.OpenModeFlag.WriteOnly
+        )
         qsavefile_mock.cancelWriting.assert_called_once_with()
 
     def test_mock_exception(self, qsavefile_mock):
@@ -397,7 +420,9 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 raise SavefileTestException
 
-        qsavefile_mock.open.assert_called_once_with(core.QIODevice.OpenModeFlag.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(
+            core.QIODevice.OpenModeFlag.WriteOnly
+        )
         qsavefile_mock.cancelWriting.assert_called_once_with()
 
     def test_mock_commit_failed(self, qsavefile_mock):
@@ -409,7 +434,9 @@ class TestSavefileOpen:
             with qtutils.savefile_open('filename'):
                 pass
 
-        qsavefile_mock.open.assert_called_once_with(core.QIODevice.OpenModeFlag.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(
+            core.QIODevice.OpenModeFlag.WriteOnly
+        )
         assert not qsavefile_mock.cancelWriting.called
         assert not qsavefile_mock.errorString.called
 
@@ -424,7 +451,9 @@ class TestSavefileOpen:
         with qtutils.savefile_open('filename') as f:
             f.write("Hello World")
 
-        qsavefile_mock.open.assert_called_once_with(core.QIODevice.OpenModeFlag.WriteOnly)
+        qsavefile_mock.open.assert_called_once_with(
+            core.QIODevice.OpenModeFlag.WriteOnly
+        )
         assert not qsavefile_mock.cancelWriting.called
         qsavefile_mock.write.assert_called_once_with(b"Hello World")
 
@@ -537,10 +566,14 @@ if test_file is not None:
         def open(self, _fname, mode):
             """Open an in-memory PyQIODevice instead of a real file."""
             modes = {
-                'wb': core.QIODevice.OpenModeFlag.WriteOnly | core.QIODevice.OpenModeFlag.Truncate,
-                'w': core.QIODevice.OpenModeFlag.WriteOnly | core.QIODevice.OpenModeFlag.Text | core.QIODevice.OpenModeFlag.Truncate,
+                'wb': core.QIODevice.OpenModeFlag.WriteOnly
+                | core.QIODevice.OpenModeFlag.Truncate,
+                'w': core.QIODevice.OpenModeFlag.WriteOnly
+                | core.QIODevice.OpenModeFlag.Text
+                | core.QIODevice.OpenModeFlag.Truncate,
                 'rb': core.QIODevice.OpenModeFlag.ReadOnly,
-                'r': core.QIODevice.OpenModeFlag.ReadOnly | core.QIODevice.OpenModeFlag.Text,
+                'r': core.QIODevice.OpenModeFlag.ReadOnly
+                | core.QIODevice.OpenModeFlag.Text,
             }
             try:
                 qt_mode = modes[mode]
@@ -797,11 +830,14 @@ class TestPyQIODevice:
         func = getattr(pyqiodev, method)
         assert func() == ret
 
-    @pytest.mark.parametrize('mode, readable, writable', [
-        (core.QIODevice.OpenModeFlag.ReadOnly, True, False),
-        (core.QIODevice.OpenModeFlag.ReadWrite, True, True),
-        (core.QIODevice.OpenModeFlag.WriteOnly, False, True),
-    ])
+    @pytest.mark.parametrize(
+        'mode, readable, writable',
+        [
+            (core.QIODevice.OpenModeFlag.ReadOnly, True, False),
+            (core.QIODevice.OpenModeFlag.ReadWrite, True, True),
+            (core.QIODevice.OpenModeFlag.WriteOnly, False, True),
+        ],
+    )
     def test_readable_writable(self, mode, readable, writable, pyqiodev):
         """Test readable() and writable().
 
@@ -855,7 +891,10 @@ class TestPyQIODevice:
     def test_write_error_real(self):
         """Test a real write error with /dev/full on supported systems."""
         qf = core.QFile('/dev/full')
-        qf.open(core.QIODevice.OpenModeFlag.WriteOnly | core.QIODevice.OpenModeFlag.Unbuffered)
+        qf.open(
+            core.QIODevice.OpenModeFlag.WriteOnly
+            | core.QIODevice.OpenModeFlag.Unbuffered
+        )
         dev = qtutils.PyQIODevice(qf)
         with pytest.raises(OSError, match='No space left on device'):
             dev.write(b'foo')
@@ -970,9 +1009,13 @@ class TestInterpolateColor:
     def test_invalid_colorspace(self, colors):
         """Test an invalid colorspace."""
         with pytest.raises(ValueError):
-            qtutils.interpolate_color(colors.white, colors.black, 10, gui.QColor.Spec.Cmyk)
+            qtutils.interpolate_color(
+                colors.white, colors.black, 10, gui.QColor.Spec.Cmyk
+            )
 
-    @pytest.mark.parametrize('colorspace', [gui.QColor.Spec.Rgb, gui.QColor.Spec.Hsv, gui.QColor.Spec.Hsl])
+    @pytest.mark.parametrize(
+        'colorspace', [gui.QColor.Spec.Rgb, gui.QColor.Spec.Hsv, gui.QColor.Spec.Hsl]
+    )
     def test_0_100(self, colors, colorspace):
         """Test 0% and 100% in different colorspaces."""
         white = qtutils.interpolate_color(colors.white, colors.black, 0, colorspace)
@@ -983,7 +1026,11 @@ class TestInterpolateColor:
     def test_interpolation_rgb(self):
         """Test an interpolation in the RGB colorspace."""
         color = qtutils.interpolate_color(
-            testutils.Color(0, 40, 100), testutils.Color(0, 20, 200), 50, gui.QColor.Spec.Rgb)
+            testutils.Color(0, 40, 100),
+            testutils.Color(0, 20, 200),
+            50,
+            gui.QColor.Spec.Rgb,
+        )
         assert testutils.Color(color) == testutils.Color(0, 30, 150)
 
     def test_interpolation_hsv(self):
@@ -1008,7 +1055,9 @@ class TestInterpolateColor:
         expected.setHsl(0, 30, 150)
         assert testutils.Color(color) == expected
 
-    @pytest.mark.parametrize('colorspace', [gui.QColor.Spec.Rgb, gui.QColor.Spec.Hsv, gui.QColor.Spec.Hsl])
+    @pytest.mark.parametrize(
+        'colorspace', [gui.QColor.Spec.Rgb, gui.QColor.Spec.Hsv, gui.QColor.Spec.Hsl]
+    )
     def test_interpolation_alpha(self, colorspace):
         """Test interpolation of colorspace's alpha."""
         start = testutils.Color(0, 0, 0, 30)
@@ -1038,7 +1087,9 @@ class TestLibraryPath:
             path = core.QLibraryInfo.path(core.QLibraryInfo.LibraryPath.DataPath)
         except AttributeError:
             # Qt 5
-            path = core.QLibraryInfo.location(core.QLibraryInfo.LibraryLocation.DataPath)
+            path = core.QLibraryInfo.location(
+                core.QLibraryInfo.LibraryLocation.DataPath
+            )
 
         assert path
         assert qtutils.library_path(qtutils.LibraryPath.data).as_posix() == path

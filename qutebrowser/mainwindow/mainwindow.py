@@ -89,7 +89,9 @@ def raise_window(window, alert=True):
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
     core.QCoreApplication.processEvents(  # type: ignore[call-overload]
-        core.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents | core.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
+        core.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
+        | core.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers
+    )
 
     if not sip.isdeleted(window):
         # Could be deleted by the events run above
@@ -181,10 +183,13 @@ class MainWindow(widgets.QWidget):
         }
     """
 
-    def __init__(self, *,
-                 private: bool,
-                 geometry: Optional[core.QByteArray] = None,
-                 parent: Optional[widgets.QWidget] = None) -> None:
+    def __init__(
+        self,
+        *,
+        private: bool,
+        geometry: Optional[core.QByteArray] = None,
+        parent: Optional[widgets.QWidget] = None
+    ) -> None:
         """Create a new main window.
 
         Args:
@@ -201,7 +206,9 @@ class MainWindow(widgets.QWidget):
         self.setAttribute(core.Qt.WidgetAttribute.WA_DeleteOnClose)
         if config.val.window.transparent:
             self.setAttribute(core.Qt.WidgetAttribute.WA_TranslucentBackground)
-            self.palette().setColor(gui.QPalette.ColorRole.Window, core.Qt.GlobalColor.transparent)
+            self.palette().setColor(
+                gui.QPalette.ColorRole.Window, core.Qt.GlobalColor.transparent
+            )
 
         self._overlays: MutableSequence[_OverlayInfoType] = []
         self.win_id = next(win_id_gen)
@@ -301,7 +308,10 @@ class MainWindow(widgets.QWidget):
         if not widget.isVisible():
             return
 
-        if widget.sizePolicy().horizontalPolicy() == widgets.QSizePolicy.Policy.Expanding:
+        if (
+            widget.sizePolicy().horizontalPolicy()
+            == widgets.QSizePolicy.Policy.Expanding
+        ):
             width = self.width() - 2 * padding
             if widget.hasHeightForWidth():
                 height = widget.heightForWidth(width)
@@ -337,8 +347,9 @@ class MainWindow(widgets.QWidget):
             topleft = core.QPoint(left, top)
             bottom = status_height + height
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = core.QPoint(left + width,
-                                 min(self.height() - height_padding, bottom))
+            bottomright = core.QPoint(
+                left + width, min(self.height() - height_padding, bottom)
+            )
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
@@ -560,7 +571,10 @@ class MainWindow(widgets.QWidget):
         window_flags: int = core.Qt.WindowType.Window
         refresh_window = self.isVisible()
         if hidden:
-            window_flags |= core.Qt.WindowType.CustomizeWindowHint | core.Qt.WindowType.NoDropShadowWindowHint
+            window_flags |= (
+                core.Qt.WindowType.CustomizeWindowHint
+                | core.Qt.WindowType.NoDropShadowWindowHint
+            )
         self.setWindowFlags(window_flags)
         if refresh_window:
             self.show()
@@ -571,12 +585,16 @@ class MainWindow(widgets.QWidget):
             if on:
                 self.state_before_fullscreen = self.windowState()
                 self.setWindowState(
-                    core.Qt.WindowState.WindowFullScreen |  # type: ignore[arg-type]
-                    self.state_before_fullscreen)  # type: ignore[operator]
+                    core.Qt.WindowState.WindowFullScreen
+                    | self.state_before_fullscreen  # type: ignore[arg-type]
+                )  # type: ignore[operator]
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
-        log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(core.Qt, self.state_before_fullscreen)))
+        log.misc.debug(
+            'on: {}, state before fullscreen: {}'.format(
+                on, debug.qflags_key(core.Qt, self.state_before_fullscreen)
+            )
+        )
 
     @cmdutils.register(instance='main-window', scope='window')
     @core.pyqtSlot()

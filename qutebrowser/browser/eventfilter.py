@@ -97,10 +97,16 @@ class TabEventFilter(core.QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        is_rocker_gesture = (config.val.input.mouse.rocker_gestures and
-                             e.buttons() == core.Qt.MouseButton.LeftButton | core.Qt.MouseButton.RightButton)
+        is_rocker_gesture = (
+            config.val.input.mouse.rocker_gestures
+            and e.buttons()
+            == core.Qt.MouseButton.LeftButton | core.Qt.MouseButton.RightButton
+        )
 
-        if e.button() in [core.Qt.MouseButton.XButton1, core.Qt.MouseButton.XButton2] or is_rocker_gesture:
+        if (
+            e.button() in [core.Qt.MouseButton.XButton1, core.Qt.MouseButton.XButton2]
+            or is_rocker_gesture
+        ):
             if not machinery.IS_QT6:
                 self._mousepress_backforward(e)
             # FIXME:qt6 For some reason, this doesn't filter the action on
@@ -226,8 +232,10 @@ class TabEventFilter(core.QObject):
         Return:
             True if the event should be filtered, False otherwise.
         """
-        if (not config.val.input.mouse.back_forward_buttons and
-                e.button() in [core.Qt.MouseButton.XButton1, core.Qt.MouseButton.XButton2]):
+        if not config.val.input.mouse.back_forward_buttons and e.button() in [
+            core.Qt.MouseButton.XButton1,
+            core.Qt.MouseButton.XButton2,
+        ]:
             # Back and forward on mice are disabled
             return
 
@@ -237,7 +245,10 @@ class TabEventFilter(core.QObject):
                 self._tab.history.back()
             else:
                 message.error("At beginning of history.")
-        elif e.button() in [core.Qt.MouseButton.XButton2, core.Qt.MouseButton.RightButton]:
+        elif e.button() in [
+            core.Qt.MouseButton.XButton2,
+            core.Qt.MouseButton.RightButton,
+        ]:
             # Forward button on mice which have it, or rocker gesture
             if self._tab.history.can_go_forward():
                 self._tab.history.forward()

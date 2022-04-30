@@ -50,10 +50,16 @@ class FixedDataNetworkReply(network.QNetworkReply):
         self.setOpenMode(core.QIODevice.OpenModeFlag.ReadOnly)
 
         self.setHeader(network.QNetworkRequest.KnownHeaders.ContentTypeHeader, mimeType)
-        self.setHeader(network.QNetworkRequest.KnownHeaders.ContentLengthHeader,
-                       core.QByteArray.number(len(fileData)))
-        self.setAttribute(network.QNetworkRequest.Attribute.HttpStatusCodeAttribute, 200)
-        self.setAttribute(network.QNetworkRequest.Attribute.HttpReasonPhraseAttribute, 'OK')
+        self.setHeader(
+            network.QNetworkRequest.KnownHeaders.ContentLengthHeader,
+            core.QByteArray.number(len(fileData)),
+        )
+        self.setAttribute(
+            network.QNetworkRequest.Attribute.HttpStatusCodeAttribute, 200
+        )
+        self.setAttribute(
+            network.QNetworkRequest.Attribute.HttpReasonPhraseAttribute, 'OK'
+        )
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
         # pylint: disable=unnecessary-lambda
@@ -120,10 +126,12 @@ class ErrorNetworkReply(network.QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(core.QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
-        core.QTimer.singleShot(0, lambda:
-                          self.errorOccurred.emit(error))  # type: ignore[attr-defined]
-        core.QTimer.singleShot(0, lambda:
-                          self.finished.emit())  # type: ignore[attr-defined]
+        core.QTimer.singleShot(
+            0, lambda: self.errorOccurred.emit(error)
+        )  # type: ignore[attr-defined]
+        core.QTimer.singleShot(
+            0, lambda: self.finished.emit()
+        )  # type: ignore[attr-defined]
 
     def abort(self):
         """Do nothing since it's a fake reply."""
@@ -149,9 +157,12 @@ class RedirectNetworkReply(network.QNetworkReply):
 
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
-        self.setAttribute(network.QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
-        core.QTimer.singleShot(0, lambda:
-                          self.finished.emit())  # type: ignore[attr-defined]
+        self.setAttribute(
+            network.QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url
+        )
+        core.QTimer.singleShot(
+            0, lambda: self.finished.emit()
+        )  # type: ignore[attr-defined]
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""

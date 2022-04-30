@@ -119,7 +119,11 @@ def test_read_config(keyparser, key_config_stub, changed_mode, expected):
 class TestHandle:
 
     def test_valid_key(self, prompt_keyparser, handle_text):
-        modifier = core.Qt.KeyboardModifier.MetaModifier if utils.is_mac else core.Qt.KeyboardModifier.ControlModifier
+        modifier = (
+            core.Qt.KeyboardModifier.MetaModifier
+            if utils.is_mac
+            else core.Qt.KeyboardModifier.ControlModifier
+        )
 
         infos = [
             keyutils.KeyInfo(core.Qt.Key.Key_A, modifier),
@@ -133,7 +137,11 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_valid_key_count(self, prompt_keyparser):
-        modifier = core.Qt.KeyboardModifier.MetaModifier if utils.is_mac else core.Qt.KeyboardModifier.ControlModifier
+        modifier = (
+            core.Qt.KeyboardModifier.MetaModifier
+            if utils.is_mac
+            else core.Qt.KeyboardModifier.ControlModifier
+        )
 
         infos = [
             keyutils.KeyInfo(core.Qt.Key.Key_5, core.Qt.KeyboardModifier.NoModifier),
@@ -144,12 +152,24 @@ class TestHandle:
         prompt_keyparser.execute.assert_called_once_with(
             'message-info ctrla', 5)
 
-    @pytest.mark.parametrize('keys', [
-        [(core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier), (core.Qt.Key.Key_C, core.Qt.KeyboardModifier.NoModifier)],
-        [(core.Qt.Key.Key_A, core.Qt.KeyboardModifier.ControlModifier | core.Qt.KeyboardModifier.AltModifier)],
-        # Only modifier
-        [(core.Qt.Key.Key_Shift, core.Qt.KeyboardModifier.ShiftModifier)],
-    ])
+    @pytest.mark.parametrize(
+        'keys',
+        [
+            [
+                (core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier),
+                (core.Qt.Key.Key_C, core.Qt.KeyboardModifier.NoModifier),
+            ],
+            [
+                (
+                    core.Qt.Key.Key_A,
+                    core.Qt.KeyboardModifier.ControlModifier
+                    | core.Qt.KeyboardModifier.AltModifier,
+                )
+            ],
+            # Only modifier
+            [(core.Qt.Key.Key_Shift, core.Qt.KeyboardModifier.ShiftModifier)],
+        ],
+    )
     def test_invalid_keys(self, prompt_keyparser, keys):
         for key, modifiers in keys:
             info = keyutils.KeyInfo(key, modifiers)
@@ -158,10 +178,14 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_dry_run(self, prompt_keyparser):
-        b_info = keyutils.KeyInfo(core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier)
+        b_info = keyutils.KeyInfo(
+            core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier
+        )
         prompt_keyparser.handle(b_info.to_event())
 
-        a_info = keyutils.KeyInfo(core.Qt.Key.Key_A, core.Qt.KeyboardModifier.NoModifier)
+        a_info = keyutils.KeyInfo(
+            core.Qt.Key.Key_A, core.Qt.KeyboardModifier.NoModifier
+        )
         prompt_keyparser.handle(a_info.to_event(), dry_run=True)
 
         assert not prompt_keyparser.execute.called
@@ -180,32 +204,39 @@ class TestHandle:
         assert not prompt_keyparser._sequence
 
     def test_valid_keychain(self, handle_text, prompt_keyparser):
-        handle_text(prompt_keyparser,
-                    # Press 'x' which is ignored because of no match
-                    core.Qt.Key.Key_X,
-                    # Then start the real chain
-                    core.Qt.Key.Key_B, core.Qt.Key.Key_A)
+        handle_text(
+            prompt_keyparser,
+            # Press 'x' which is ignored because of no match
+            core.Qt.Key.Key_X,
+            # Then start the real chain
+            core.Qt.Key.Key_B,
+            core.Qt.Key.Key_A,
+        )
         prompt_keyparser.execute.assert_called_with('message-info ba', None)
         assert not prompt_keyparser._sequence
 
-    @pytest.mark.parametrize('key, modifiers, number', [
-        (core.Qt.Key.Key_0, core.Qt.KeyboardModifier.NoModifier, 0),
-        (core.Qt.Key.Key_1, core.Qt.KeyboardModifier.NoModifier, 1),
-        (core.Qt.Key.Key_1, core.Qt.KeyboardModifier.KeypadModifier, 1),
-    ])
-    def test_number_press(self, prompt_keyparser,
-                          key, modifiers, number):
+    @pytest.mark.parametrize(
+        'key, modifiers, number',
+        [
+            (core.Qt.Key.Key_0, core.Qt.KeyboardModifier.NoModifier, 0),
+            (core.Qt.Key.Key_1, core.Qt.KeyboardModifier.NoModifier, 1),
+            (core.Qt.Key.Key_1, core.Qt.KeyboardModifier.KeypadModifier, 1),
+        ],
+    )
+    def test_number_press(self, prompt_keyparser, key, modifiers, number):
         prompt_keyparser.handle(keyutils.KeyInfo(key, modifiers).to_event())
         command = 'message-info {}'.format(number)
         prompt_keyparser.execute.assert_called_once_with(command, None)
         assert not prompt_keyparser._sequence
 
-    @pytest.mark.parametrize('modifiers, text', [
-        (core.Qt.KeyboardModifier.NoModifier, '2'),
-        (core.Qt.KeyboardModifier.KeypadModifier, 'num-2'),
-    ])
-    def test_number_press_keypad(self, keyparser, config_stub,
-                                 modifiers, text):
+    @pytest.mark.parametrize(
+        'modifiers, text',
+        [
+            (core.Qt.KeyboardModifier.NoModifier, '2'),
+            (core.Qt.KeyboardModifier.KeypadModifier, 'num-2'),
+        ],
+    )
+    def test_number_press_keypad(self, keyparser, config_stub, modifiers, text):
         """Make sure a <Num+2> binding overrides the 2 binding."""
         config_stub.val.bindings.commands = {'normal': {
             '2': 'message-info 2',
@@ -230,7 +261,9 @@ class TestHandle:
         config_stub.val.bindings.commands = {'normal': {'a': 'nop'}}
         config_stub.val.bindings.key_mappings = {'1': 'a'}
 
-        info = keyutils.KeyInfo(core.Qt.Key.Key_1, core.Qt.KeyboardModifier.KeypadModifier)
+        info = keyutils.KeyInfo(
+            core.Qt.Key.Key_1, core.Qt.KeyboardModifier.KeypadModifier
+        )
         keyparser.handle(info.to_event())
         keyparser.execute.assert_called_once_with('nop', None)
 
@@ -248,9 +281,11 @@ class TestHandle:
 
     def test_binding_with_shift(self, prompt_keyparser):
         """Simulate a binding which involves shift."""
-        for key, modifiers in [(core.Qt.Key.Key_Y, core.Qt.KeyboardModifier.NoModifier),
-                               (core.Qt.Key.Key_Shift, core.Qt.KeyboardModifier.ShiftModifier),
-                               (core.Qt.Key.Key_Y, core.Qt.KeyboardModifier.ShiftModifier)]:
+        for key, modifiers in [
+            (core.Qt.Key.Key_Y, core.Qt.KeyboardModifier.NoModifier),
+            (core.Qt.Key.Key_Shift, core.Qt.KeyboardModifier.ShiftModifier),
+            (core.Qt.Key.Key_Y, core.Qt.KeyboardModifier.ShiftModifier),
+        ]:
             info = keyutils.KeyInfo(key, modifiers)
             prompt_keyparser.handle(info.to_event())
 
@@ -281,33 +316,56 @@ class TestCount:
         assert not prompt_keyparser._sequence
 
     def test_count_0(self, handle_text, prompt_keyparser):
-        handle_text(prompt_keyparser, core.Qt.Key.Key_0, core.Qt.Key.Key_B, core.Qt.Key.Key_A)
-        calls = [mock.call('message-info 0', None),
-                 mock.call('message-info ba', None)]
+        handle_text(
+            prompt_keyparser, core.Qt.Key.Key_0, core.Qt.Key.Key_B, core.Qt.Key.Key_A
+        )
+        calls = [mock.call('message-info 0', None), mock.call('message-info ba', None)]
         prompt_keyparser.execute.assert_has_calls(calls)
         assert not prompt_keyparser._sequence
 
     def test_count_42(self, handle_text, prompt_keyparser):
-        handle_text(prompt_keyparser, core.Qt.Key.Key_4, core.Qt.Key.Key_2, core.Qt.Key.Key_B, core.Qt.Key.Key_A)
+        handle_text(
+            prompt_keyparser,
+            core.Qt.Key.Key_4,
+            core.Qt.Key.Key_2,
+            core.Qt.Key.Key_B,
+            core.Qt.Key.Key_A,
+        )
         prompt_keyparser.execute.assert_called_once_with('message-info ba', 42)
         assert not prompt_keyparser._sequence
 
     def test_count_42_invalid(self, handle_text, prompt_keyparser):
         # Invalid call with ccx gets ignored
-        handle_text(prompt_keyparser,
-                    core.Qt.Key.Key_4, core.Qt.Key.Key_2, core.Qt.Key.Key_C, core.Qt.Key.Key_C, core.Qt.Key.Key_X)
+        handle_text(
+            prompt_keyparser,
+            core.Qt.Key.Key_4,
+            core.Qt.Key.Key_2,
+            core.Qt.Key.Key_C,
+            core.Qt.Key.Key_C,
+            core.Qt.Key.Key_X,
+        )
         assert not prompt_keyparser.execute.called
         assert not prompt_keyparser._sequence
         # Valid call with ccc gets the correct count
-        handle_text(prompt_keyparser,
-                    core.Qt.Key.Key_2, core.Qt.Key.Key_3, core.Qt.Key.Key_C, core.Qt.Key.Key_C, core.Qt.Key.Key_C)
-        prompt_keyparser.execute.assert_called_once_with(
-            'message-info ccc', 23)
+        handle_text(
+            prompt_keyparser,
+            core.Qt.Key.Key_2,
+            core.Qt.Key.Key_3,
+            core.Qt.Key.Key_C,
+            core.Qt.Key.Key_C,
+            core.Qt.Key.Key_C,
+        )
+        prompt_keyparser.execute.assert_called_once_with('message-info ccc', 23)
         assert not prompt_keyparser._sequence
 
     def test_superscript(self, handle_text, prompt_keyparser):
         # https://github.com/qutebrowser/qutebrowser/issues/3743
-        handle_text(prompt_keyparser, core.Qt.Key.Key_twosuperior, core.Qt.Key.Key_B, core.Qt.Key.Key_A)
+        handle_text(
+            prompt_keyparser,
+            core.Qt.Key.Key_twosuperior,
+            core.Qt.Key.Key_B,
+            core.Qt.Key.Key_A,
+        )
 
     def test_count_keystring_update(self, qtbot,
                                     handle_text, prompt_keyparser):
@@ -322,10 +380,12 @@ class TestCount:
 
     def test_numpad(self, prompt_keyparser):
         """Make sure we can enter a count via numpad."""
-        for key, modifiers in [(core.Qt.Key.Key_4, core.Qt.KeyboardModifier.KeypadModifier),
-                               (core.Qt.Key.Key_2, core.Qt.KeyboardModifier.KeypadModifier),
-                               (core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier),
-                               (core.Qt.Key.Key_A, core.Qt.KeyboardModifier.NoModifier)]:
+        for key, modifiers in [
+            (core.Qt.Key.Key_4, core.Qt.KeyboardModifier.KeypadModifier),
+            (core.Qt.Key.Key_2, core.Qt.KeyboardModifier.KeypadModifier),
+            (core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier),
+            (core.Qt.Key.Key_A, core.Qt.KeyboardModifier.NoModifier),
+        ]:
             info = keyutils.KeyInfo(key, modifiers)
             prompt_keyparser.handle(info.to_event())
         prompt_keyparser.execute.assert_called_once_with('message-info ba', 42)

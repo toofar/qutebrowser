@@ -210,8 +210,9 @@ class WebKitElement(webelem.AbstractWebElement):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                rect = core.QRect(int(rect["left"]), int(rect["top"]),
-                             int(width), int(height))
+                rect = core.QRect(
+                    int(rect["left"]), int(rect["top"]), int(width), int(height)
+                )
 
                 frame = cast(Optional[QWebFrame], self._elem.webFrame())
                 while frame is not None:
@@ -240,8 +241,9 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return rect
 
-    def rect_on_view(self, *, elem_geometry: core.QRect = None,
-                     no_js: bool = False) -> core.QRect:
+    def rect_on_view(
+        self, *, elem_geometry: core.QRect = None, no_js: bool = False
+    ) -> core.QRect:
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -274,7 +276,9 @@ class WebKitElement(webelem.AbstractWebElement):
     def _is_hidden_css(self) -> bool:
         """Check if the given element is hidden via CSS."""
         attr_values = {
-            attr: self._elem.styleProperty(attr, webkit.QWebElement.StyleResolveStrategy.ComputedStyle)
+            attr: self._elem.styleProperty(
+                attr, webkit.QWebElement.StyleResolveStrategy.ComputedStyle
+            )
             for attr in ['visibility', 'display', 'opacity']
         }
         invisible = attr_values['visibility'] == 'hidden'
@@ -369,8 +373,11 @@ class WebKitElement(webelem.AbstractWebElement):
             log.webelem.debug("Failed to click via JS, falling back to event")
             self._click_fake_event(click_target)
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: core.Qt.MouseButton = core.Qt.MouseButton.LeftButton) -> None:
+    def _click_fake_event(
+        self,
+        click_target: usertypes.ClickTarget,
+        button: core.Qt.MouseButton = core.Qt.MouseButton.LeftButton,
+    ) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

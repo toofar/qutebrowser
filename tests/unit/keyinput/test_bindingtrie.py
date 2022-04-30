@@ -39,10 +39,12 @@ def test_matches_single(entered, configured, match_type):
     configured = keyutils.KeySequence.parse(configured)
     trie = basekeyparser.BindingTrie()
     trie[configured] = "eeloo"
-    command = "eeloo" if match_type == gui.QKeySequence.SequenceMatch.ExactMatch else None
-    result = basekeyparser.MatchResult(match_type=match_type,
-                                       command=command,
-                                       sequence=entered)
+    command = (
+        "eeloo" if match_type == gui.QKeySequence.SequenceMatch.ExactMatch else None
+    )
+    result = basekeyparser.MatchResult(
+        match_type=match_type, command=command, sequence=entered
+    )
     assert trie.matches(entered) == result
 
 
@@ -79,26 +81,49 @@ def test_str():
     assert str(trie) == textwrap.dedent(expected).lstrip('\n')
 
 
-@pytest.mark.parametrize('configured, expected', [
-    ([],
-     # null match
-     [('a', gui.QKeySequence.SequenceMatch.NoMatch),
-      ('', gui.QKeySequence.SequenceMatch.NoMatch)]),
-    (['abcd'],
-     [('abcd', gui.QKeySequence.SequenceMatch.ExactMatch),
-      ('abc', gui.QKeySequence.SequenceMatch.PartialMatch)]),
-    (['aa', 'ab', 'ac', 'ad'],
-     [('ac', gui.QKeySequence.SequenceMatch.ExactMatch),
-      ('a', gui.QKeySequence.SequenceMatch.PartialMatch),
-      ('f', gui.QKeySequence.SequenceMatch.NoMatch),
-      ('acd', gui.QKeySequence.SequenceMatch.NoMatch)]),
-    (['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
-     [('aaaaaaab', gui.QKeySequence.SequenceMatch.ExactMatch),
-      ('z', gui.QKeySequence.SequenceMatch.NoMatch)]),
-    (string.ascii_letters,
-     [('a', gui.QKeySequence.SequenceMatch.ExactMatch),
-      ('!', gui.QKeySequence.SequenceMatch.NoMatch)]),
-])
+@pytest.mark.parametrize(
+    'configured, expected',
+    [
+        (
+            [],
+            # null match
+            [
+                ('a', gui.QKeySequence.SequenceMatch.NoMatch),
+                ('', gui.QKeySequence.SequenceMatch.NoMatch),
+            ],
+        ),
+        (
+            ['abcd'],
+            [
+                ('abcd', gui.QKeySequence.SequenceMatch.ExactMatch),
+                ('abc', gui.QKeySequence.SequenceMatch.PartialMatch),
+            ],
+        ),
+        (
+            ['aa', 'ab', 'ac', 'ad'],
+            [
+                ('ac', gui.QKeySequence.SequenceMatch.ExactMatch),
+                ('a', gui.QKeySequence.SequenceMatch.PartialMatch),
+                ('f', gui.QKeySequence.SequenceMatch.NoMatch),
+                ('acd', gui.QKeySequence.SequenceMatch.NoMatch),
+            ],
+        ),
+        (
+            ['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
+            [
+                ('aaaaaaab', gui.QKeySequence.SequenceMatch.ExactMatch),
+                ('z', gui.QKeySequence.SequenceMatch.NoMatch),
+            ],
+        ),
+        (
+            string.ascii_letters,
+            [
+                ('a', gui.QKeySequence.SequenceMatch.ExactMatch),
+                ('!', gui.QKeySequence.SequenceMatch.NoMatch),
+            ],
+        ),
+    ],
+)
 def test_matches_tree(configured, expected, benchmark):
     trie = basekeyparser.BindingTrie()
     trie.update({keyutils.KeySequence.parse(keys): "eeloo"
@@ -107,11 +132,14 @@ def test_matches_tree(configured, expected, benchmark):
     def run():
         for entered, match_type in expected:
             sequence = keyutils.KeySequence.parse(entered)
-            command = ("eeloo" if match_type == gui.QKeySequence.SequenceMatch.ExactMatch
-                       else None)
-            result = basekeyparser.MatchResult(match_type=match_type,
-                                               command=command,
-                                               sequence=sequence)
+            command = (
+                "eeloo"
+                if match_type == gui.QKeySequence.SequenceMatch.ExactMatch
+                else None
+            )
+            result = basekeyparser.MatchResult(
+                match_type=match_type, command=command, sequence=sequence
+            )
             assert trie.matches(sequence) == result
 
     benchmark(run)

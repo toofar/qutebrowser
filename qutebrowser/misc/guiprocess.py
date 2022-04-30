@@ -153,13 +153,13 @@ class GUIProcess(core.QObject):
     started = core.pyqtSignal()
 
     def __init__(
-            self,
-            what: str,
-            *,
-            verbose: bool = False,
-            additional_env: Mapping[str, str] = None,
-            output_messages: bool = False,
-            parent: core.QObject = None,
+        self,
+        what: str,
+        *,
+        verbose: bool = False,
+        additional_env: Mapping[str, str] = None,
+        output_messages: bool = False,
+        parent: core.QObject = None,
     ):
         super().__init__(parent)
         self.what = what

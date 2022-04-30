@@ -28,9 +28,9 @@ from qutebrowser.utils import jinja, log
 from qutebrowser.qt import core
 
 
-def set_register(obj: core.QObject,
-                 stylesheet: str = None, *,
-                 update: bool = True) -> None:
+def set_register(
+    obj: core.QObject, stylesheet: str = None, *, update: bool = True
+) -> None:
     """Set the stylesheet for an object.
 
     Also, register an update when the config is changed.
@@ -70,8 +70,9 @@ class _StyleSheetObserver(core.QObject):
                   None.
     """
 
-    def __init__(self, obj: core.QObject,
-                 stylesheet: Optional[str], update: bool) -> None:
+    def __init__(
+        self, obj: core.QObject, stylesheet: Optional[str], update: bool
+    ) -> None:
         super().__init__()
         self._obj = obj
         self._update = update

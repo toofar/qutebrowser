@@ -89,9 +89,12 @@ class AbstractWebInspector(widgets.QWidget):
 
     recreate = core.pyqtSignal()
 
-    def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
-                 win_id: int,
-                 parent: widgets.QWidget = None) -> None:
+    def __init__(
+        self,
+        splitter: 'miscwidgets.InspectorSplitter',
+        win_id: int,
+        parent: widgets.QWidget = None,
+    ) -> None:
         super().__init__(parent)
         self._widget = cast(widgets.QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)

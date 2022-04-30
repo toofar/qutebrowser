@@ -29,7 +29,9 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a list of QSslErrors."""
 
-    def __init__(self, reply: network.QNetworkReply, errors: Sequence[network.QSslError]) -> None:
+    def __init__(
+        self, reply: network.QNetworkReply, errors: Sequence[network.QSslError]
+    ) -> None:
         super().__init__()
         self._reply = reply
         self._errors = tuple(errors)  # needs to be hashable
@@ -44,8 +46,11 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            errors=[debug.qenum_key(network.QSslError, err.error()) for err in self._errors],
-            string=str(self))
+            errors=[
+                debug.qenum_key(network.QSslError, err.error()) for err in self._errors
+            ],
+            string=str(self),
+        )
 
     def __hash__(self) -> int:
         return hash((self._host_tpl, self._errors))

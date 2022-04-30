@@ -669,9 +669,15 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url'], what
 
         if what == 'pretty-url':
-            flags = core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.DecodeReserved
+            flags = (
+                core.QUrl.UrlFormattingOption.RemovePassword
+                | core.QUrl.ComponentFormattingOption.DecodeReserved
+            )
         else:
-            flags = core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded
+            flags = (
+                core.QUrl.UrlFormattingOption.RemovePassword
+                | core.QUrl.ComponentFormattingOption.FullyEncoded
+            )
 
         url = core.QUrl(self._current_url())
         url_query = core.QUrlQuery()
@@ -1161,7 +1167,9 @@ class CommandDispatcher:
         except qtutils.QtValueError:
             pass
         else:
-            env['QUTE_URL'] = url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded)
+            env['QUTE_URL'] = url.toString(
+                core.QUrl.ComponentFormattingOption.FullyEncoded
+            )
 
         try:
             runner = userscripts.run_async(
@@ -1292,8 +1300,10 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(core.QUrl.UrlFormattingOption.RemovePassword |
-                                               core.QUrl.ComponentFormattingOption.FullyEncoded)
+            url = self._current_url().toString(
+                core.QUrl.UrlFormattingOption.RemovePassword
+                | core.QUrl.ComponentFormattingOption.FullyEncoded
+            )
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
@@ -1864,9 +1874,16 @@ class CommandDispatcher:
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
         if enter:
-            window.setWindowState(window.windowState() | core.Qt.WindowState.WindowFullScreen)
+            window.setWindowState(
+                window.windowState() | core.Qt.WindowState.WindowFullScreen
+            )
         else:
-            window.setWindowState(window.windowState() ^ core.Qt.WindowState.WindowFullScreen)
+            window.setWindowState(
+                window.windowState() ^ core.Qt.WindowState.WindowFullScreen
+            )
 
-        log.misc.debug('state before fullscreen: {}'.format(
-            debug.qflags_key(core.Qt, window.state_before_fullscreen)))
+        log.misc.debug(
+            'state before fullscreen: {}'.format(
+                debug.qflags_key(core.Qt, window.state_before_fullscreen)
+            )
+        )

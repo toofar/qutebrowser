@@ -102,7 +102,9 @@ class TabDeque:
         self._ignore_next = True
         return tab
 
-    def next(self, cur_tab: widgets.QWidget, *, keep_overflow: bool = True) -> widgets.QWidget:
+    def next(
+        self, cur_tab: widgets.QWidget, *, keep_overflow: bool = True
+    ) -> widgets.QWidget:
         """Get the 'next' tab in the stack.
 
         Throws IndexError on failure.
@@ -215,7 +217,9 @@ class TabbedBrowser(widgets.QWidget):
         self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
-        self.widget.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
+        self.widget.setSizePolicy(
+            widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding
+        )
 
         # load_finished instead of load_started as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-65223
@@ -564,10 +568,11 @@ class TabbedBrowser(widgets.QWidget):
     @core.pyqtSlot('QUrl', bool)
     @core.pyqtSlot('QUrl', bool, bool)
     def tabopen(
-            self, url: core.QUrl = None,
-            background: bool = None,
-            related: bool = True,
-            idx: int = None,
+        self,
+        url: core.QUrl = None,
+        background: bool = None,
+        related: bool = True,
+        idx: int = None,
     ) -> browsertab.AbstractTab:
         """Open a new tab with a given URL.
 
@@ -1014,7 +1019,9 @@ class TabbedBrowser(widgets.QWidget):
         """
         # strip the fragment as it may interfere with scrolling
         try:
-            url = self.current_url().adjusted(core.QUrl.UrlFormattingOption.RemoveFragment)
+            url = self.current_url().adjusted(
+                core.QUrl.UrlFormattingOption.RemoveFragment
+            )
         except qtutils.QtValueError:
             # show an error only if the mark is not automatically set
             if key != "'":
@@ -1037,7 +1044,9 @@ class TabbedBrowser(widgets.QWidget):
         """
         try:
             # consider urls that differ only in fragment to be identical
-            urlkey = self.current_url().adjusted(core.QUrl.UrlFormattingOption.RemoveFragment)
+            urlkey = self.current_url().adjusted(
+                core.QUrl.UrlFormattingOption.RemoveFragment
+            )
         except qtutils.QtValueError:
             urlkey = None
 

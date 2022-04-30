@@ -130,7 +130,10 @@ class BrowserPage(QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QWebPage.ErrorDomain.QtNetwork, network.QNetworkReply.NetworkError.OperationCanceledError),
+            (
+                QWebPage.ErrorDomain.QtNetwork,
+                network.QNetworkReply.NetworkError.OperationCanceledError,
+            ),
             # "Loading is handled by the media engine"
             (QWebPage.ErrorDomain.WebKit, 203),
             # "Frame load interrupted by policy change"
@@ -138,8 +141,10 @@ class BrowserPage(QWebPage):
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) == (QWebPage.ErrorDomain.QtNetwork,
-                                         network.QNetworkReply.NetworkError.ProtocolUnknownError):
+        if (info.domain, info.error) == (
+            QWebPage.ErrorDomain.QtNetwork,
+            network.QNetworkReply.NetworkError.ProtocolUnknownError,
+        ):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
@@ -150,7 +155,11 @@ class BrowserPage(QWebPage):
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
                 yes_action=functools.partial(gui.QDesktopServices.openUrl, url),
-                url=info.url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded))
+                url=info.url.toString(
+                    core.QUrl.UrlFormattingOption.RemovePassword
+                    | core.QUrl.ComponentFormattingOption.FullyEncoded
+                ),
+            )
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -366,11 +375,15 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionPolicy.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(cast(core.QUrl.FormattingOptions,
-                                        core.QUrl.UrlFormattingOption.RemoveUserInfo |
-                                        core.QUrl.UrlFormattingOption.RemovePath |
-                                        core.QUrl.UrlFormattingOption.RemoveQuery |
-                                        core.QUrl.UrlFormattingOption.RemoveFragment))
+        url = frame.url().adjusted(
+            cast(
+                core.QUrl.FormattingOptions,
+                core.QUrl.UrlFormattingOption.RemoveUserInfo
+                | core.QUrl.UrlFormattingOption.RemovePath
+                | core.QUrl.UrlFormattingOption.RemoveQuery
+                | core.QUrl.UrlFormattingOption.RemoveFragment,
+            )
+        )
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -489,10 +502,12 @@ class BrowserPage(QWebPage):
         shared.javascript_log_message(usertypes.JsLogLevel.unknown,
                                       source, line, msg)
 
-    def acceptNavigationRequest(self,
-                                frame: QWebFrame,
-                                request: network.QNetworkRequest,
-                                typ: QWebPage.NavigationType) -> bool:
+    def acceptNavigationRequest(
+        self,
+        frame: QWebFrame,
+        request: network.QNetworkRequest,
+        typ: QWebPage.NavigationType,
+    ) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound

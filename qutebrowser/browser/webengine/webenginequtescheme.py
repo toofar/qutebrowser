@@ -93,16 +93,11 @@ class QuteSchemeHandler(webenginecore.QWebEngineUrlSchemeHandler):
             mimetype, data = qutescheme.data_for_url(url)
         except qutescheme.Error as e:
             errors = {
-                qutescheme.NotFoundError:
-                    webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
-                qutescheme.UrlInvalidError:
-                    webenginecore.QWebEngineUrlRequestJob.Error.UrlInvalid,
-                qutescheme.RequestDeniedError:
-                    webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied,
-                qutescheme.SchemeOSError:
-                    webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
-                qutescheme.Error:
-                    webenginecore.QWebEngineUrlRequestJob.Error.RequestFailed,
+                qutescheme.NotFoundError: webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
+                qutescheme.UrlInvalidError: webenginecore.QWebEngineUrlRequestJob.Error.UrlInvalid,
+                qutescheme.RequestDeniedError: webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied,
+                qutescheme.SchemeOSError: webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
+                qutescheme.Error: webenginecore.QWebEngineUrlRequestJob.Error.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -134,6 +129,7 @@ def init():
         assert not webenginecore.QWebEngineUrlScheme.schemeByName(b'qute').name()
         scheme = webenginecore.QWebEngineUrlScheme(b'qute')
         scheme.setFlags(
-            webenginecore.QWebEngineUrlScheme.Flag.LocalScheme |  # type: ignore[arg-type]
-            webenginecore.QWebEngineUrlScheme.Flag.LocalAccessAllowed)
+            webenginecore.QWebEngineUrlScheme.Flag.LocalScheme
+            | webenginecore.QWebEngineUrlScheme.Flag.LocalAccessAllowed  # type: ignore[arg-type]
+        )
         webenginecore.QWebEngineUrlScheme.registerScheme(scheme)

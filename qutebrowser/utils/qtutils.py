@@ -114,8 +114,9 @@ MAX_WORLD_ID = 256
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
     assert webkit.qWebKitVersion is not None
-    return (utils.VersionNumber.parse(webkit.qWebKitVersion()) >
-            utils.VersionNumber.parse('538.1'))
+    return utils.VersionNumber.parse(
+        webkit.qWebKitVersion()
+    ) > utils.VersionNumber.parse('538.1')
 
 
 def is_single_process() -> bool:
@@ -171,11 +172,14 @@ def check_qdatastream(stream: core.QDataStream) -> None:
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
         core.QDataStream.Status.Ok: "The data stream is operating normally.",
-        core.QDataStream.Status.ReadPastEnd: ("The data stream has read past the end of "
-                                  "the data in the underlying device."),
+        core.QDataStream.Status.ReadPastEnd: (
+            "The data stream has read past the end of "
+            "the data in the underlying device."
+        ),
         core.QDataStream.Status.ReadCorruptData: "The data stream has read corrupt data.",
-        core.QDataStream.Status.WriteFailed: ("The data stream cannot write to the "
-                                  "underlying device."),
+        core.QDataStream.Status.WriteFailed: (
+            "The data stream cannot write to the " "underlying device."
+        ),
     }
     if stream.status() != core.QDataStream.Status.Ok:
         raise OSError(status_to_str[stream.status()])
@@ -186,7 +190,7 @@ _QtSerializableType = Union[
     core.QByteArray,
     core.QUrl,
     'webengine.QWebEngineHistory',
-    'webkit.QWebHistory'
+    'webkit.QWebHistory',
 ]
 
 
@@ -462,9 +466,8 @@ class EventLoop(core.QEventLoop):
         self._executing = False
 
     def exec(
-            self,
-            flags: core.QEventLoop.ProcessEventsFlag =
-            core.QEventLoop.ProcessEventsFlag.AllEvents
+        self,
+        flags: core.QEventLoop.ProcessEventsFlag = core.QEventLoop.ProcessEventsFlag.AllEvents,
     ) -> int:
         """Override exec_ to raise an exception when re-running."""
         if self._executing:
@@ -500,10 +503,10 @@ def _get_color_percentage(x1: int, y1: int, z1: int, a1: int,
 
 
 def interpolate_color(
-        start: gui.QColor,
-        end: gui.QColor,
-        percent: int,
-        colorspace: Optional[gui.QColor.Spec] = gui.QColor.Spec.Rgb
+    start: gui.QColor,
+    end: gui.QColor,
+    percent: int,
+    colorspace: Optional[gui.QColor.Spec] = gui.QColor.Spec.Rgb,
 ) -> gui.QColor:
     """Get an interpolated color value.
 

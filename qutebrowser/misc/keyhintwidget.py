@@ -66,7 +66,9 @@ class KeyHintView(widgets.QLabel):
         super().__init__(parent)
         self.setTextFormat(core.Qt.TextFormat.RichText)
         self._win_id = win_id
-        self.setSizePolicy(widgets.QSizePolicy.Policy.Fixed, widgets.QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(
+            widgets.QSizePolicy.Policy.Fixed, widgets.QSizePolicy.Policy.Minimum
+        )
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
@@ -112,7 +114,8 @@ class KeyHintView(widgets.QLabel):
         bindings = [
             (k, v)
             for (k, v) in sorted(bindings_dict.items())
-            if keyutils.KeySequence.parse(prefix).matches(k) != gui.QKeySequence.SequenceMatch.NoMatch
+            if keyutils.KeySequence.parse(prefix).matches(k)
+            != gui.QKeySequence.SequenceMatch.NoMatch
             and not blacklisted(str(k))
             and (takes_count(v) or not countstr)
         ]

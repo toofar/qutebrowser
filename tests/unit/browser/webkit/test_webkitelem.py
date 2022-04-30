@@ -515,13 +515,17 @@ class TestIsVisible:
         assert not elem.geometry().isValid()
         assert elem._is_visible(frame)
 
-    @pytest.mark.parametrize('geometry, visible', [
-        (core.QRect(5, 5, 4, 4), False),
-        (core.QRect(10, 10, 1, 1), True),
-    ])
+    @pytest.mark.parametrize(
+        'geometry, visible',
+        [
+            (core.QRect(5, 5, 4, 4), False),
+            (core.QRect(10, 10, 1, 1), True),
+        ],
+    )
     def test_scrolled(self, geometry, visible, stubs):
-        scrolled_frame = stubs.FakeWebFrame(core.QRect(0, 0, 100, 100),
-                                            scroll=core.QPoint(10, 10))
+        scrolled_frame = stubs.FakeWebFrame(
+            core.QRect(0, 0, 100, 100), scroll=core.QPoint(10, 10)
+        )
         elem = get_webelem(geometry, scrolled_frame)
         assert elem._is_visible(scrolled_frame) == visible
 
@@ -697,8 +701,9 @@ class TestRectOnView:
     @pytest.mark.parametrize('js_rect', [None, {}])
     def test_scrolled(self, stubs, js_rect):
         geometry = core.QRect(20, 20, 4, 4)
-        frame = stubs.FakeWebFrame(core.QRect(0, 0, 100, 100),
-                                   scroll=core.QPoint(10, 10))
+        frame = stubs.FakeWebFrame(
+            core.QRect(0, 0, 100, 100), scroll=core.QPoint(10, 10)
+        )
         elem = get_webelem(geometry, frame, js_rect_return=js_rect)
         assert elem.rect_on_view() == core.QRect(20 - 10, 20 - 10, 4, 4)
 
@@ -722,8 +727,7 @@ class TestRectOnView:
         frame = stubs.FakeWebFrame(core.QRect(0, 0, 200, 200))
         iframe = stubs.FakeWebFrame(core.QRect(0, 10, 100, 100), parent=frame)
         assert frame.geometry().contains(iframe.geometry())
-        elem = get_webelem(core.QRect(20, 90, 10, 10), iframe,
-                           js_rect_return=js_rect)
+        elem = get_webelem(core.QRect(20, 90, 10, 10), iframe, js_rect_return=js_rect)
         assert elem.rect_on_view() == core.QRect(20, 10 + 90, 10, 10)
 
     @pytest.mark.parametrize('js_rect', [None, {}])
@@ -883,16 +887,19 @@ class TestIsEditable:
         assert elem.is_editable() == editable
 
 
-@pytest.mark.parametrize('attributes, expected', [
-    # No attributes
-    ({}, None),
-    ({'href': 'foo'}, core.QUrl('http://www.example.com/foo')),
-    ({'src': 'foo'}, core.QUrl('http://www.example.com/foo')),
-    ({'href': 'foo', 'src': 'bar'}, core.QUrl('http://www.example.com/foo')),
-    ({'href': '::garbage::'}, None),
-    ({'href': 'http://www.example.org/'}, core.QUrl('http://www.example.org/')),
-    ({'href': '  foo  '}, core.QUrl('http://www.example.com/foo')),
-])
+@pytest.mark.parametrize(
+    'attributes, expected',
+    [
+        # No attributes
+        ({}, None),
+        ({'href': 'foo'}, core.QUrl('http://www.example.com/foo')),
+        ({'src': 'foo'}, core.QUrl('http://www.example.com/foo')),
+        ({'href': 'foo', 'src': 'bar'}, core.QUrl('http://www.example.com/foo')),
+        ({'href': '::garbage::'}, None),
+        ({'href': 'http://www.example.org/'}, core.QUrl('http://www.example.org/')),
+        ({'href': '  foo  '}, core.QUrl('http://www.example.com/foo')),
+    ],
+)
 def test_resolve_url(attributes, expected):
     elem = get_webelem(attributes=attributes)
     baseurl = core.QUrl('http://www.example.com/')

@@ -96,7 +96,10 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         elif e.key() == core.Qt.Key.Key_Down:
             self.history_next()
             e.accept()
-        elif e.modifiers() & core.Qt.KeyboardModifier.ControlModifier and e.key() == core.Qt.Key.Key_C:
+        elif (
+            e.modifiers() & core.Qt.KeyboardModifier.ControlModifier
+            and e.key() == core.Qt.Key.Key_C
+        ):
             self.setText('')
             e.accept()
         else:

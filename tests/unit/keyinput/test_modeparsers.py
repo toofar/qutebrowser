@@ -65,7 +65,11 @@ class TestsNormalKeyParser:
 
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        keyparser.handle(keyutils.KeyInfo(core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier).to_event())
+        keyparser.handle(
+            keyutils.KeyInfo(
+                core.Qt.Key.Key_B, core.Qt.KeyboardModifier.NoModifier
+            ).to_event()
+        )
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()

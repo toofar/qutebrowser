@@ -58,7 +58,6 @@ class WebEngineAction(browsertab.AbstractAction):
 
     """QtWebEngine implementations related to web actions."""
 
-    action_class = QWebEnginePage
     action_base = QWebEnginePage.WebAction
 
     def exit_fullscreen(self):

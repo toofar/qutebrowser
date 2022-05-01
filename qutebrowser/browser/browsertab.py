@@ -152,7 +152,6 @@ class AbstractAction:
 
     """Attribute ``action`` of AbstractTab for Qt WebActions."""
 
-    action_class: Type[Union['QWebPage', 'QWebEnginePage']]
     action_base: Type[Union['QWebPage.WebAction', 'QWebEnginePage.WebAction']]
 
     def __init__(self, tab: 'AbstractTab') -> None:
@@ -169,9 +168,10 @@ class AbstractAction:
 
     def run_string(self, name: str) -> None:
         """Run a webaction based on its name."""
-        member = getattr(self.action_class, name, None)
-        if not isinstance(member, self.action_base):
-            raise WebTabError("{} is not a valid web action!".format(name))
+        try:
+            member = getattr(self.action_base, name)
+        except AttributeError:
+            raise WebTabError(f"{name} is not a valid web action!")
         self._widget.triggerPageAction(member)
 
     def show_source(self, pygments: bool = False) -> None:

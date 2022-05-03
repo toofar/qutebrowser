@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Dict, MutableMapping, Optional, Set
 
 from qutebrowser.qt.core import pyqtSlot, pyqtSignal, QUrl, QByteArray
 from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkReply, QSslConfiguration,
-                             QNetworkProxy)
+                             QNetworkProxy, QNetworkRequest)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -181,6 +181,8 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(self.on_proxy_authentication_required)
         self.netrc_used = False
+        # Needed for Qt 5
+        self.setRedirectPolicy(QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
 
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""

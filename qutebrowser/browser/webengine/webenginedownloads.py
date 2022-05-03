@@ -106,8 +106,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        progress_signal = self._qt_item.downloadProgress
-        progress_signal.disconnect()  # type: ignore[attr-defined]
+        try:
+            # Qt 5
+            self._qt_item.downloadProgress.disconnect()
+        except AttributeError:
+            # Qt 6
+            self._qt_item.receivedBytesChanged.disconnect()
+            self._qt_item.totalBytesChanged.disconnect()
         if self._qt_item.state() != QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
             self._qt_item.cancel()
 

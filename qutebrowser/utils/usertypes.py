@@ -515,6 +515,8 @@ class AbstractCertificateErrorWrapper:
         raise NotImplementedError
 
     def certificate_was_accepted(self) -> None:
+        if not self.is_overridable():
+            return False
         if self._certificate_accepted is None:
             raise ValueError("No decision taken yet")
         return self._certificate_accepted

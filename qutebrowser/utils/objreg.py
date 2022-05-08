@@ -24,12 +24,11 @@ import collections
 import functools
 from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
                     Optional, Sequence, Union)
-
-from qutebrowser.qt.core import QObject, QTimer
-from qutebrowser.qt.widgets import QApplication
-from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt import widgets
 
 from qutebrowser.utils import log, usertypes, utils
+from qutebrowser.qt import core
+
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import mainwindow
 
@@ -85,7 +84,7 @@ class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
 
         self._disconnect_destroyed(name)
 
-        if isinstance(obj, QObject):
+        if isinstance(obj, core.QObject):
             func = functools.partial(self.on_destroyed, name)
             obj.destroyed.connect(func)
             self._partial_objs[name] = func
@@ -124,7 +123,7 @@ class ObjectRegistry(collections.UserDict):  # type: ignore[type-arg]
         registry.
         """
         log.destroy.debug("schedule removal: {}".format(name))
-        QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
+        core.QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
 
     def _on_destroyed(self, name: str) -> None:
         """Remove a destroyed QObject."""
@@ -167,7 +166,7 @@ def _get_tab_registry(win_id: _WindowTab,
     if tab_id is None:
         raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
-        window: Optional[QWidget] = QApplication.activeWindow()
+        window: Optional[widgets.QWidget] = widgets.QApplication.activeWindow()
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
@@ -193,7 +192,7 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise TypeError("window is None with scope window!")
     try:
         if window == 'current':
-            win: Optional[QWidget] = QApplication.activeWindow()
+            win: Optional[widgets.QWidget] = widgets.QApplication.activeWindow()
         elif window == 'last-focused':
             win = last_focused_window()
         else:

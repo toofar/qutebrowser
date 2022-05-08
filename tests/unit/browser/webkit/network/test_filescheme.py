@@ -24,8 +24,7 @@ from typing import List
 
 import pytest
 import bs4
-from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.network import QNetworkRequest
+from qutebrowser.qt import network, core
 
 from qutebrowser.browser.webkit.network import filescheme
 from qutebrowser.utils import urlutils, utils
@@ -257,8 +256,8 @@ class TestDirbrowserHtml:
 class TestFileSchemeHandler:
 
     def test_dir(self, tmpdir):
-        url = QUrl.fromLocalFile(str(tmpdir))
-        req = QNetworkRequest(url)
+        url = core.QUrl.fromLocalFile(str(tmpdir))
+        req = network.QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
         # The URL will always use /, even on Windows - so we force this here
         # too.
@@ -268,14 +267,14 @@ class TestFileSchemeHandler:
     def test_file(self, tmpdir):
         filename = tmpdir / 'foo'
         filename.ensure()
-        url = QUrl.fromLocalFile(str(filename))
-        req = QNetworkRequest(url)
+        url = core.QUrl.fromLocalFile(str(filename))
+        req = network.QNetworkRequest(url)
         reply = filescheme.handler(req, None, None)
         assert reply is None
 
     def test_unicode_encode_error(self, mocker):
-        url = QUrl('file:///tmp/foo')
-        req = QNetworkRequest(url)
+        url = core.QUrl('file:///tmp/foo')
+        req = network.QNetworkRequest(url)
 
         err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
         mocker.patch('os.path.isdir', side_effect=err)

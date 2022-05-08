@@ -25,7 +25,7 @@
 import dataclasses
 from typing import Optional
 
-from qutebrowser.qt.core import Qt
+from qutebrowser.qt import core
 
 
 @dataclasses.dataclass(order=True)
@@ -50,7 +50,7 @@ class Key:
 
     def __post_init__(self):
         if self.attribute:
-            self.member = getattr(Qt.Key, 'Key_' + self.attribute, None)
+            self.member = getattr(core.Qt.Key, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
@@ -72,7 +72,7 @@ class Modifier:
     member: Optional[int] = None
 
     def __post_init__(self):
-        self.member = getattr(Qt.KeyboardModifier, self.attribute + 'Modifier')
+        self.member = getattr(core.Qt.KeyboardModifier, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 

@@ -21,16 +21,14 @@
 
 import re
 from typing import Iterable, Tuple
-
-from qutebrowser.qt.core import QSortFilterProxyModel, QRegularExpression
-from qutebrowser.qt.gui import QStandardItem, QStandardItemModel
-from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt import widgets
 
 from qutebrowser.completion.models import util
 from qutebrowser.utils import qtutils, log
+from qutebrowser.qt import gui, core
 
 
-class ListCategory(QSortFilterProxyModel):
+class ListCategory(core.QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
@@ -39,16 +37,16 @@ class ListCategory(QSortFilterProxyModel):
                  items: Iterable[Tuple[str, ...]],
                  sort: bool = True,
                  delete_func: util.DeleteFuncType = None,
-                 parent: QWidget = None):
+                 parent: widgets.QWidget = None):
         super().__init__(parent)
         self.name = name
-        self.srcmodel = QStandardItemModel(parent=self)
+        self.srcmodel = gui.QStandardItemModel(parent=self)
         self._pattern = ''
         # ListCategory filters all columns
         self.columns_to_filter = [0, 1, 2]
         self.setFilterKeyColumn(-1)
         for item in items:
-            self.srcmodel.appendRow([QStandardItem(x) for x in item])
+            self.srcmodel.appendRow([gui.QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
         self.delete_func = delete_func
         self._sort = sort
@@ -66,7 +64,7 @@ class ListCategory(QSortFilterProxyModel):
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
-        rx = QRegularExpression(val, QRegularExpression.PatternOption.CaseInsensitiveOption)
+        rx = core.QRegularExpression(val, core.QRegularExpression.PatternOption.CaseInsensitiveOption)
         qtutils.ensure_valid(rx)
         self.setFilterRegularExpression(rx)
         self.invalidate()

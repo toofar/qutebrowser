@@ -22,12 +22,10 @@
 import functools
 from typing import Callable, MutableSequence, Tuple, Union
 
-from qutebrowser.qt.core import pyqtSlot, QSize, Qt
-from qutebrowser.qt.widgets import QListView, QSizePolicy, QMenu, QStyleFactory
-
 from qutebrowser.browser import downloads
 from qutebrowser.config import stylesheet
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt import widgets, core
 
 
 _ActionListType = MutableSequence[
@@ -38,7 +36,7 @@ _ActionListType = MutableSequence[
 ]
 
 
-class DownloadView(QListView):
+class DownloadView(widgets.QListView):
 
     """QListView which shows currently running downloads as a bar.
 
@@ -60,13 +58,13 @@ class DownloadView(QListView):
     def __init__(self, model, parent=None):
         super().__init__(parent)
         if not utils.is_mac:
-            self.setStyle(QStyleFactory.create('Fusion'))
+            self.setStyle(widgets.QStyleFactory.create('Fusion'))
         stylesheet.set_register(self)
-        self.setResizeMode(QListView.ResizeMode.Adjust)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setFlow(QListView.Flow.LeftToRight)
+        self.setResizeMode(widgets.QListView.ResizeMode.Adjust)
+        self.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setSizePolicy(widgets.QSizePolicy.Policy.MinimumExpanding, widgets.QSizePolicy.Policy.Fixed)
+        self.setFocusPolicy(core.Qt.FocusPolicy.NoFocus)
+        self.setFlow(widgets.QListView.Flow.LeftToRight)
         self.setSpacing(1)
         self._menu = None
         model.rowsInserted.connect(self._update_geometry)
@@ -74,7 +72,7 @@ class DownloadView(QListView):
         model.dataChanged.connect(self._update_geometry)
         self.setModel(model)
         self.setWrapping(True)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.setContextMenuPolicy(core.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
         self.clicked.connect(self.on_clicked)
 
@@ -86,7 +84,7 @@ class DownloadView(QListView):
             count = model.rowCount()
         return utils.get_repr(self, count=count)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _update_geometry(self):
         """Wrapper to call updateGeometry.
 
@@ -95,7 +93,7 @@ class DownloadView(QListView):
         """
         self.updateGeometry()
 
-    @pyqtSlot(bool)
+    @core.pyqtSlot(bool)
     def on_fullscreen_requested(self, on):
         """Hide/show the downloadview when entering/leaving fullscreen."""
         if on:
@@ -103,7 +101,7 @@ class DownloadView(QListView):
         else:
             self.show()
 
-    @pyqtSlot('QModelIndex')
+    @core.pyqtSlot('QModelIndex')
     def on_clicked(self, index):
         """Handle clicking of an item.
 
@@ -149,7 +147,7 @@ class DownloadView(QListView):
             actions.append(("Remove all finished", model.download_clear))
         return actions
 
-    @pyqtSlot('QPoint')
+    @core.pyqtSlot('QPoint')
     def show_context_menu(self, point):
         """Show the context menu."""
         index = self.indexAt(point)
@@ -157,7 +155,7 @@ class DownloadView(QListView):
             item = self.model().data(index, downloads.ModelRole.item)
         else:
             item = None
-        self._menu = QMenu(self)
+        self._menu = widgets.QMenu(self)
         actions = self._get_menu_actions(item)
         for (name, handler) in actions:
             if name is None and handler is None:
@@ -182,8 +180,8 @@ class DownloadView(QListView):
             margins = self.contentsMargins()
             height = (bottom + margins.top() + margins.bottom() +
                       2 * self.spacing())
-            size = QSize(0, height)
+            size = core.QSize(0, height)
         else:
-            size = QSize(0, 0)
+            size = core.QSize(0, 0)
         qtutils.ensure_valid(size)
         return size

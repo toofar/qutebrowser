@@ -18,15 +18,14 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
-
-from qutebrowser.qt.core import pyqtSignal, Qt, QUrl
-from qutebrowser.qt.webkit import QWebSettings
+from qutebrowser.qt import webkit
 from qutebrowser.qt.webkitwidgets import QWebView, QWebPage
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
+from qutebrowser.qt import core
 
 
 class WebView(QWebView):
@@ -56,8 +55,8 @@ class WebView(QWebView):
         }
     """
 
-    scroll_pos_changed = pyqtSignal(int, int)
-    shutting_down = pyqtSignal()
+    scroll_pos_changed = core.pyqtSignal(int, int)
+    shutting_down = core.pyqtSignal()
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
@@ -82,7 +81,7 @@ class WebView(QWebView):
         stylesheet.set_register(self)
 
     def __repr__(self):
-        flags = QUrl.ComponentFormattingOption.EncodeUnicode
+        flags = core.QUrl.ComponentFormattingOption.EncodeUnicode
         urlstr = self.url().toDisplayString(flags)  # type: ignore[arg-type]
         url = utils.elide(urlstr, 100)
         return utils.get_repr(self, tab_id=self._tab_id, url=url)
@@ -107,7 +106,7 @@ class WebView(QWebView):
         # quitting it seems.
         log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
-        settings.setAttribute(QWebSettings.WebAttribute.JavascriptEnabled, False)
+        settings.setAttribute(webkit.QWebSettings.WebAttribute.JavascriptEnabled, False)
         self.stop()
         self.page().shutdown()
 
@@ -154,12 +153,12 @@ class WebView(QWebView):
             e: The QPaintEvent.
         """
         frame = self.page().mainFrame()
-        new_pos = (frame.scrollBarValue(Qt.Orientation.Horizontal),
-                   frame.scrollBarValue(Qt.Orientation.Vertical))
+        new_pos = (frame.scrollBarValue(core.Qt.Orientation.Horizontal),
+                   frame.scrollBarValue(core.Qt.Orientation.Vertical))
         if self._old_scroll_pos != new_pos:
             self._old_scroll_pos = new_pos
-            m = (frame.scrollBarMaximum(Qt.Orientation.Horizontal),
-                 frame.scrollBarMaximum(Qt.Orientation.Vertical))
+            m = (frame.scrollBarMaximum(core.Qt.Orientation.Horizontal),
+                 frame.scrollBarMaximum(core.Qt.Orientation.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
                     round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
             self.scroll_pos = perc
@@ -201,9 +200,9 @@ class WebView(QWebView):
 
         This is implemented here as we don't need it for QtWebEngine.
         """
-        if e.button() == Qt.MouseButton.MidButton or e.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if e.button() == core.Qt.MouseButton.MidButton or e.modifiers() & core.Qt.KeyboardModifier.ControlModifier:
             background = config.val.tabs.background
-            if e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+            if e.modifiers() & core.Qt.KeyboardModifier.ShiftModifier:
                 background = not background
             if background:
                 target = usertypes.ClickTarget.tab_bg

@@ -25,7 +25,7 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from qutebrowser.qt.core import QLocale
+from qutebrowser.qt import core
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -254,7 +254,7 @@ def _qtwebengine_args(
 
     lang_override = _get_lang_override(
         webengine_version=versions.webengine,
-        locale_name=QLocale().bcp47Name(),
+        locale_name=core.QLocale().bcp47Name(),
     )
     if lang_override is not None:
         yield f'--lang={lang_override}'

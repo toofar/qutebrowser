@@ -27,18 +27,16 @@ It is intended to help discoverability of keybindings.
 import html
 import fnmatch
 import re
-
-from qutebrowser.qt.widgets import QLabel, QSizePolicy
-from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt
-from qutebrowser.qt.gui import QKeySequence
+from qutebrowser.qt import widgets, gui
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import core
 
 
-class KeyHintView(QLabel):
+class KeyHintView(widgets.QLabel):
 
     """The view showing hints for key bindings based on the current key string.
 
@@ -62,13 +60,13 @@ class KeyHintView(QLabel):
             {% endif %}
         }
     """
-    update_geometry = pyqtSignal()
+    update_geometry = core.pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setTextFormat(Qt.TextFormat.RichText)
+        self.setTextFormat(core.Qt.TextFormat.RichText)
         self._win_id = win_id
-        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(widgets.QSizePolicy.Policy.Fixed, widgets.QSizePolicy.Policy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
@@ -83,7 +81,7 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(usertypes.KeyMode, str)
+    @core.pyqtSlot(usertypes.KeyMode, str)
     def update_keyhint(self, mode, prefix):
         """Show hints for the given prefix (or hide if prefix is empty).
 
@@ -114,7 +112,7 @@ class KeyHintView(QLabel):
         bindings = [
             (k, v)
             for (k, v) in sorted(bindings_dict.items())
-            if keyutils.KeySequence.parse(prefix).matches(k) != QKeySequence.SequenceMatch.NoMatch
+            if keyutils.KeySequence.parse(prefix).matches(k) != gui.QKeySequence.SequenceMatch.NoMatch
             and not blacklisted(str(k))
             and (takes_count(v) or not countstr)
         ]

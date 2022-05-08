@@ -19,23 +19,19 @@
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
-from qutebrowser.qt.core import QBuffer, QIODevice, QUrl
-from qutebrowser.qt.webenginecore import (QWebEngineUrlSchemeHandler,
-                                   QWebEngineUrlRequestJob,
-                                   QWebEngineUrlScheme)
-
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
+from qutebrowser.qt import webenginecore, core
 
 
-class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
+class QuteSchemeHandler(webenginecore.QWebEngineUrlSchemeHandler):
 
     """Handle qute://* requests on QtWebEngine."""
 
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
-        if QWebEngineUrlScheme is not None:
-            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+        if webenginecore.QWebEngineUrlScheme is not None:
+            assert webenginecore.QWebEngineUrlScheme.schemeByName(b'qute') is not None
 
         profile.installUrlSchemeHandler(b'qute', self)
 
@@ -55,7 +51,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         request_url = job.requestUrl()
 
         # https://codereview.qt-project.org/#/c/234849/
-        is_opaque = initiator == QUrl('null')
+        is_opaque = initiator == core.QUrl('null')
         target = request_url.scheme(), request_url.host()
 
         if target == ('qute', 'testdata') and is_opaque:
@@ -67,7 +63,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             log.network.warning("Blocking malicious request from {} to {}"
                                 .format(initiator.toDisplayString(),
                                         request_url.toDisplayString()))
-            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
+            job.fail(webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied)
             return False
 
         return True
@@ -87,7 +83,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return
 
         if job.requestMethod() != b'GET':
-            job.fail(QWebEngineUrlRequestJob.Error.RequestDenied)
+            job.fail(webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied)
             return
 
         assert url.scheme() == 'qute'
@@ -98,15 +94,15 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         except qutescheme.Error as e:
             errors = {
                 qutescheme.NotFoundError:
-                    QWebEngineUrlRequestJob.Error.UrlNotFound,
+                    webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.UrlInvalidError:
-                    QWebEngineUrlRequestJob.Error.UrlInvalid,
+                    webenginecore.QWebEngineUrlRequestJob.Error.UrlInvalid,
                 qutescheme.RequestDeniedError:
-                    QWebEngineUrlRequestJob.Error.RequestDenied,
+                    webenginecore.QWebEngineUrlRequestJob.Error.RequestDenied,
                 qutescheme.SchemeOSError:
-                    QWebEngineUrlRequestJob.Error.UrlNotFound,
+                    webenginecore.QWebEngineUrlRequestJob.Error.UrlNotFound,
                 qutescheme.Error:
-                    QWebEngineUrlRequestJob.Error.RequestFailed,
+                    webenginecore.QWebEngineUrlRequestJob.Error.RequestFailed,
             }
             exctype = type(e)
             log.network.error(f"{exctype.__name__} while handling qute://* URL: {e}")
@@ -120,8 +116,8 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             # We can't just use the QBuffer constructor taking a QByteArray,
             # because that somehow segfaults...
             # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
-            buf = QBuffer(parent=self)
-            buf.open(QIODevice.OpenModeFlag.WriteOnly)
+            buf = core.QBuffer(parent=self)
+            buf.open(core.QIODevice.OpenModeFlag.WriteOnly)
             buf.write(data)
             buf.seek(0)
             buf.close()
@@ -134,10 +130,10 @@ def init():
     Note this needs to be called early, before constructing any QtWebEngine
     classes.
     """
-    if QWebEngineUrlScheme is not None:
-        assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
-        scheme = QWebEngineUrlScheme(b'qute')
+    if webenginecore.QWebEngineUrlScheme is not None:
+        assert not webenginecore.QWebEngineUrlScheme.schemeByName(b'qute').name()
+        scheme = webenginecore.QWebEngineUrlScheme(b'qute')
         scheme.setFlags(
-            QWebEngineUrlScheme.Flag.LocalScheme |  # type: ignore[arg-type]
-            QWebEngineUrlScheme.Flag.LocalAccessAllowed)
-        QWebEngineUrlScheme.registerScheme(scheme)
+            webenginecore.QWebEngineUrlScheme.Flag.LocalScheme |  # type: ignore[arg-type]
+            webenginecore.QWebEngineUrlScheme.Flag.LocalAccessAllowed)
+        webenginecore.QWebEngineUrlScheme.registerScheme(scheme)

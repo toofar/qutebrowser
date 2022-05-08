@@ -34,8 +34,7 @@ try:
 except ImportError:
     hunter = None
 
-from qutebrowser.qt.core import Qt
-from qutebrowser.qt.printsupport import QPrintPreviewDialog
+from qutebrowser.qt import printsupport, core
 
 from qutebrowser.api import cmdutils, apitypes, message, config
 
@@ -80,12 +79,12 @@ def _print_preview(tab: apitypes.Tab) -> None:
             message.error("Printing failed!")
 
     tab.printing.check_preview_support()
-    diag = QPrintPreviewDialog(tab)
-    diag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+    diag = printsupport.QPrintPreviewDialog(tab)
+    diag.setAttribute(core.Qt.WidgetAttribute.WA_DeleteOnClose)
     diag.setWindowFlags(
         diag.windowFlags() |  # type: ignore[operator, arg-type]
-        Qt.WindowType.WindowMaximizeButtonHint |
-        Qt.WindowType.WindowMinimizeButtonHint)
+        core.Qt.WindowType.WindowMaximizeButtonHint |
+        core.Qt.WindowType.WindowMinimizeButtonHint)
     diag.paintRequested.connect(functools.partial(
         tab.printing.to_printer, callback=print_callback))
     diag.exec()

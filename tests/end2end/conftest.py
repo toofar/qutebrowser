@@ -27,7 +27,6 @@ import pstats
 import operator
 
 import pytest
-from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
@@ -39,6 +38,7 @@ from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 # pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.qt import webenginecore, core
 
 
 def pytest_configure(config):
@@ -111,7 +111,7 @@ def _get_version_tag(tag):
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),
-                running_version=PYQT_VERSION,
+                running_version=core.PYQT_VERSION,
                 version_str=version,
                 as_hex=True,
             ),
@@ -119,12 +119,12 @@ def _get_version_tag(tag):
         )
     elif package == 'pyqtwebengine':
         try:
-            from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
+            pass
         except ImportError:
             # QtWebKit
-            running_version = PYQT_VERSION
+            running_version = core.PYQT_VERSION
         else:
-            running_version = PYQT_WEBENGINE_VERSION
+            running_version = webenginecore.PYQT_WEBENGINE_VERSION
         return pytest.mark.skipif(
             not _check_version(
                 op_str=match.group('operator'),
@@ -179,7 +179,7 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers."""
-    lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
+    lib_path = pathlib.Path(core.QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
 
     markers = [

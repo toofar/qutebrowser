@@ -27,9 +27,7 @@ Module attributes:
 from typing import cast
 import os.path
 
-from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.gui import QFont
-from qutebrowser.qt.webkit import QWebSettings
+from qutebrowser.qt import webkit, gui, core
 from qutebrowser.qt.webkitwidgets import QWebPage
 
 from qutebrowser.config import config, websettings
@@ -50,81 +48,81 @@ class WebKitSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.images':
-            Attr(QWebSettings.WebAttribute.AutoLoadImages),
+            Attr(webkit.QWebSettings.WebAttribute.AutoLoadImages),
         'content.javascript.enabled':
-            Attr(QWebSettings.WebAttribute.JavascriptEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            Attr(QWebSettings.WebAttribute.JavascriptCanOpenWindows),
+            Attr(webkit.QWebSettings.WebAttribute.JavascriptCanOpenWindows),
         'content.javascript.can_close_tabs':
-            Attr(QWebSettings.WebAttribute.JavascriptCanCloseWindows),
+            Attr(webkit.QWebSettings.WebAttribute.JavascriptCanCloseWindows),
         'content.javascript.can_access_clipboard':
-            Attr(QWebSettings.WebAttribute.JavascriptCanAccessClipboard),
+            Attr(webkit.QWebSettings.WebAttribute.JavascriptCanAccessClipboard),
         'content.plugins':
-            Attr(QWebSettings.WebAttribute.PluginsEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.PluginsEnabled),
         'content.webgl':
-            Attr(QWebSettings.WebAttribute.WebGLEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.WebGLEnabled),
         'content.hyperlink_auditing':
-            Attr(QWebSettings.WebAttribute.HyperlinkAuditingEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            Attr(QWebSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
+            Attr(webkit.QWebSettings.WebAttribute.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            Attr(QWebSettings.WebAttribute.LocalContentCanAccessFileUrls),
+            Attr(webkit.QWebSettings.WebAttribute.LocalContentCanAccessFileUrls),
         'content.dns_prefetch':
-            Attr(QWebSettings.WebAttribute.DnsPrefetchEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.DnsPrefetchEnabled),
         'content.frame_flattening':
-            Attr(QWebSettings.WebAttribute.FrameFlatteningEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.FrameFlatteningEnabled),
         'content.cache.appcache':
-            Attr(QWebSettings.WebAttribute.OfflineWebApplicationCacheEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.OfflineWebApplicationCacheEnabled),
         'content.local_storage':
-            Attr(QWebSettings.WebAttribute.LocalStorageEnabled,
-                 QWebSettings.WebAttribute.OfflineStorageDatabaseEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.LocalStorageEnabled,
+                 webkit.QWebSettings.WebAttribute.OfflineStorageDatabaseEnabled),
         'content.print_element_backgrounds':
-            Attr(QWebSettings.WebAttribute.PrintElementBackgrounds),
+            Attr(webkit.QWebSettings.WebAttribute.PrintElementBackgrounds),
         'content.xss_auditing':
-            Attr(QWebSettings.WebAttribute.XSSAuditingEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.XSSAuditingEnabled),
         'content.site_specific_quirks.enabled':
-            Attr(QWebSettings.WebAttribute.SiteSpecificQuirksEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.SiteSpecificQuirksEnabled),
 
         'input.spatial_navigation':
-            Attr(QWebSettings.WebAttribute.SpatialNavigationEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            Attr(QWebSettings.WebAttribute.LinksIncludedInFocusChain),
+            Attr(webkit.QWebSettings.WebAttribute.LinksIncludedInFocusChain),
 
         'zoom.text_only':
-            Attr(QWebSettings.WebAttribute.ZoomTextOnly),
+            Attr(webkit.QWebSettings.WebAttribute.ZoomTextOnly),
         'scrolling.smooth':
-            Attr(QWebSettings.WebAttribute.ScrollAnimatorEnabled),
+            Attr(webkit.QWebSettings.WebAttribute.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {
         'fonts.web.size.minimum':
-            QWebSettings.FontSize.MinimumFontSize,
+            webkit.QWebSettings.FontSize.MinimumFontSize,
         'fonts.web.size.minimum_logical':
-            QWebSettings.FontSize.MinimumLogicalFontSize,
+            webkit.QWebSettings.FontSize.MinimumLogicalFontSize,
         'fonts.web.size.default':
-            QWebSettings.FontSize.DefaultFontSize,
+            webkit.QWebSettings.FontSize.DefaultFontSize,
         'fonts.web.size.default_fixed':
-            QWebSettings.FontSize.DefaultFixedFontSize,
+            webkit.QWebSettings.FontSize.DefaultFixedFontSize,
     }
 
     _FONT_FAMILIES = {
-        'fonts.web.family.standard': QWebSettings.FontFamily.StandardFont,
-        'fonts.web.family.fixed': QWebSettings.FontFamily.FixedFont,
-        'fonts.web.family.serif': QWebSettings.FontFamily.SerifFont,
-        'fonts.web.family.sans_serif': QWebSettings.FontFamily.SansSerifFont,
-        'fonts.web.family.cursive': QWebSettings.FontFamily.CursiveFont,
-        'fonts.web.family.fantasy': QWebSettings.FontFamily.FantasyFont,
+        'fonts.web.family.standard': webkit.QWebSettings.FontFamily.StandardFont,
+        'fonts.web.family.fixed': webkit.QWebSettings.FontFamily.FixedFont,
+        'fonts.web.family.serif': webkit.QWebSettings.FontFamily.SerifFont,
+        'fonts.web.family.sans_serif': webkit.QWebSettings.FontFamily.SansSerifFont,
+        'fonts.web.family.cursive': webkit.QWebSettings.FontFamily.CursiveFont,
+        'fonts.web.family.fantasy': webkit.QWebSettings.FontFamily.FantasyFont,
     }
 
     # Mapping from QWebSettings::QWebSettings() in
     # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
     _FONT_TO_QFONT = {
-        QWebSettings.FontFamily.StandardFont: QFont.StyleHint.Serif,
-        QWebSettings.FontFamily.FixedFont: QFont.StyleHint.Monospace,
-        QWebSettings.FontFamily.SerifFont: QFont.StyleHint.Serif,
-        QWebSettings.FontFamily.SansSerifFont: QFont.StyleHint.SansSerif,
-        QWebSettings.FontFamily.CursiveFont: QFont.StyleHint.Cursive,
-        QWebSettings.FontFamily.FantasyFont: QFont.StyleHint.Fantasy,
+        webkit.QWebSettings.FontFamily.StandardFont: gui.QFont.StyleHint.Serif,
+        webkit.QWebSettings.FontFamily.FixedFont: gui.QFont.StyleHint.Monospace,
+        webkit.QWebSettings.FontFamily.SerifFont: gui.QFont.StyleHint.Serif,
+        webkit.QWebSettings.FontFamily.SansSerifFont: gui.QFont.StyleHint.SansSerif,
+        webkit.QWebSettings.FontFamily.CursiveFont: gui.QFont.StyleHint.Cursive,
+        webkit.QWebSettings.FontFamily.FantasyFont: gui.QFont.StyleHint.Fantasy,
     }
 
 
@@ -138,10 +136,10 @@ def _set_user_stylesheet(settings):
 def _set_cookie_accept_policy(settings):
     """Update the content.cookies.accept setting."""
     mapping = {
-        'all': QWebSettings.ThirdPartyCookiePolicy.AlwaysAllowThirdPartyCookies,
-        'no-3rdparty': QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
-        'never': QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
-        'no-unknown-3rdparty': QWebSettings.ThirdPartyCookiePolicy.AllowThirdPartyWithExistingCookies,
+        'all': webkit.QWebSettings.ThirdPartyCookiePolicy.AlwaysAllowThirdPartyCookies,
+        'no-3rdparty': webkit.QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
+        'never': webkit.QWebSettings.ThirdPartyCookiePolicy.AlwaysBlockThirdPartyCookies,
+        'no-unknown-3rdparty': webkit.QWebSettings.ThirdPartyCookiePolicy.AllowThirdPartyWithExistingCookies,
     }
     value = config.val.content.cookies.accept
     settings.setThirdPartyCookiePolicy(mapping[value])
@@ -157,7 +155,7 @@ def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     global_settings.update_setting(option)
 
-    settings = QWebSettings.globalSettings()
+    settings = webkit.QWebSettings.globalSettings()
     if option in ['scrollbar.hide', 'content.user_stylesheets']:
         _set_user_stylesheet(settings)
     elif option == 'content.cookies.accept':
@@ -168,7 +166,7 @@ def _update_settings(option):
 
 def _init_user_agent():
     global parsed_user_agent
-    ua = QWebPage().userAgentForUrl(QUrl())
+    ua = QWebPage().userAgentForUrl(core.QUrl())
     parsed_user_agent = websettings.UserAgent.parse(ua)
 
 
@@ -177,15 +175,15 @@ def init():
     cache_path = standarddir.cache()
     data_path = standarddir.data()
 
-    QWebSettings.setIconDatabasePath(standarddir.cache())
-    QWebSettings.setOfflineWebApplicationCachePath(
+    webkit.QWebSettings.setIconDatabasePath(standarddir.cache())
+    webkit.QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cache_path, 'application-cache'))
-    QWebSettings.globalSettings().setLocalStoragePath(
+    webkit.QWebSettings.globalSettings().setLocalStoragePath(
         os.path.join(data_path, 'local-storage'))
-    QWebSettings.setOfflineStoragePath(
+    webkit.QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
 
-    settings = QWebSettings.globalSettings()
+    settings = webkit.QWebSettings.globalSettings()
     _set_user_stylesheet(settings)
     _set_cookie_accept_policy(settings)
     _set_cache_maximum_pages(settings)
@@ -195,12 +193,12 @@ def init():
     config.instance.changed.connect(_update_settings)
 
     global global_settings
-    global_settings = WebKitSettings(QWebSettings.globalSettings())
+    global_settings = WebKitSettings(webkit.QWebSettings.globalSettings())
     global_settings.init_settings()
 
 
 def shutdown():
     """Disable storage so removing tmpdir will work."""
-    QWebSettings.setIconDatabasePath('')
-    QWebSettings.setOfflineWebApplicationCachePath('')
-    QWebSettings.globalSettings().setLocalStoragePath('')
+    webkit.QWebSettings.setIconDatabasePath('')
+    webkit.QWebSettings.setOfflineWebApplicationCachePath('')
+    webkit.QWebSettings.globalSettings().setLocalStoragePath('')

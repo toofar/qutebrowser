@@ -26,10 +26,10 @@ import time
 
 import pytest
 import pytest_bdd as bdd
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher
 bdd.scenarios('editor.feature')
 
 from qutebrowser.utils import utils
+from qutebrowser.qt import core
 
 
 @bdd.when(bdd.parsers.parse('I setup a fake editor replacing "{text}" by '
@@ -73,20 +73,20 @@ def set_up_editor_empty(quteproc, tmpdir):
     set_up_editor(quteproc, tmpdir, "")
 
 
-class EditorPidWatcher(QObject):
+class EditorPidWatcher(core.QObject):
 
-    appeared = pyqtSignal()
+    appeared = core.pyqtSignal()
 
     def __init__(self, directory, parent=None):
         super().__init__(parent)
         self._pidfile = directory / 'editor_pid'
-        self._watcher = QFileSystemWatcher(self)
+        self._watcher = core.QFileSystemWatcher(self)
         self._watcher.addPath(str(directory))
         self._watcher.directoryChanged.connect(self._check_update)
         self.has_pidfile = False
         self._check_update()
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _check_update(self):
         if self.has_pidfile:
             return

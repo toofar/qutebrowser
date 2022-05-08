@@ -24,12 +24,11 @@ import re
 import contextlib
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, Mapping, MutableMapping
 
-from qutebrowser.qt.core import pyqtSlot, QUrl, QObject
-
 from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, parser
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.keyinput import macros, modeman
+from qutebrowser.qt import core
 
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
@@ -55,9 +54,9 @@ def _init_variable_replacements() -> Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
     replacements: Dict[str, _ReplacementFunction] = {
         'url': lambda tb: _url(tb).toString(
-            QUrl.ComponentFormattingOption.FullyEncoded | QUrl.UrlFormattingOption.RemovePassword),
+            core.QUrl.ComponentFormattingOption.FullyEncoded | core.QUrl.UrlFormattingOption.RemovePassword),
         'url:pretty': lambda tb: _url(tb).toString(
-            QUrl.ComponentFormattingOption.DecodeReserved | QUrl.UrlFormattingOption.RemovePassword),
+            core.QUrl.ComponentFormattingOption.DecodeReserved | core.QUrl.UrlFormattingOption.RemovePassword),
         'url:domain': lambda tb: "{}://{}{}".format(
             _url(tb).scheme(), _url(tb).host(),
             ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
@@ -116,15 +115,15 @@ def replace_variables(win_id, arglist):
     return args
 
 
-class AbstractCommandRunner(QObject):
+class AbstractCommandRunner(core.QObject):
 
     """Abstract base class for CommandRunner."""
 
     def run(self, text, count=None, *, safely=False):
         raise NotImplementedError
 
-    @pyqtSlot(str, int)
-    @pyqtSlot(str)
+    @core.pyqtSlot(str, int)
+    @core.pyqtSlot(str)
     def run_safely(self, text, count=None):
         """Run a command and display exceptions in the statusbar."""
         self.run(text, count, safely=True)

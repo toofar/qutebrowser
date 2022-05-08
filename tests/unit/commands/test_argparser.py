@@ -23,7 +23,7 @@ import inspect
 import enum
 
 import pytest
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.commands import argparser, cmdexc
 
@@ -62,7 +62,7 @@ class TestArgumentParser:
         with pytest.raises(argparser.ArgumentParserExit):
             parser.parse_args(['--help'])
 
-        expected_url = QUrl('qute://help/commands.html#foo')
+        expected_url = core.QUrl('qute://help/commands.html#foo')
         assert tabbed_browser_stubs[1].loaded_url == expected_url
 
 

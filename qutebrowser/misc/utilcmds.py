@@ -27,8 +27,7 @@ import sys
 import traceback
 from typing import Optional
 
-from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt import widgets, core
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
@@ -55,7 +54,7 @@ def later(duration: str, command: str, win_id: int) -> None:
     except ValueError as e:
         raise cmdutils.CommandError(e)
     commandrunner = runners.CommandRunner(win_id)
-    timer = usertypes.Timer(name='later', parent=QApplication.instance())
+    timer = usertypes.Timer(name='later', parent=widgets.QApplication.instance())
     try:
         timer.setSingleShot(True)
         try:
@@ -183,7 +182,7 @@ def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.load_url(QUrl('qute://pyeval'), newtab=True)
+        tabbed_browser.load_url(core.QUrl('qute://pyeval'), newtab=True)
 
 
 @cmdutils.register(debug=True)
@@ -273,7 +272,7 @@ def version(win_id: int, paste: bool = False) -> None:
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
+    tabbed_browser.load_url(core.QUrl('qute://version/'), newtab=True)
 
     if paste:
         pastebin_version()

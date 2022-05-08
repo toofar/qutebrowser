@@ -23,7 +23,7 @@ import dataclasses
 
 import pytest
 pytest.importorskip('qutebrowser.qt.webenginecore')
-from qutebrowser.qt.webenginecore import QWebEngineProfile
+from qutebrowser.qt import webenginecore
 
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads
@@ -104,7 +104,7 @@ class TestDataUrlWorkaround:
 
     @pytest.fixture
     def webengine_profile(self, qapp):
-        profile = QWebEngineProfile.defaultProfile()
+        profile = webenginecore.QWebEngineProfile.defaultProfile()
         profile.setParent(qapp)
         return profile
 

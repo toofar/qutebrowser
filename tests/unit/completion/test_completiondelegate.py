@@ -21,9 +21,7 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies
 import pytest
-from qutebrowser.qt.core import Qt
-from qutebrowser.qt.gui import QTextDocument, QColor
-from qutebrowser.qt.widgets import QTextEdit
+from qutebrowser.qt import widgets, gui, core
 
 from qutebrowser.completion import completiondelegate
 
@@ -50,8 +48,8 @@ from qutebrowser.completion import completiondelegate
     ('an anomaly', 'an anomaly', [(0, 2), (3, 7)]),
 ])
 def test_highlight(pat, txt, segments):
-    doc = QTextDocument(txt)
-    highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
+    doc = gui.QTextDocument(txt)
+    highlighter = completiondelegate._Highlighter(doc, pat, core.Qt.GlobalColor.red)
     highlighter.setFormat = mock.Mock()
     highlighter.highlightBlock(txt)
     highlighter.setFormat.assert_has_calls([
@@ -62,10 +60,10 @@ def test_highlight(pat, txt, segments):
 def test_benchmark_highlight(benchmark):
     txt = 'boofoobar'
     pat = 'foo bar'
-    doc = QTextDocument(txt)
+    doc = gui.QTextDocument(txt)
 
     def bench():
-        highlighter = completiondelegate._Highlighter(doc, pat, Qt.GlobalColor.red)
+        highlighter = completiondelegate._Highlighter(doc, pat, core.Qt.GlobalColor.red)
         highlighter.highlightBlock(txt)
 
     benchmark(bench)
@@ -74,8 +72,8 @@ def test_benchmark_highlight(benchmark):
 @hypothesis.given(text=hypothesis.strategies.text())
 def test_pattern_hypothesis(text):
     """Make sure we can't produce invalid patterns."""
-    doc = QTextDocument()
-    completiondelegate._Highlighter(doc, text, Qt.GlobalColor.red)
+    doc = gui.QTextDocument()
+    completiondelegate._Highlighter(doc, text, core.Qt.GlobalColor.red)
 
 
 def test_highlighted(qtbot):
@@ -86,14 +84,14 @@ def test_highlighted(qtbot):
     whether CompletionItemDelegate._get_textdoc() works properly, but testing
     that is kind of hard, so we just test it in isolation here.
     """
-    doc = QTextDocument()
-    completiondelegate._Highlighter(doc, 'Hello', Qt.GlobalColor.red)
+    doc = gui.QTextDocument()
+    completiondelegate._Highlighter(doc, 'Hello', core.Qt.GlobalColor.red)
     doc.setPlainText('Hello World')
 
     # Needed so the highlighting actually works.
-    edit = QTextEdit()
+    edit = widgets.QTextEdit()
     qtbot.add_widget(edit)
     edit.setDocument(doc)
 
     colors = [f.foreground().color() for f in doc.allFormats()]
-    assert QColor('red') in colors
+    assert gui.QColor('red') in colors

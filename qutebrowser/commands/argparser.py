@@ -21,7 +21,7 @@
 
 import argparse
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import utils, objreg, log
@@ -60,7 +60,7 @@ class HelpAction(argparse.Action):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
         tabbed_browser.tabopen(
-            QUrl('qute://help/commands.html#{}'.format(parser.name)))
+            core.QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()
 
 

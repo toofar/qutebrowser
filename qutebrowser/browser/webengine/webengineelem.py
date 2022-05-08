@@ -21,13 +21,12 @@
 
 from typing import (
     TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, Set, Tuple, Union)
-
-from qutebrowser.qt.core import QRect, QEventLoop
-from qutebrowser.qt.widgets import QApplication
-from qutebrowser.qt.webenginecore import QWebEngineSettings
+from qutebrowser.qt import widgets
+from qutebrowser.qt import webenginecore
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes, utils
 from qutebrowser.browser import webelem
+from qutebrowser.qt import core
 
 if TYPE_CHECKING:
     from qutebrowser.browser.webengine import webenginetab
@@ -114,9 +113,9 @@ class WebEngineElement(webelem.AbstractWebElement):
     def has_frame(self) -> bool:
         return True
 
-    def geometry(self) -> QRect:
+    def geometry(self) -> core.QRect:
         log.stub()
-        return QRect()
+        return core.QRect()
 
     def classes(self) -> Set[str]:
         """Get a list of classes assigned to this element."""
@@ -163,8 +162,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Inserting text into element {!r}".format(self))
         self._js_call('insert_text', text)
 
-    def rect_on_view(self, *, elem_geometry: QRect = None,
-                     no_js: bool = False) -> QRect:
+    def rect_on_view(self, *, elem_geometry: core.QRect = None,
+                     no_js: bool = False) -> core.QRect:
         """Get the geometry of the element relative to the webview.
 
         Skipping of small rectangles is due to <a> elements containing other
@@ -193,7 +192,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                 # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect = QRect(int(left * zoom), int(top * zoom),
+                rect = core.QRect(int(left * zoom), int(top * zoom),
                              int(width * zoom), int(height * zoom))
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
@@ -205,7 +204,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                 return rect
         log.webelem.debug("Couldn't find rectangle for {!r} ({})".format(
             self, rects))
-        return QRect()
+        return core.QRect()
 
     def remove_blank_target(self) -> None:
         if self._js_dict['attributes'].get('target') == '_blank':
@@ -239,7 +238,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         view = self._tab._widget
         assert view is not None
         # pylint: enable=protected-access
-        attribute = QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
+        attribute = webenginecore.QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = view.settings().testAttribute(attribute)
         view.settings().setAttribute(attribute, True)
 
@@ -247,9 +246,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         # (it does so with a 0ms QTimer...)
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
-        QApplication.processEvents(  # type: ignore[call-overload]
-            QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers |
-            QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
+        widgets.QApplication.processEvents(  # type: ignore[call-overload]
+            core.QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers |
+            core.QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
         def reset_setting(_arg: Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

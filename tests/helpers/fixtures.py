@@ -37,9 +37,7 @@ import dataclasses
 
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from qutebrowser.qt.core import QSize, Qt
-from qutebrowser.qt.widgets import QWidget, QHBoxLayout, QVBoxLayout
-from qutebrowser.qt.network import QNetworkCookieJar
+from qutebrowser.qt import widgets, webenginecore, network
 
 import helpers.stubs as stubsmod
 import qutebrowser
@@ -51,20 +49,20 @@ from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 
 
 _qute_scheme_handler = None
 
 
-class WidgetContainer(QWidget):
+class WidgetContainer(widgets.QWidget):
 
     """Container for another widget."""
 
     def __init__(self, qtbot, parent=None):
         super().__init__(parent)
         self._qtbot = qtbot
-        self.vbox = QVBoxLayout(self)
+        self.vbox = widgets.QVBoxLayout(self)
         qtbot.add_widget(self)
         self._widget = None
 
@@ -117,20 +115,20 @@ class WinRegistryHelper:
             del objreg.window_registry[win_id]
 
 
-class FakeStatusBar(QWidget):
+class FakeStatusBar(widgets.QWidget):
 
     """Fake statusbar to test progressbar sizing."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.hbox = QHBoxLayout(self)
+        self.hbox = widgets.QHBoxLayout(self)
         self.hbox.addStretch()
         self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setAttribute(core.Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet('background-color: red;')
 
     def minimumSizeHint(self):
-        return QSize(1, self.fontMetrics().height())
+        return core.QSize(1, self.fontMetrics().height())
 
 
 @pytest.fixture
@@ -177,11 +175,10 @@ def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
-        from qutebrowser.qt.webenginecore import QWebEngineProfile
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
-        _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
+        _qute_scheme_handler.install(webenginecore.QWebEngineProfile.defaultProfile())
     except ImportError:
         pass
 
@@ -432,10 +429,9 @@ def unicode_encode_err():
 @pytest.fixture(scope='session')
 def qnam(qapp):
     """Session-wide QNetworkAccessManager."""
-    from qutebrowser.qt.network import QNetworkAccessManager
-    nam = QNetworkAccessManager()
+    nam = network.QNetworkAccessManager()
     try:
-        nam.setNetworkAccessible(QNetworkAccessManager.NetworkAccessibility.NotAccessible)
+        nam.setNetworkAccessible(network.QNetworkAccessManager.NetworkAccessibility.NotAccessible)
     except AttributeError:
         # Qt 5 only, deprecated seemingly without replacement.
         pass
@@ -501,7 +497,7 @@ def webframe(webpage):
 @pytest.fixture
 def cookiejar_and_cache(stubs, monkeypatch):
     """Fixture providing a fake cookie jar and cache."""
-    monkeypatch.setattr(cookies, 'cookie_jar', QNetworkCookieJar())
+    monkeypatch.setattr(cookies, 'cookie_jar', network.QNetworkCookieJar())
     monkeypatch.setattr(cookies, 'ram_cookie_jar', cookies.RAMCookieJar())
     monkeypatch.setattr(cache, 'diskcache', stubs.FakeNetworkCache())
 
@@ -696,7 +692,7 @@ def web_history(fake_save_manager, tmpdir, database, config_stub, stubs,
 
 @pytest.fixture
 def blue_widget(qtbot):
-    widget = QWidget()
+    widget = widgets.QWidget()
     widget.setStyleSheet('background-color: blue;')
     qtbot.add_widget(widget)
     return widget
@@ -704,7 +700,7 @@ def blue_widget(qtbot):
 
 @pytest.fixture
 def red_widget(qtbot):
-    widget = QWidget()
+    widget = widgets.QWidget()
     widget.setStyleSheet('background-color: red;')
     qtbot.add_widget(widget)
     return widget

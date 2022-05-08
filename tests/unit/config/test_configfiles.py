@@ -25,7 +25,7 @@ import textwrap
 import logging
 
 import pytest
-from qutebrowser.qt.core import QSettings
+from qutebrowser.qt import core
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
@@ -167,7 +167,7 @@ def state_writer(data_tmpdir):
 @pytest.fixture
 def qtwe_version_patcher(monkeypatch):
     try:
-        from qutebrowser.qt import webenginecore  # pylint: disable=unused-import
+        pass
     except ImportError:
         pytest.skip("QtWebEngine not available")
 
@@ -1488,7 +1488,7 @@ def test_init(init_patch, config_tmpdir):
 
     # Make sure qsettings land in a subdir
     if utils.is_linux:
-        settings = QSettings()
+        settings = core.QSettings()
         settings.setValue("hello", "world")
         settings.sync()
         assert (config_tmpdir / 'qsettings').exists()

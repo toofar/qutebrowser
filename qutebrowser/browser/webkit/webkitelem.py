@@ -20,14 +20,12 @@
 """QtWebKit specific part of the web element API."""
 
 from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
-
-from qutebrowser.qt.core import QRect, Qt
-from qutebrowser.qt.webkit import QWebElement, QWebSettings
 from qutebrowser.qt.webkitwidgets import QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
+from qutebrowser.qt import webkit, core
 
 if TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab
@@ -44,7 +42,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
     _tab: 'webkittab.WebKitTab'
 
-    def __init__(self, elem: QWebElement, tab: 'webkittab.WebKitTab') -> None:
+    def __init__(self, elem: webkit.QWebElement, tab: 'webkittab.WebKitTab') -> None:
         super().__init__(tab)
         if isinstance(elem, self.__class__):
             raise TypeError("Trying to wrap a wrapper!")
@@ -99,7 +97,7 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.webFrame() is not None
 
-    def geometry(self) -> QRect:
+    def geometry(self) -> core.QRect:
         self._check_vanished()
         return self._elem.geometry()
 
@@ -179,13 +177,13 @@ class WebKitElement(webelem.AbstractWebElement):
     def _parent(self) -> Optional['WebKitElement']:
         """Get the parent element of this element."""
         self._check_vanished()
-        elem = cast(Optional[QWebElement], self._elem.parent())
+        elem = cast(Optional[webkit.QWebElement], self._elem.parent())
         if elem is None or elem.isNull():
             return None
 
         return WebKitElement(elem, tab=self._tab)
 
-    def _rect_on_view_js(self) -> Optional[QRect]:
+    def _rect_on_view_js(self) -> Optional[core.QRect]:
         """Javascript implementation for rect_on_view."""
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
@@ -212,7 +210,7 @@ class WebKitElement(webelem.AbstractWebElement):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                rect = QRect(int(rect["left"]), int(rect["top"]),
+                rect = core.QRect(int(rect["left"]), int(rect["top"]),
                              int(width), int(height))
 
                 frame = cast(Optional[QWebFrame], self._elem.webFrame())
@@ -226,13 +224,13 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return None
 
-    def _rect_on_view_python(self, elem_geometry: Optional[QRect]) -> QRect:
+    def _rect_on_view_python(self, elem_geometry: Optional[core.QRect]) -> core.QRect:
         """Python implementation for rect_on_view."""
         if elem_geometry is None:
             geometry = self._elem.geometry()
         else:
             geometry = elem_geometry
-        rect = QRect(geometry)
+        rect = core.QRect(geometry)
 
         frame = cast(Optional[QWebFrame], self._elem.webFrame())
         while frame is not None:
@@ -242,8 +240,8 @@ class WebKitElement(webelem.AbstractWebElement):
 
         return rect
 
-    def rect_on_view(self, *, elem_geometry: QRect = None,
-                     no_js: bool = False) -> QRect:
+    def rect_on_view(self, *, elem_geometry: core.QRect = None,
+                     no_js: bool = False) -> core.QRect:
         """Get the geometry of the element relative to the webview.
 
         Uses the getClientRects() JavaScript method to obtain the collection of
@@ -276,7 +274,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def _is_hidden_css(self) -> bool:
         """Check if the given element is hidden via CSS."""
         attr_values = {
-            attr: self._elem.styleProperty(attr, QWebElement.StyleResolveStrategy.ComputedStyle)
+            attr: self._elem.styleProperty(attr, webkit.QWebElement.StyleResolveStrategy.ComputedStyle)
             for attr in ['visibility', 'display', 'opacity']
         }
         invisible = attr_values['visibility'] == 'hidden'
@@ -315,7 +313,7 @@ class WebKitElement(webelem.AbstractWebElement):
         # Then check if it's visible in its frame if it's not in the main
         # frame.
         elem_frame = self._elem.webFrame()
-        framegeom = QRect(elem_frame.geometry())
+        framegeom = core.QRect(elem_frame.geometry())
         if not framegeom.isValid():
             visible_in_frame = False
         elif elem_frame.parentFrame() is not None:
@@ -361,8 +359,8 @@ class WebKitElement(webelem.AbstractWebElement):
             self._click_fake_event(click_target)
 
     def _click_js(self, click_target: usertypes.ClickTarget) -> None:
-        settings = QWebSettings.globalSettings()
-        attribute = QWebSettings.WebAttribute.JavascriptCanOpenWindows
+        settings = webkit.QWebSettings.globalSettings()
+        attribute = webkit.QWebSettings.WebAttribute.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
         ok = self._elem.evaluateJavaScript('this.click(); true;')
@@ -372,7 +370,7 @@ class WebKitElement(webelem.AbstractWebElement):
             self._click_fake_event(click_target)
 
     def _click_fake_event(self, click_target: usertypes.ClickTarget,
-                          button: Qt.MouseButton = Qt.MouseButton.LeftButton) -> None:
+                          button: core.Qt.MouseButton = core.Qt.MouseButton.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

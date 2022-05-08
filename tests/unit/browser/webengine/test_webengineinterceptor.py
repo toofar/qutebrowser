@@ -24,7 +24,7 @@ import pytest
 
 pytest.importorskip('qutebrowser.qt.webenginecore')
 
-from qutebrowser.qt.webenginecore import QWebEngineUrlRequestInfo
+from qutebrowser.qt import webenginecore
 
 from qutebrowser.browser.webengine import interceptor
 from qutebrowser.utils import qtutils
@@ -35,8 +35,8 @@ def test_no_missing_resource_types():
     request_interceptor = interceptor.RequestInterceptor()
     qb_keys = set(request_interceptor._resource_types.keys())
     qt_keys = set(testutils.enum_members(
-        QWebEngineUrlRequestInfo,
-        QWebEngineUrlRequestInfo.ResourceType,
+        webenginecore.QWebEngineUrlRequestInfo,
+        webenginecore.QWebEngineUrlRequestInfo.ResourceType,
     ).values())
     assert qt_keys == qb_keys
 

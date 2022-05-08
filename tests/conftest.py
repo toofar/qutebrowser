@@ -263,7 +263,7 @@ def _select_backend(config):
     if backend == 'webkit':
         import qutebrowser.qt.webkitwidgets
     elif backend == 'webengine':
-        import qutebrowser.qt.webenginewidgets
+        import qutebrowser.qt
     else:
         raise utils.Unreachable(backend)
 
@@ -279,7 +279,7 @@ def _auto_select_backend():
     except ImportError:
         # Try to use QtWebEngine as a fallback and fail early
         # if that's also not available
-        import qutebrowser.qt.webenginewidgets
+        import qutebrowser.qt
         return 'webengine'
 
 

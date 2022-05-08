@@ -24,9 +24,6 @@ import shlex
 import functools
 from typing import cast, Callable, Dict, Union
 
-from qutebrowser.qt.widgets import QApplication, QTabBar
-from qutebrowser.qt.core import Qt, QUrl, QEvent, QUrlQuery
-
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configdata
@@ -39,6 +36,7 @@ from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow, windowundo
+from qutebrowser.qt import widgets, core
 
 
 class CommandDispatcher:
@@ -197,16 +195,16 @@ class CommandDispatcher:
         """
         cmdutils.check_exclusive((prev, next_, opposite), 'pno')
         if prev:
-            return QTabBar.SelectionBehavior.SelectLeftTab
+            return widgets.QTabBar.SelectionBehavior.SelectLeftTab
         elif next_:
-            return QTabBar.SelectionBehavior.SelectRightTab
+            return widgets.QTabBar.SelectionBehavior.SelectRightTab
         elif opposite:
             conf_selection = config.val.tabs.select_on_remove
-            if conf_selection == QTabBar.SelectionBehavior.SelectLeftTab:
-                return QTabBar.SelectionBehavior.SelectRightTab
-            elif conf_selection == QTabBar.SelectionBehavior.SelectRightTab:
-                return QTabBar.SelectionBehavior.SelectLeftTab
-            elif conf_selection == QTabBar.SelectionBehavior.SelectPreviousTab:
+            if conf_selection == widgets.QTabBar.SelectionBehavior.SelectLeftTab:
+                return widgets.QTabBar.SelectionBehavior.SelectRightTab
+            elif conf_selection == widgets.QTabBar.SelectionBehavior.SelectRightTab:
+                return widgets.QTabBar.SelectionBehavior.SelectLeftTab
+            elif conf_selection == widgets.QTabBar.SelectionBehavior.SelectPreviousTab:
                 raise cmdutils.CommandError(
                     "-o is not supported with 'tabs.select_on_remove' set to "
                     "'last-used'!")
@@ -366,7 +364,7 @@ class CommandDispatcher:
         Return:
             A list of URLs that can be opened.
         """
-        if isinstance(url, QUrl):
+        if isinstance(url, core.QUrl):
             yield url
             return
 
@@ -604,7 +602,7 @@ class CommandDispatcher:
         widget = self._current_widget()
         url = self._current_url()
 
-        handlers: Dict[str, Callable[..., QUrl]] = {
+        handlers: Dict[str, Callable[..., core.QUrl]] = {
             'prev': functools.partial(navigate.prevnext, prev=True),
             'next': functools.partial(navigate.prevnext, prev=False),
             'up': navigate.path_up,
@@ -671,12 +669,12 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url'], what
 
         if what == 'pretty-url':
-            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.DecodeReserved
+            flags = core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.DecodeReserved
         else:
-            flags = QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded
+            flags = core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded
 
-        url = QUrl(self._current_url())
-        url_query = QUrlQuery()
+        url = core.QUrl(self._current_url())
+        url_query = core.QUrlQuery()
         url_query_str = url.query()
         if '&' not in url_query_str and ';' in url_query_str:
             url_query.setQueryDelimiters('=', ';')
@@ -908,7 +906,7 @@ class CommandDispatcher:
             idx = int(index_parts[1])
         elif len(index_parts) == 1:
             idx = int(index_parts[0])
-            active_win = QApplication.activeWindow()
+            active_win = widgets.QApplication.activeWindow()
             if active_win is None:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
@@ -1099,7 +1097,7 @@ class CommandDispatcher:
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-                tb.load_url(QUrl(f'qute://process/{proc.pid}'), newtab=True)
+                tb.load_url(core.QUrl(f'qute://process/{proc.pid}'), newtab=True)
 
         if userscript:
             def _selection_callback(s):
@@ -1163,7 +1161,7 @@ class CommandDispatcher:
         except qtutils.QtValueError:
             pass
         else:
-            env['QUTE_URL'] = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
+            env['QUTE_URL'] = url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded)
 
         try:
             runner = userscripts.run_async(
@@ -1294,8 +1292,8 @@ class CommandDispatcher:
                  current page's url.
         """
         if url is None:
-            url = self._current_url().toString(QUrl.UrlFormattingOption.RemovePassword |
-                                               QUrl.ComponentFormattingOption.FullyEncoded)
+            url = self._current_url().toString(core.QUrl.UrlFormattingOption.RemovePassword |
+                                               core.QUrl.ComponentFormattingOption.FullyEncoded)
         try:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
@@ -1312,7 +1310,7 @@ class CommandDispatcher:
             window: Open in a new window.
             jump: Jump to the "bookmarks" header.
         """
-        url = QUrl('qute://bookmarks/')
+        url = core.QUrl('qute://bookmarks/')
         if jump:
             url.setFragment('bookmarks')
         self._open(url, tab, bg, window)
@@ -1341,7 +1339,7 @@ class CommandDispatcher:
             if mhtml_:
                 raise cmdutils.CommandError("Can only download the current "
                                             "page as mhtml.")
-            url = QUrl.fromUserInput(url)
+            url = core.QUrl.fromUserInput(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, target=target)
         elif mhtml_:
@@ -1406,7 +1404,7 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in a new window.
         """
-        url = QUrl('qute://history/')
+        url = core.QUrl('qute://history/')
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='help',
@@ -1442,7 +1440,7 @@ class CommandDispatcher:
             path = 'settings.html#{}'.format(topic)
         else:
             raise cmdutils.CommandError("Invalid help topic {}!".format(topic))
-        url = QUrl('qute://help/{}'.format(path))
+        url = core.QUrl('qute://help/{}'.format(path))
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1465,7 +1463,7 @@ class CommandDispatcher:
         if level.upper() not in log.LOG_LEVELS:
             raise cmdutils.CommandError("Invalid log level {}!".format(level))
 
-        query = QUrlQuery()
+        query = core.QUrlQuery()
         query.addQueryItem('level', level)
         if plain:
             query.addQueryItem('plain', cast(str, None))
@@ -1477,7 +1475,7 @@ class CommandDispatcher:
                 raise cmdutils.CommandError(e)
             query.addQueryItem('logfilter', logfilter)
 
-        url = QUrl('qute://log')
+        url = core.QUrl('qute://log')
         url.setQuery(query)
 
         self._open(url, tab, bg, window)
@@ -1730,7 +1728,7 @@ class CommandDispatcher:
                 raise cmdutils.CommandError(str(e))
         elif url:
             try:
-                js_code = urlutils.parse_javascript_url(QUrl(js_code))
+                js_code = urlutils.parse_javascript_url(core.QUrl(js_code))
             except urlutils.Error as e:
                 raise cmdutils.CommandError(str(e))
 
@@ -1758,15 +1756,15 @@ class CommandDispatcher:
             raise cmdutils.CommandError(str(e))
 
         for keyinfo in sequence:
-            press_event = keyinfo.to_event(QEvent.Type.KeyPress)
-            release_event = keyinfo.to_event(QEvent.Type.KeyRelease)
+            press_event = keyinfo.to_event(core.QEvent.Type.KeyPress)
+            release_event = keyinfo.to_event(core.QEvent.Type.KeyRelease)
 
             if global_:
-                window = QApplication.focusWindow()
+                window = widgets.QApplication.focusWindow()
                 if window is None:
                     raise cmdutils.CommandError("No focused window!")
-                QApplication.postEvent(window, press_event)
-                QApplication.postEvent(window, release_event)
+                widgets.QApplication.postEvent(window, press_event)
+                widgets.QApplication.postEvent(window, release_event)
             else:
                 tab = self._current_widget()
                 tab.send_event(press_event)
@@ -1866,9 +1864,9 @@ class CommandDispatcher:
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
         if enter:
-            window.setWindowState(window.windowState() | Qt.WindowState.WindowFullScreen)
+            window.setWindowState(window.windowState() | core.Qt.WindowState.WindowFullScreen)
         else:
-            window.setWindowState(window.windowState() ^ Qt.WindowState.WindowFullScreen)
+            window.setWindowState(window.windowState() ^ core.Qt.WindowState.WindowFullScreen)
 
         log.misc.debug('state before fullscreen: {}'.format(
-            debug.qflags_key(Qt, window.state_before_fullscreen)))
+            debug.qflags_key(core.Qt, window.state_before_fullscreen)))

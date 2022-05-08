@@ -33,13 +33,12 @@ import json
 
 import yaml
 import pytest
-from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
-from qutebrowser.qt.gui import QImage, QColor
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
 from helpers import testutils
 from end2end.fixtures import testprocess
+from qutebrowser.qt import gui, core
 
 
 instance_counter = itertools.count()
@@ -469,7 +468,7 @@ class QuteProc(testprocess.Process):
         got_error: Emitted when there was an error log line.
     """
 
-    got_error = pyqtSignal()
+    got_error = core.pyqtSignal()
 
     KEYS = ['timestamp', 'loglevel', 'category', 'module', 'function', 'line',
             'message']
@@ -849,14 +848,14 @@ class QuteProc(testprocess.Process):
             else:
                 timeout = 5000
 
-        qurl = QUrl(url)
+        qurl = core.QUrl(url)
         if not qurl.isValid():
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
 
         # We really need the same representation that the webview uses in
         # its __repr__
-        url = utils.elide(qurl.toDisplayString(QUrl.ComponentFormattingOption.EncodeUnicode), 100)
+        url = utils.elide(qurl.toDisplayString(core.QUrl.ComponentFormattingOption.EncodeUnicode), 100)
         assert url
 
         pattern = re.compile(
@@ -910,9 +909,9 @@ class QuteProc(testprocess.Process):
     def get_screenshot(
             self,
             *,
-            probe_pos: QPoint = None,
-            probe_color: QColor = testutils.Color(0, 0, 0),
-    ) -> QImage:
+            probe_pos: core.QPoint = None,
+            probe_color: gui.QColor = testutils.Color(0, 0, 0),
+    ) -> gui.QImage:
         """Get a screenshot of the current page.
 
         Arguments:
@@ -930,7 +929,7 @@ class QuteProc(testprocess.Process):
             self.wait_for(message=screenshot_msg)
             print(screenshot_msg)
 
-            img = QImage(str(path))
+            img = gui.QImage(str(path))
             assert not img.isNull()
 
             if probe_pos is None:

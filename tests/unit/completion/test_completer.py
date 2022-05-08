@@ -22,8 +22,7 @@
 import unittest.mock
 
 import pytest
-from qutebrowser.qt.core import QObject
-from qutebrowser.qt.gui import QStandardItemModel
+from qutebrowser.qt import gui, core
 
 from qutebrowser.completion import completer
 from qutebrowser.commands import command
@@ -37,7 +36,7 @@ def setup_cur_tab(tabbed_browser_stubs, fake_web_tab):
     tabbed_browser_stubs[0].widget.current_index = 0
 
 
-class FakeCompletionModel(QStandardItemModel):
+class FakeCompletionModel(gui.QStandardItemModel):
 
     """Stub for a completion model."""
 
@@ -48,7 +47,7 @@ class FakeCompletionModel(QStandardItemModel):
         self.info = info
 
 
-class CompletionWidgetStub(QObject):
+class CompletionWidgetStub(core.QObject):
 
     """Stub for the CompletionView."""
 

@@ -23,11 +23,11 @@ import collections
 import dataclasses
 from typing import MutableSequence, cast, TYPE_CHECKING
 
-from qutebrowser.qt.core import QObject, QByteArray
-
 from qutebrowser.config import config
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import objects
+from qutebrowser.qt import core
+
 if TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
 
@@ -40,11 +40,11 @@ class _WindowUndoEntry:
 
     """Information needed for :undo -w."""
 
-    geometry: QByteArray
+    geometry: core.QByteArray
     tab_stack: 'tabbedbrowser.UndoStackType'
 
 
-class WindowUndoManager(QObject):
+class WindowUndoManager(core.QObject):
 
     """Manager which saves/restores windows."""
 

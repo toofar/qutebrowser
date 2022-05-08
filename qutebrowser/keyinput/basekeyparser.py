@@ -24,12 +24,12 @@ import types
 import dataclasses
 from typing import Mapping, MutableMapping, Optional, Sequence
 
-from qutebrowser.qt.core import pyqtSignal, QObject, Qt
-from qutebrowser.qt.gui import QKeySequence, QKeyEvent
+from qutebrowser.qt.core import Qt
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, debug
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import gui, core
 
 
 @dataclasses.dataclass(frozen=True)
@@ -37,12 +37,12 @@ class MatchResult:
 
     """The result of matching a keybinding."""
 
-    match_type: QKeySequence.SequenceMatch
+    match_type: gui.QKeySequence.SequenceMatch
     command: Optional[str]
     sequence: keyutils.KeySequence
 
     def __post_init__(self) -> None:
-        if self.match_type == QKeySequence.SequenceMatch.ExactMatch:
+        if self.match_type == gui.QKeySequence.SequenceMatch.ExactMatch:
             assert self.command is not None
         else:
             assert self.command is None
@@ -89,7 +89,7 @@ class BindingTrie:
         node.command = command
 
     def __contains__(self, sequence: keyutils.KeySequence) -> bool:
-        return self.matches(sequence).match_type == QKeySequence.SequenceMatch.ExactMatch
+        return self.matches(sequence).match_type == gui.QKeySequence.SequenceMatch.ExactMatch
 
     def __repr__(self) -> str:
         return utils.get_repr(self, children=self.children,
@@ -131,25 +131,25 @@ class BindingTrie:
             try:
                 node = node.children[key]
             except KeyError:
-                return MatchResult(match_type=QKeySequence.SequenceMatch.NoMatch,
+                return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
                                    command=None,
                                    sequence=sequence)
 
         if node.command is not None:
-            return MatchResult(match_type=QKeySequence.SequenceMatch.ExactMatch,
+            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.ExactMatch,
                                command=node.command,
                                sequence=sequence)
         elif node.children:
-            return MatchResult(match_type=QKeySequence.SequenceMatch.PartialMatch,
+            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.PartialMatch,
                                command=None,
                                sequence=sequence)
         else:  # This can only happen when there are no bindings at all.
-            return MatchResult(match_type=QKeySequence.SequenceMatch.NoMatch,
+            return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
                                command=None,
                                sequence=sequence)
 
 
-class BaseKeyParser(QObject):
+class BaseKeyParser(core.QObject):
 
     """Parser for vim-like key sequences and shortcuts.
 
@@ -176,12 +176,12 @@ class BaseKeyParser(QObject):
                        arg 2: Ignore the request if we're not in that mode
     """
 
-    keystring_updated = pyqtSignal(str)
-    request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
+    keystring_updated = core.pyqtSignal(str)
+    request_leave = core.pyqtSignal(usertypes.KeyMode, str, bool)
 
     def __init__(self, *, mode: usertypes.KeyMode,
                  win_id: int,
-                 parent: QObject = None,
+                 parent: core.QObject = None,
                  do_log: bool = True,
                  passthrough: bool = False,
                  supports_count: bool = True) -> None:
@@ -247,7 +247,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
             return self._match_key(mapped)
-        return MatchResult(match_type=QKeySequence.SequenceMatch.NoMatch,
+        return MatchResult(match_type=gui.QKeySequence.SequenceMatch.NoMatch,
                            command=None,
                            sequence=sequence)
 
@@ -268,8 +268,8 @@ class BaseKeyParser(QObject):
             return True
         return False
 
-    def handle(self, e: QKeyEvent, *,
-               dry_run: bool = False) -> QKeySequence.SequenceMatch:
+    def handle(self, e: gui.QKeyEvent, *,
+               dry_run: bool = False) -> gui.QKeySequence.SequenceMatch:
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
@@ -291,50 +291,50 @@ class BaseKeyParser(QObject):
             # See https://github.com/qutebrowser/qutebrowser/issues/7047
             log.keyboard.debug("Got invalid key")
             self.clear_keystring()
-            return QKeySequence.SequenceMatch.NoMatch
+            return gui.QKeySequence.SequenceMatch.NoMatch
 
         self._debug_log(f"Got key: {info!r} (dry_run {dry_run})")
 
         if keyutils.is_modifier_key(info.key):
             self._debug_log("Ignoring, only modifier")
-            return QKeySequence.SequenceMatch.NoMatch
+            return gui.QKeySequence.SequenceMatch.NoMatch
 
         try:
             sequence = self._sequence.append_event(e)
         except keyutils.KeyParseError as ex:
             self._debug_log("{} Aborting keychain.".format(ex))
             self.clear_keystring()
-            return QKeySequence.SequenceMatch.NoMatch
+            return gui.QKeySequence.SequenceMatch.NoMatch
 
         result = self._match_key(sequence)
         del sequence  # Enforce code below to use the modified result.sequence
 
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+        if result.match_type == gui.QKeySequence.SequenceMatch.NoMatch:
             result = self._match_without_modifiers(result.sequence)
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+        if result.match_type == gui.QKeySequence.SequenceMatch.NoMatch:
             result = self._match_key_mapping(result.sequence)
-        if result.match_type == QKeySequence.SequenceMatch.NoMatch:
+        if result.match_type == gui.QKeySequence.SequenceMatch.NoMatch:
             was_count = self._match_count(result.sequence, dry_run)
             if was_count:
-                return QKeySequence.SequenceMatch.ExactMatch
+                return gui.QKeySequence.SequenceMatch.ExactMatch
 
         if dry_run:
             return result.match_type
 
         self._sequence = result.sequence
 
-        if result.match_type == QKeySequence.SequenceMatch.ExactMatch:
+        if result.match_type == gui.QKeySequence.SequenceMatch.ExactMatch:
             assert result.command is not None
             self._debug_log("Definitive match for '{}'.".format(
                 result.sequence))
             count = int(self._count) if self._count else None
             self.clear_keystring()
             self.execute(result.command, count)
-        elif result.match_type == QKeySequence.SequenceMatch.PartialMatch:
+        elif result.match_type == gui.QKeySequence.SequenceMatch.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 result.sequence, info))
             self.keystring_updated.emit(self._count + str(result.sequence))
-        elif result.match_type == QKeySequence.SequenceMatch.NoMatch:
+        elif result.match_type == gui.QKeySequence.SequenceMatch.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 result.sequence))
             self.clear_keystring()

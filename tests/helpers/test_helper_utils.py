@@ -22,7 +22,7 @@ import pytest
 
 from helpers import testutils
 
-from qutebrowser.qt.widgets import QFrame
+from qutebrowser.qt import widgets
 
 
 @pytest.mark.parametrize('val1, val2', [
@@ -84,8 +84,8 @@ def test_nop_contextmanager():
 
 def test_enum_members():
     expected = {
-        "Plain": QFrame.Shadow.Plain,
-        "Raised": QFrame.Shadow.Raised,
-        "Sunken": QFrame.Shadow.Sunken,
+        "Plain": widgets.QFrame.Shadow.Plain,
+        "Raised": widgets.QFrame.Shadow.Raised,
+        "Sunken": widgets.QFrame.Shadow.Sunken,
     }
-    assert testutils.enum_members(QFrame, QFrame.Shadow) == expected
+    assert testutils.enum_members(widgets.QFrame, widgets.QFrame.Shadow) == expected

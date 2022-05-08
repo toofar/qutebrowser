@@ -26,8 +26,6 @@ import urllib
 import shutil
 import pathlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
-
-from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
@@ -36,7 +34,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 from qutebrowser.misc import objects, throttle
 
 
@@ -136,7 +134,7 @@ class TabHistoryItem:
                               last_visited=self.last_visited)
 
 
-class SessionManager(QObject):
+class SessionManager(core.QObject):
 
     """Manager for sessions.
 
@@ -220,7 +218,7 @@ class SessionManager(QObject):
             # QtWebEngine
             user_data = None
 
-        data['last_visited'] = item.lastVisited().toString(Qt.DateFormat.ISODate)
+        data['last_visited'] = item.lastVisited().toString(core.Qt.DateFormat.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -404,10 +402,10 @@ class SessionManager(QObject):
                 # of per-tab earlier.
                 # See https://github.com/qutebrowser/qutebrowser/issues/728
                 pos = data['scroll-pos']
-                user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
+                user_data['scroll-pos'] = core.QPoint(pos['x'], pos['y'])
             elif 'scroll-pos' in histentry:
                 pos = histentry['scroll-pos']
-                user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
+                user_data['scroll-pos'] = core.QPoint(pos['x'], pos['y'])
 
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
@@ -427,18 +425,18 @@ class SessionManager(QObject):
                 histentry['active'] = False
 
             active = histentry.get('active', False)
-            url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
+            url = core.QUrl.fromEncoded(histentry['url'].encode('ascii'))
 
             if 'original-url' in histentry:
-                orig_url = QUrl.fromEncoded(
+                orig_url = core.QUrl.fromEncoded(
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
 
             if histentry.get("last_visited"):
-                last_visited: Optional[QDateTime] = QDateTime.fromString(
+                last_visited: Optional[core.QDateTime] = core.QDateTime.fromString(
                     histentry.get("last_visited"),
-                    Qt.DateFormat.ISODate,
+                    core.Qt.DateFormat.ISODate,
                 )
             else:
                 last_visited = None
@@ -474,7 +472,7 @@ class SessionManager(QObject):
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
         if win.get('active', False):
-            QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+            core.QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
     def load(self, name, temp=False):
         """Load a named session.

@@ -23,9 +23,6 @@ import functools
 import dataclasses
 from typing import Mapping, Callable, MutableMapping, Union, Set, cast
 
-from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
-from qutebrowser.qt.gui import QKeyEvent, QKeySequence
-
 from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeparsers, basekeyparser
 from qutebrowser.config import config
@@ -33,6 +30,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.browser import hints
 from qutebrowser.misc import objects
+from qutebrowser.qt import gui, core
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
@@ -60,7 +58,7 @@ class KeyEvent:
     text: str
 
     @classmethod
-    def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
+    def from_event(cls, event: gui.QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
         return cls(event.key(), event.text())
 
@@ -78,7 +76,7 @@ class UnavailableError(Exception):
     """
 
 
-def init(win_id: int, parent: QObject) -> 'ModeManager':
+def init(win_id: int, parent: core.QObject) -> 'ModeManager':
     """Initialize the mode manager and the keyparsers for the given win_id."""
     commandrunner = runners.CommandRunner(win_id)
 
@@ -226,7 +224,7 @@ def leave(win_id: int,
     instance(win_id).leave(mode, reason, maybe=maybe)
 
 
-class ModeManager(QObject):
+class ModeManager(core.QObject):
 
     """Manager for keyboard modes.
 
@@ -255,11 +253,11 @@ class ModeManager(QObject):
                             arg 2: The new key string.
     """
 
-    entered = pyqtSignal(usertypes.KeyMode, int)
-    left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
-    keystring_updated = pyqtSignal(usertypes.KeyMode, str)
+    entered = core.pyqtSignal(usertypes.KeyMode, int)
+    left = core.pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
+    keystring_updated = core.pyqtSignal(usertypes.KeyMode, str)
 
-    def __init__(self, win_id: int, parent: QObject = None) -> None:
+    def __init__(self, win_id: int, parent: core.QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self.parsers: ParserDictType = {}
@@ -272,7 +270,7 @@ class ModeManager(QObject):
     def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
 
-    def _handle_keypress(self, event: QKeyEvent, *,
+    def _handle_keypress(self, event: gui.QKeyEvent, *,
                          dry_run: bool = False) -> bool:
         """Handle filtering of KeyPress events.
 
@@ -291,14 +289,14 @@ class ModeManager(QObject):
         match = parser.handle(event, dry_run=dry_run)
 
         has_modifier = event.modifiers() not in [
-            Qt.KeyboardModifier.NoModifier,
-            Qt.KeyboardModifier.ShiftModifier,
+            core.Qt.KeyboardModifier.NoModifier,
+            core.Qt.KeyboardModifier.ShiftModifier,
         ]  # type: ignore[comparison-overlap]
         is_non_alnum = has_modifier or not event.text().strip()
 
         forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
-        if match != QKeySequence.SequenceMatch.NoMatch:
+        if match != gui.QKeySequence.SequenceMatch.NoMatch:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -319,7 +317,7 @@ class ModeManager(QObject):
                                 filter_this, focus_widget))
         return filter_this
 
-    def _handle_keyrelease(self, event: QKeyEvent) -> bool:
+    def _handle_keyrelease(self, event: gui.QKeyEvent) -> bool:
         """Handle filtering of KeyRelease events.
 
         Args:
@@ -410,7 +408,7 @@ class ModeManager(QObject):
 
         self.enter(m, 'command')
 
-    @pyqtSlot(usertypes.KeyMode, str, bool)
+    @core.pyqtSlot(usertypes.KeyMode, str, bool)
     def leave(self, mode: usertypes.KeyMode,
               reason: str = None,
               maybe: bool = False) -> None:
@@ -449,7 +447,7 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
 
-    def handle_event(self, event: QEvent) -> bool:
+    def handle_event(self, event: core.QEvent) -> bool:
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -460,14 +458,14 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        handlers: Mapping[QEvent.Type, Callable[[QKeyEvent], bool]] = {
-            QEvent.Type.KeyPress: self._handle_keypress,
-            QEvent.Type.KeyRelease: self._handle_keyrelease,
-            QEvent.Type.ShortcutOverride:
+        handlers: Mapping[core.QEvent.Type, Callable[[gui.QKeyEvent], bool]] = {
+            core.QEvent.Type.KeyPress: self._handle_keypress,
+            core.QEvent.Type.KeyRelease: self._handle_keyrelease,
+            core.QEvent.Type.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]
-        return handler(cast(QKeyEvent, event))
+        return handler(cast(gui.QKeyEvent, event))
 
     @cmdutils.register(instance='mode-manager', scope='window')
     def clear_keychain(self) -> None:

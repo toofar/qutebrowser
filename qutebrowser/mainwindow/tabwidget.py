@@ -24,20 +24,14 @@ import contextlib
 import dataclasses
 from typing import Optional, cast
 
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
-                          QTimer, QUrl)
-from qutebrowser.qt.widgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory, QWidget)
-from qutebrowser.qt.gui import QIcon, QPalette, QColor
-
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config, stylesheet
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
+from qutebrowser.qt import widgets, gui, core
 
 
-class TabWidget(QTabWidget):
+class TabWidget(widgets.QTabWidget):
 
     """The tab widget used for TabbedBrowser.
 
@@ -48,8 +42,8 @@ class TabWidget(QTabWidget):
         new_tab_requested: Emitted when a new tab is requested.
     """
 
-    tab_index_changed = pyqtSignal(int, int)
-    new_tab_requested = pyqtSignal('QUrl', bool, bool)
+    tab_index_changed = core.pyqtSignal(int, int)
+    new_tab_requested = core.pyqtSignal('QUrl', bool, bool)
 
     # Strings for controlling the mute/audible text
     MUTE_STRING = '[M] '
@@ -62,12 +56,12 @@ class TabWidget(QTabWidget):
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self.update_tab_titles))
+            core.QTimer.singleShot, 0, self.update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
         self.setDocumentMode(True)
-        self.setElideMode(Qt.TextElideMode.ElideRight)
+        self.setElideMode(core.Qt.TextElideMode.ElideRight)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
         self._init_config()
@@ -83,7 +77,7 @@ class TabWidget(QTabWidget):
         selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
         tabbar.vertical = position in [  # type: ignore[attr-defined]
-            QTabWidget.TabPosition.West, QTabWidget.TabPosition.East]
+            widgets.QTabWidget.TabPosition.West, widgets.QTabWidget.TabPosition.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
@@ -314,14 +308,14 @@ class TabWidget(QTabWidget):
         self.set_page_title(new_idx, text)
         return new_idx
 
-    @pyqtSlot(int)
+    @core.pyqtSlot(int)
     def _on_current_changed(self, index):
         """Emit the tab_index_changed signal if the current tab changed."""
         self.tabBar().on_current_changed()
         self.update_tab_titles()
         self.tab_index_changed.emit(index, self.count())
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _on_new_tab_requested(self):
         """Open a new tab."""
         self.new_tab_requested.emit(config.val.url.default_page, False, False)
@@ -334,24 +328,24 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()  # type: ignore[unreachable]
+            url = core.QUrl()  # type: ignore[unreachable]
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: QWidget) -> None:
+    def update_tab_favicon(self, tab: widgets.QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
-        icon = tab.icon() if tab.data.should_show_icon() else QIcon()
+        icon = tab.icon() if tab.data.should_show_icon() else gui.QIcon()
         self.setTabIcon(idx, icon)
 
         if config.val.tabs.tabs_are_windows:
             self.window().setWindowIcon(tab.icon())
 
-    def setTabIcon(self, idx: int, icon: QIcon) -> None:
+    def setTabIcon(self, idx: int, icon: gui.QIcon) -> None:
         """Always show tab icons for pinned tabs in some circumstances."""
         tab = cast(Optional[browsertab.AbstractTab], self.widget(idx))
         if (icon.isNull() and
@@ -359,11 +353,11 @@ class TabWidget(QTabWidget):
                 config.cache['tabs.pinned.shrink'] and
                 not self.tabBar().vertical and
                 tab is not None and tab.data.pinned):
-            icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
+            icon = self.style().standardIcon(widgets.QStyle.StandardPixmap.SP_FileIcon)
         super().setTabIcon(idx, icon)
 
 
-class TabBar(QTabBar):
+class TabBar(widgets.QTabBar):
 
     """Custom tab bar with our own style.
 
@@ -392,14 +386,14 @@ class TabBar(QTabBar):
         }
     """
 
-    new_tab_requested = pyqtSignal()
+    new_tab_requested = core.pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self.setStyle(TabBarStyle())
         self.vertical = False
-        self._auto_hide_timer = QTimer()
+        self._auto_hide_timer = core.QTimer()
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self._on_show_switching_delay_changed()
@@ -409,7 +403,7 @@ class TabBar(QTabBar):
         self.ensurePolished()
         config.instance.changed.connect(self._on_config_changed)
         self._set_icon_size()
-        QTimer.singleShot(0, self.maybe_hide)
+        core.QTimer.singleShot(0, self.maybe_hide)
         self._minimum_tab_size_hint_helper = functools.lru_cache(maxsize=2**9)(
             self._minimum_tab_size_hint_helper_uncached
         )
@@ -427,7 +421,7 @@ class TabBar(QTabBar):
         """Get the current tab object."""
         return self.parent().currentWidget()
 
-    @pyqtSlot(str)
+    @core.pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
         if option.startswith('fonts.tabs.'):
             self.ensurePolished()
@@ -464,7 +458,7 @@ class TabBar(QTabBar):
             self.show()
             self._auto_hide_timer.start()
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def maybe_hide(self):
         """Hide the tab bar if needed."""
         show = config.val.tabs.show
@@ -502,7 +496,7 @@ class TabBar(QTabBar):
         try:
             return self.tab_data(idx, 'indicator-color')
         except KeyError:
-            return QColor()
+            return gui.QColor()
 
     def page_title(self, idx):
         """Get the tab title user data.
@@ -525,7 +519,7 @@ class TabBar(QTabBar):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
         size = int(size * config.val.tabs.favicons.scale)
-        self.setIconSize(QSize(size, size))
+        self.setIconSize(core.QSize(size, size))
 
     def mouseReleaseEvent(self, e):
         """Override mouseReleaseEvent to know when drags stop."""
@@ -538,8 +532,8 @@ class TabBar(QTabBar):
         Also keep track of if we are currently in a drag."""
         self.drag_in_progress = True
         button = config.val.tabs.close_mouse_button
-        if (e.button() == Qt.MouseButton.RightButton and button == 'right' or
-                e.button() == Qt.MouseButton.MiddleButton and button == 'middle'):
+        if (e.button() == core.Qt.MouseButton.RightButton and button == 'right' or
+                e.button() == core.Qt.MouseButton.MiddleButton and button == 'middle'):
             e.accept()
             idx = self.tabAt(e.pos())
             if idx == -1:
@@ -557,7 +551,7 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
+    def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> core.QSize:
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
@@ -586,7 +580,7 @@ class TabBar(QTabBar):
 
     def _minimum_tab_size_hint_helper_uncached(self, tab_text: str,
                                                icon_width: int,
-                                               ellipsis: bool, pinned: bool) -> QSize:
+                                               ellipsis: bool, pinned: bool) -> core.QSize:
         """Helper function to cache tab results.
 
         Config values accessed in here should be added to _on_config_changed to
@@ -597,7 +591,7 @@ class TabBar(QTabBar):
 
         def _text_to_width(text):
             # Calculate text width taking into account qt mnemonics
-            return self.fontMetrics().size(Qt.TextFlag.TextShowMnemonic, text).width()
+            return self.fontMetrics().size(core.Qt.TextFlag.TextShowMnemonic, text).width()
         text_width = min(_text_to_width(text),
                          _text_to_width(tab_text))
         padding = config.cache['tabs.padding']
@@ -615,7 +609,7 @@ class TabBar(QTabBar):
         if (not self.vertical and min_width > 0 and
                 not pinned or not config.cache['tabs.pinned.shrink']):
             width = max(min_width, width)
-        return QSize(width, height)
+        return core.QSize(width, height)
 
     def _minimum_tab_height_uncached(self):
         padding = config.cache['tabs.padding']
@@ -634,7 +628,7 @@ class TabBar(QTabBar):
             return False
         return widget.data.pinned
 
-    def tabSizeHint(self, index: int) -> QSize:
+    def tabSizeHint(self, index: int) -> core.QSize:
         """Override tabSizeHint to customize qb's tab size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
@@ -649,7 +643,7 @@ class TabBar(QTabBar):
             # This happens on startup on macOS.
             # We return it directly rather than setting `size' because we don't
             # want to ensure it's valid in this special case.
-            return QSize()
+            return core.QSize()
 
         height = self._minimum_tab_height()
         if self.vertical:
@@ -661,7 +655,7 @@ class TabBar(QTabBar):
                 width = main_window.width() * perc // 100
             else:
                 width = int(confwidth)
-            size = QSize(width, height)
+            size = core.QSize(width, height)
         else:
             if config.cache['tabs.pinned.shrink'] and self._tab_pinned(index):
                 # Give pinned tabs the minimum size they need to display their
@@ -675,20 +669,20 @@ class TabBar(QTabBar):
                 max_width = config.cache['tabs.max_width']
                 if max_width > 0:
                     width = min(max_width, width)
-            size = QSize(width, height)
+            size = core.QSize(width, height)
         qtutils.ensure_valid(size)
         return size
 
     def paintEvent(self, event):
         """Override paintEvent to draw the tabs like we want to."""
-        p = QStylePainter(self)
+        p = widgets.QStylePainter(self)
         selected = self.currentIndex()
         for idx in range(self.count()):
             if not event.region().intersects(self.tabRect(idx)):
                 # Don't repaint if we are outside the requested region
                 continue
 
-            tab = QStyleOptionTab()
+            tab = widgets.QStyleOptionTab()
             self.initStyleOption(tab, idx)
 
             setting = 'colors.tabs'
@@ -698,14 +692,14 @@ class TabBar(QTabBar):
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'
 
-            tab.palette.setColor(QPalette.ColorRole.Window,
+            tab.palette.setColor(gui.QPalette.ColorRole.Window,
                                  config.cache[setting + '.bg'])
-            tab.palette.setColor(QPalette.ColorRole.WindowText,
+            tab.palette.setColor(gui.QPalette.ColorRole.WindowText,
                                  config.cache[setting + '.fg'])
 
             indicator_color = self.tab_indicator_color(idx)
-            tab.palette.setColor(QPalette.ColorRole.Base, indicator_color)
-            p.drawControl(QStyle.ControlElement.CE_TabBarTab, tab)
+            tab.palette.setColor(gui.QPalette.ColorRole.Base, indicator_color)
+            p.drawControl(widgets.QStyle.ControlElement.CE_TabBarTab, tab)
 
     def tabInserted(self, idx):
         """Update visibility when a tab was inserted."""
@@ -753,12 +747,12 @@ class Layouts:
     Used by TabBarStyle._tab_layout().
     """
 
-    text: QRect
-    icon: QRect
-    indicator: QRect
+    text: core.QRect
+    icon: core.QRect
+    indicator: core.QRect
 
 
-class TabBarStyle(QCommonStyle):
+class TabBarStyle(widgets.QCommonStyle):
 
     """Qt style used by TabBar to fix some issues with the default one.
 
@@ -783,7 +777,7 @@ class TabBarStyle(QCommonStyle):
 
         This simply calls the corresponding function in self._style.
         """
-        self._style = QStyleFactory.create('Fusion')
+        self._style = widgets.QStyleFactory.create('Fusion')
         for method in ['drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
@@ -815,12 +809,12 @@ class TabBarStyle(QCommonStyle):
             p: QPainter
         """
         qtutils.ensure_valid(layouts.icon)
-        icon_mode = (QIcon.Mode.Normal if opt.state & QStyle.StateFlag.State_Enabled
-                     else QIcon.Mode.Disabled)
-        icon_state = (QIcon.State.On if opt.state & QStyle.StateFlag.State_Selected
-                      else QIcon.State.Off)
+        icon_mode = (gui.QIcon.Mode.Normal if opt.state & widgets.QStyle.StateFlag.State_Enabled
+                     else gui.QIcon.Mode.Disabled)
+        icon_state = (gui.QIcon.State.On if opt.state & widgets.QStyle.StateFlag.State_Selected
+                      else gui.QIcon.State.Off)
         icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-        self._style.drawItemPixmap(p, layouts.icon, Qt.AlignmentFlag.AlignCenter, icon)
+        self._style.drawItemPixmap(p, layouts.icon, core.Qt.AlignmentFlag.AlignCenter, icon)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
@@ -834,8 +828,8 @@ class TabBarStyle(QCommonStyle):
             p: QPainter
             widget: QWidget
         """
-        if element not in [QStyle.ControlElement.CE_TabBarTab, QStyle.ControlElement.CE_TabBarTabShape,
-                           QStyle.ControlElement.CE_TabBarTabLabel]:
+        if element not in [widgets.QStyle.ControlElement.CE_TabBarTab, widgets.QStyle.ControlElement.CE_TabBarTabShape,
+                           widgets.QStyle.ControlElement.CE_TabBarTabLabel]:
             # Let the real style draw it.
             self._style.drawControl(element, opt, p, widget)
             return
@@ -845,28 +839,28 @@ class TabBarStyle(QCommonStyle):
             log.misc.warning("Could not get layouts for tab!")
             return
 
-        if element == QStyle.ControlElement.CE_TabBarTab:
+        if element == widgets.QStyle.ControlElement.CE_TabBarTab:
             # We override this so we can control TabBarTabShape/TabBarTabLabel.
-            self.drawControl(QStyle.ControlElement.CE_TabBarTabShape, opt, p, widget)
-            self.drawControl(QStyle.ControlElement.CE_TabBarTabLabel, opt, p, widget)
-        elif element == QStyle.ControlElement.CE_TabBarTabShape:
+            self.drawControl(widgets.QStyle.ControlElement.CE_TabBarTabShape, opt, p, widget)
+            self.drawControl(widgets.QStyle.ControlElement.CE_TabBarTabLabel, opt, p, widget)
+        elif element == widgets.QStyle.ControlElement.CE_TabBarTabShape:
             p.fillRect(opt.rect, opt.palette.window())
             self._draw_indicator(layouts, opt, p)
             # We use super() rather than self._style here because we don't want
             # any sophisticated drawing.
-            super().drawControl(QStyle.ControlElement.CE_TabBarTabShape, opt, p, widget)
-        elif element == QStyle.ControlElement.CE_TabBarTabLabel:
+            super().drawControl(widgets.QStyle.ControlElement.CE_TabBarTabShape, opt, p, widget)
+        elif element == widgets.QStyle.ControlElement.CE_TabBarTabLabel:
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
-                         Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextHideMnemonic)
+                         core.Qt.AlignmentFlag.AlignVCenter | core.Qt.TextFlag.TextHideMnemonic)
             self._style.drawItemText(p,
                                      layouts.text,
                                      int(alignment),
                                      opt.palette,
-                                     bool(opt.state & QStyle.StateFlag.State_Enabled),
+                                     bool(opt.state & widgets.QStyle.StateFlag.State_Enabled),
                                      opt.text,
-                                     QPalette.ColorRole.WindowText)
+                                     gui.QPalette.ColorRole.WindowText)
         else:
             raise ValueError("Invalid element {!r}".format(element))
 
@@ -881,11 +875,11 @@ class TabBarStyle(QCommonStyle):
         Return:
             An int.
         """
-        if metric in [QStyle.PixelMetric.PM_TabBarTabShiftHorizontal,
-                      QStyle.PixelMetric.PM_TabBarTabShiftVertical,
-                      QStyle.PixelMetric.PM_TabBarTabHSpace,
-                      QStyle.PixelMetric.PM_TabBarTabVSpace,
-                      QStyle.PixelMetric.PM_TabBarScrollButtonWidth]:
+        if metric in [widgets.QStyle.PixelMetric.PM_TabBarTabShiftHorizontal,
+                      widgets.QStyle.PixelMetric.PM_TabBarTabShiftVertical,
+                      widgets.QStyle.PixelMetric.PM_TabBarTabHSpace,
+                      widgets.QStyle.PixelMetric.PM_TabBarTabVSpace,
+                      widgets.QStyle.PixelMetric.PM_TabBarScrollButtonWidth]:
             return 0
         else:
             return self._style.pixelMetric(metric, option, widget)
@@ -901,14 +895,14 @@ class TabBarStyle(QCommonStyle):
         Return:
             A QRect.
         """
-        if sr == QStyle.SubElement.SE_TabBarTabText:
+        if sr == widgets.QStyle.SubElement.SE_TabBarTabText:
             layouts = self._tab_layout(opt)
             if layouts is None:
                 log.misc.warning("Could not get layouts for tab!")
-                return QRect()
+                return core.QRect()
             return layouts.text
-        elif sr in [QStyle.SubElement.SE_TabWidgetTabBar,
-                    QStyle.SubElement.SE_TabBarScrollLeftButton]:
+        elif sr in [widgets.QStyle.SubElement.SE_TabWidgetTabBar,
+                    widgets.QStyle.SubElement.SE_TabBarScrollLeftButton]:
             # Handling SE_TabBarScrollLeftButton so the left scroll button is
             # aligned properly. Otherwise, empty space will be shown after the
             # last tab even though the button width is set to 0
@@ -936,7 +930,7 @@ class TabBarStyle(QCommonStyle):
         padding = config.cache['tabs.padding']
         indicator_padding = config.cache['tabs.indicator.padding']
 
-        text_rect = QRect(opt.rect)
+        text_rect = core.QRect(opt.rect)
         if not text_rect.isValid():
             # This happens sometimes according to crash reports, but no idea
             # why...
@@ -947,9 +941,9 @@ class TabBarStyle(QCommonStyle):
 
         indicator_width = config.cache['tabs.indicator.width']
         if indicator_width == 0:
-            indicator_rect = QRect()
+            indicator_rect = core.QRect()
         else:
-            indicator_rect = QRect(opt.rect)
+            indicator_rect = core.QRect(opt.rect)
             qtutils.ensure_valid(indicator_rect)
             indicator_rect.adjust(padding.left + indicator_padding.left,
                                   padding.top + indicator_padding.top,
@@ -981,24 +975,24 @@ class TabBarStyle(QCommonStyle):
         """
         icon_size = opt.iconSize
         if not icon_size.isValid():
-            icon_extent = self.pixelMetric(QStyle.PixelMetric.PM_SmallIconSize)
-            icon_size = QSize(icon_extent, icon_extent)
-        icon_mode = (QIcon.Mode.Normal if opt.state & QStyle.StateFlag.State_Enabled
-                     else QIcon.Mode.Disabled)
-        icon_state = (QIcon.State.On if opt.state & QStyle.StateFlag.State_Selected
-                      else QIcon.State.Off)
+            icon_extent = self.pixelMetric(widgets.QStyle.PixelMetric.PM_SmallIconSize)
+            icon_size = core.QSize(icon_extent, icon_extent)
+        icon_mode = (gui.QIcon.Mode.Normal if opt.state & widgets.QStyle.StateFlag.State_Enabled
+                     else gui.QIcon.Mode.Disabled)
+        icon_state = (gui.QIcon.State.On if opt.state & widgets.QStyle.StateFlag.State_Selected
+                      else gui.QIcon.State.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.cache['tabs.position']
-        if (position in [QTabWidget.TabPosition.East, QTabWidget.TabPosition.West] and
+        if (position in [widgets.QTabWidget.TabPosition.East, widgets.QTabWidget.TabPosition.West] and
                 config.cache['tabs.favicons.show'] != 'never'):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
-            tab_icon_size = QSize(
+            tab_icon_size = core.QSize(
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
 
         icon_top = text_rect.center().y() + 1 - tab_icon_size.height() // 2
-        icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
+        icon_rect = core.QRect(core.QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

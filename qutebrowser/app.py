@@ -46,10 +46,6 @@ import datetime
 import argparse
 from typing import Iterable, Optional
 
-from qutebrowser.qt.widgets import QApplication, QWidget
-from qutebrowser.qt.gui import QDesktopServices, QPixmap, QIcon
-from qutebrowser.qt.core import pyqtSlot, QUrl, QObject, QEvent, pyqtSignal, Qt
-
 import qutebrowser
 from qutebrowser.commands import runners
 from qutebrowser.config import (config, websettings, configfiles, configinit,
@@ -73,6 +69,8 @@ from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
 from qutebrowser.browser import commands
+from qutebrowser.qt import widgets, gui, core
+
 # pylint: enable=unused-import
 
 
@@ -146,7 +144,7 @@ def init(*, args: argparse.Namespace) -> None:
     crashsignal.crash_handler.init_faulthandler()
 
     objects.qapp.setQuitOnLastWindowClosed(False)
-    quitter.instance.shutting_down.connect(QApplication.closeAllWindows)
+    quitter.instance.shutting_down.connect(widgets.QApplication.closeAllWindows)
 
     _init_icon()
     _init_pulseaudio()
@@ -170,7 +168,7 @@ def init(*, args: argparse.Namespace) -> None:
     _process_args(args)
 
     for scheme in ['http', 'https', 'qute']:
-        QDesktopServices.setUrlHandler(
+        gui.QDesktopServices.setUrlHandler(
             scheme, open_desktopservices_url)
 
     log.init.debug("Init done!")
@@ -179,16 +177,16 @@ def init(*, args: argparse.Namespace) -> None:
 
 def _init_icon():
     """Initialize the icon of qutebrowser."""
-    fallback_icon = QIcon()
+    fallback_icon = gui.QIcon()
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
         filename = 'icons/qutebrowser-{size}x{size}.png'.format(size=size)
-        pixmap = QPixmap()
+        pixmap = gui.QPixmap()
         pixmap.loadFromData(resources.read_file_binary(filename))
         if pixmap.isNull():
             log.init.warning("Failed to load {}".format(filename))
         else:
             fallback_icon.addPixmap(pixmap)
-    icon = QIcon.fromTheme('qutebrowser', fallback_icon)
+    icon = gui.QIcon.fromTheme('qutebrowser', fallback_icon)
     if icon.isNull():
         log.init.warning("Failed to load icon")
     else:
@@ -382,7 +380,7 @@ def _open_special_pages(args):
 
     for state, condition, url in pages:
         if general_sect.get(state) != '1' and condition:
-            tabbed_browser.tabopen(QUrl(url), background=False)
+            tabbed_browser.tabopen(core.QUrl(url), background=False)
             general_sect[state] = '1'
 
     # Show changelog on new releases
@@ -409,7 +407,7 @@ def _open_special_pages(args):
 
     message.info(f"Showing changelog after upgrade to qutebrowser v{qbversion}.")
     changelog_url = f'qute://help/changelog.html#v{qbversion}'
-    tabbed_browser.tabopen(QUrl(changelog_url), background=False)
+    tabbed_browser.tabopen(core.QUrl(changelog_url), background=False)
 
 
 def on_focus_changed(_old, new):
@@ -417,7 +415,7 @@ def on_focus_changed(_old, new):
     if new is None:
         return
 
-    if not isinstance(new, QWidget):
+    if not isinstance(new, widgets.QWidget):
         log.misc.debug("on_focus_changed called with non-QWidget {!r}".format(
             new))
         return
@@ -528,7 +526,7 @@ def _init_modules(*, args):
     windowundo.init()
 
 
-class Application(QApplication):
+class Application(widgets.QApplication):
 
     """Main application instance.
 
@@ -541,8 +539,8 @@ class Application(QApplication):
         window_closing: A window is being closed.
     """
 
-    new_window = pyqtSignal(mainwindow.MainWindow)
-    window_closing = pyqtSignal(mainwindow.MainWindow)
+    new_window = core.pyqtSignal(mainwindow.MainWindow)
+    window_closing = core.pyqtSignal(mainwindow.MainWindow)
 
     def __init__(self, args):
         """Constructor.
@@ -567,19 +565,19 @@ class Application(QApplication):
             self.on_focus_object_changed)
 
         try:
-            self.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+            self.setAttribute(core.Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
         except AttributeError:
             # default and removed in Qt 6
             pass
 
         self.new_window.connect(self._on_new_window)
 
-    @pyqtSlot(mainwindow.MainWindow)
+    @core.pyqtSlot(mainwindow.MainWindow)
     def _on_new_window(self, window):
         window.tabbed_browser.shutting_down.connect(functools.partial(
             self.window_closing.emit, window))
 
-    @pyqtSlot(QObject)
+    @core.pyqtSlot(core.QObject)
     def on_focus_object_changed(self, obj):
         """Log when the focus object changed."""
         output = repr(obj)
@@ -589,7 +587,7 @@ class Application(QApplication):
 
     def event(self, e):
         """Handle macOS FileOpen events."""
-        if e.type() != QEvent.Type.FileOpen:
+        if e.type() != core.QEvent.Type.FileOpen:
             return super().event(e)
 
         url = e.url()

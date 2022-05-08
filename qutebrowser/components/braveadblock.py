@@ -27,7 +27,7 @@ import contextlib
 import subprocess
 from typing import Optional, IO, Iterator
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.api import (
     hook,
@@ -185,8 +185,8 @@ class BraveAdBlocker:
 
     def _is_blocked(
         self,
-        request_url: QUrl,
-        first_party_url: Optional[QUrl] = None,
+        request_url: core.QUrl,
+        first_party_url: Optional[core.QUrl] = None,
         resource_type: Optional[interceptor.ResourceType] = None,
     ) -> bool:
         """Check whether the given request is blocked."""

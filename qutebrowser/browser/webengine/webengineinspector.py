@@ -19,9 +19,8 @@
 
 """Customized QWebInspector for QtWebEngine."""
 
-from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage
-from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt import widgets, webenginewidgets
+from qutebrowser.qt import webenginecore
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings, webview
@@ -30,7 +29,7 @@ from qutebrowser.utils import version, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
-class WebEngineInspectorView(QWebEngineView):
+class WebEngineInspectorView(webenginewidgets.QWebEngineView):
 
     """The QWebEngineView used for the inspector.
 
@@ -39,7 +38,7 @@ class WebEngineInspectorView(QWebEngineView):
     """
 
     def createWindow(self,
-                     wintype: QWebEnginePage.WebWindowType) -> QWebEngineView:
+                     wintype: webenginecore.QWebEnginePage.WebWindowType) -> webenginewidgets.QWebEngineView:
         """Called by Qt when a page wants to create a new tab or window.
 
         In case the user wants to open a resource in a new tab, we use the
@@ -63,7 +62,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     def __init__(self, splitter: miscwidgets.InspectorSplitter,
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: widgets.QWidget = None) -> None:
         super().__init__(splitter, win_id, parent)
         self._check_devtools_resources()
         self._settings = None
@@ -95,10 +94,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                                   "please install the qt5-qtwebengine-devtools "
                                   "Fedora package.")
 
-    def inspect(self, page: QWebEnginePage) -> None:  # type: ignore[override]
+    def inspect(self, page: webenginecore.QWebEnginePage) -> None:  # type: ignore[override]
         if not self._widget:
             view = WebEngineInspectorView()
-            inspector_page = QWebEnginePage(
+            inspector_page = webenginecore.QWebEnginePage(
                 page.profile(),
                 self
             )

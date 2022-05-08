@@ -21,9 +21,8 @@
 
 from typing import Any, List, Mapping
 
-from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
-
 from qutebrowser.utils import qtutils
+from qutebrowser.qt import core
 
 
 def _serialize_items(items, current_idx, stream):
@@ -50,10 +49,10 @@ def _serialize_items(items, current_idx, stream):
 
 def _serialize_item(item):
     data = {
-        'originalURLString': item.original_url.toString(QUrl.ComponentFormattingOption.FullyEncoded),
+        'originalURLString': item.original_url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded),
         'scrollPosition': {'x': 0, 'y': 0},
         'title': item.title,
-        'urlString': item.url.toString(QUrl.ComponentFormattingOption.FullyEncoded),
+        'urlString': item.url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded),
     }
     try:
         data['scrollPosition']['x'] = item.user_data['scroll-pos'].x()
@@ -79,8 +78,8 @@ def serialize(items):
         If 'data' goes out of scope, reading from 'stream' will result in a
         segfault!
     """
-    data = QByteArray()
-    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
+    data = core.QByteArray()
+    stream = core.QDataStream(data, core.QIODevice.OpenModeFlag.ReadWrite)
     user_data: List[Mapping[str, Any]] = []
 
     current_idx = None

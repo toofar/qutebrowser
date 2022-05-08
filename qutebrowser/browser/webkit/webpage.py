@@ -22,12 +22,7 @@
 import html
 import functools
 from typing import cast
-
-from qutebrowser.qt.core import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
-from qutebrowser.qt.gui import QDesktopServices
-from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
-from qutebrowser.qt.widgets import QFileDialog
-from qutebrowser.qt.printsupport import QPrintDialog
+from qutebrowser.qt import widgets, printsupport, network, gui
 from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import websettings, config
@@ -35,7 +30,7 @@ from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 
 
 class BrowserPage(QWebPage):
@@ -58,9 +53,9 @@ class BrowserPage(QWebPage):
         navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    shutting_down = pyqtSignal()
-    reloading = pyqtSignal(QUrl)
-    navigation_request = pyqtSignal(usertypes.NavigationRequest)
+    shutting_down = core.pyqtSignal()
+    reloading = core.pyqtSignal(core.QUrl)
+    navigation_request = core.pyqtSignal(usertypes.NavigationRequest)
 
     def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
@@ -97,7 +92,7 @@ class BrowserPage(QWebPage):
         self.frameCreated.connect(  # type: ignore[attr-defined]
             self._connect_userjs_signals)
 
-    @pyqtSlot('QWebFrame*')
+    @core.pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
         """Connect userjs related signals to `frame`.
 
@@ -135,7 +130,7 @@ class BrowserPage(QWebPage):
             False if no error page should be displayed, True otherwise.
         """
         ignored_errors = [
-            (QWebPage.ErrorDomain.QtNetwork, QNetworkReply.NetworkError.OperationCanceledError),
+            (QWebPage.ErrorDomain.QtNetwork, network.QNetworkReply.NetworkError.OperationCanceledError),
             # "Loading is handled by the media engine"
             (QWebPage.ErrorDomain.WebKit, 203),
             # "Frame load interrupted by policy change"
@@ -144,18 +139,18 @@ class BrowserPage(QWebPage):
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
         if (info.domain, info.error) == (QWebPage.ErrorDomain.QtNetwork,
-                                         QNetworkReply.NetworkError.ProtocolUnknownError):
+                                         network.QNetworkReply.NetworkError.ProtocolUnknownError):
             # For some reason, we get a segfault when we use
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
-            url = QUrl(info.url)
+            url = core.QUrl(info.url)
             scheme = url.scheme()
             message.confirm_async(
                 title="Open external application for {}-link?".format(scheme),
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
-                yes_action=functools.partial(QDesktopServices.openUrl, url),
-                url=info.url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded))
+                yes_action=functools.partial(gui.QDesktopServices.openUrl, url),
+                url=info.url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -174,7 +169,7 @@ class BrowserPage(QWebPage):
                     # any space. We can't hide the frame's documentElement
                     # directly though.
                     for elem in main_frame.documentElement().findAll('iframe'):
-                        if QUrl(elem.attribute('src')) == info.url:
+                        if core.QUrl(elem.attribute('src')) == info.url:
                             elem.setAttribute('style', 'display: none')
                     return False
             else:
@@ -224,7 +219,7 @@ class BrowserPage(QWebPage):
             if info.suggestedFileNames:
                 suggested_file = info.suggestedFileNames[0]
 
-            files.fileNames, _ = QFileDialog.getOpenFileNames(
+            files.fileNames, _ = widgets.QFileDialog.getOpenFileNames(
                 None, None, suggested_file)  # type: ignore[arg-type]
             return True
 
@@ -250,8 +245,8 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
-        printdiag = QPrintDialog()
-        printdiag.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        printdiag = printsupport.QPrintDialog()
+        printdiag.setAttribute(core.Qt.WidgetAttribute.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
     def on_download_requested(self, request):
@@ -262,11 +257,11 @@ class BrowserPage(QWebPage):
         soon as the user has entered the filename, as Qt seems to delete it
         after this slot returns.
         """
-        req = QNetworkRequest(request)
+        req = network.QNetworkRequest(request)
         download_manager = objreg.get('qtnetwork-download-manager')
         download_manager.get_request(req, qnam=self.networkAccessManager())
 
-    @pyqtSlot('QNetworkReply*')
+    @core.pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
         """Handle an unsupportedContent signal.
 
@@ -303,7 +298,7 @@ class BrowserPage(QWebPage):
             download_manager.fetch(reply,
                                    suggested_filename=suggested_filename)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def on_load_started(self):
         """Reset error_occurred when loading of a new page started."""
         if self._ignore_load_started:
@@ -346,7 +341,7 @@ class BrowserPage(QWebPage):
                 log.webview.debug(f'Running GM script: {script}')
                 frame.evaluateJavaScript(script.code())
 
-    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
+    @core.pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
         if not isinstance(frame, QWebFrame):  # pragma: no cover
@@ -371,11 +366,11 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionPolicy.PermissionDeniedByUser)
 
-        url = frame.url().adjusted(cast(QUrl.FormattingOptions,
-                                        QUrl.UrlFormattingOption.RemoveUserInfo |
-                                        QUrl.UrlFormattingOption.RemovePath |
-                                        QUrl.UrlFormattingOption.RemoveQuery |
-                                        QUrl.UrlFormattingOption.RemoveFragment))
+        url = frame.url().adjusted(cast(core.QUrl.FormattingOptions,
+                                        core.QUrl.UrlFormattingOption.RemoveUserInfo |
+                                        core.QUrl.UrlFormattingOption.RemovePath |
+                                        core.QUrl.UrlFormattingOption.RemoveQuery |
+                                        core.QUrl.UrlFormattingOption.RemoveFragment))
         question = shared.feature_permission(
             url=url,
             option=options[feature], msg=messages[feature],
@@ -429,7 +424,7 @@ class BrowserPage(QWebPage):
             return
         if 'zoom' in data:
             frame.page().view().tab.zoom.set_factor(data['zoom'])
-        if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
+        if 'scroll-pos' in data and frame.scrollPosition() == core.QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
     def userAgentForUrl(self, url):
@@ -496,7 +491,7 @@ class BrowserPage(QWebPage):
 
     def acceptNavigationRequest(self,
                                 frame: QWebFrame,
-                                request: QNetworkRequest,
+                                request: network.QNetworkRequest,
                                 typ: QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 

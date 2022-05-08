@@ -19,15 +19,15 @@
 
 import pytest
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 from qutebrowser.browser import browsertab
 
 
 class TestAction:
 
     def test_run_string_valid(self, qtbot, web_tab):
-        url_1 = QUrl("qute://testdata/data/backforward/1.txt")
-        url_2 = QUrl("qute://testdata/data/backforward/2.txt")
+        url_1 = core.QUrl("qute://testdata/data/backforward/1.txt")
+        url_2 = core.QUrl("qute://testdata/data/backforward/2.txt")
 
         with qtbot.wait_signal(web_tab.load_finished):
             web_tab.load_url(url_1)

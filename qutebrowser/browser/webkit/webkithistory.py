@@ -21,13 +21,13 @@
 
 import functools
 
-from qutebrowser.qt.webkit import QWebHistoryInterface
+from qutebrowser.qt import webkit
 
 from qutebrowser.utils import debug
 from qutebrowser.misc import debugcachestats
 
 
-class WebHistoryInterface(QWebHistoryInterface):
+class WebHistoryInterface(webkit.QWebHistoryInterface):
 
     """Glue code between WebHistory and Qt's QWebHistoryInterface.
 
@@ -65,4 +65,4 @@ def init(history):
         history: The WebHistory object.
     """
     interface = WebHistoryInterface(history, parent=history)
-    QWebHistoryInterface.setDefaultInterface(interface)
+    webkit.QWebHistoryInterface.setDefaultInterface(interface)

@@ -26,8 +26,6 @@ import re
 import html as html_utils
 from typing import cast, Union, Optional
 from qutebrowser.qt import widgets, webenginecore, network
-from qutebrowser.qt.webenginecore import (
-                                          QWebEngineFindTextResult, QWebEngineClientCertificateSelection)
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey

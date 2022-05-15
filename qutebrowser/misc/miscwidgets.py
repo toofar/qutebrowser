@@ -20,7 +20,6 @@
 """Misc. widgets used at different places."""
 
 from typing import Optional
-from qutebrowser.qt.widgets import QApplication
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import utils, log, usertypes, debug

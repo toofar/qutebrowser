@@ -34,12 +34,13 @@ handle what we actually think we do.
 import itertools
 import dataclasses
 from typing import cast, overload, Iterable, Iterator, List, Mapping, Optional, Union
-try:
-    from qutebrowser.qt import gui, core
-except ImportError:
-    QKeyCombination = None  # Qt 6 only
 
 from qutebrowser.utils import utils, qtutils, debug
+from qutebrowser.qt import gui, core
+
+QKeyCombination = None  # Qt 6 only
+if hasattr(core, 'QKeyCombination'):
+    QKeyCombination = core.QKeyCombination
 
 
 class InvalidKeyError(Exception):
@@ -399,7 +400,7 @@ class KeyInfo:
         return cls(key, modifiers)
 
     @classmethod
-    def from_qt(cls, combination: Union[int, core.QKeyCombination]) -> 'KeyInfo':
+    def from_qt(cls, combination: Union[int, QKeyCombination]) -> 'KeyInfo':
         """Construct a KeyInfo from a Qt5-style int or Qt6-style QKeyCombination."""
         if isinstance(combination, int):
             key = core.Qt.Key(
@@ -411,7 +412,7 @@ class KeyInfo:
             return cls(key, modifiers)
         else:
             # QKeyCombination is now guaranteed to be available here
-            assert isinstance(combination, core.QKeyCombination)
+            assert isinstance(combination, QKeyCombination)
             try:
                 key = combination.key()
             except ValueError as e:
@@ -484,9 +485,9 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return gui.QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_qt(self) -> Union[int, core.QKeyCombination]:
+    def to_qt(self) -> Union[int, QKeyCombination]:
         """Get something suitable for a QKeySequence."""
-        if core.QKeyCombination is None:
+        if QKeyCombination is None:
             # Qt 5
             return int(self.key) | int(self.modifiers)
 
@@ -499,7 +500,7 @@ class KeyInfo:
             # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
             raise InvalidKeyError(e)
 
-        return core.QKeyCombination(self.modifiers, key)
+        return QKeyCombination(self.modifiers, key)
 
     def with_stripped_modifiers(self, modifiers: core.Qt.KeyboardModifier) -> "KeyInfo":
         return KeyInfo(key=self.key, modifiers=self.modifiers & ~modifiers)

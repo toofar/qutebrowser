@@ -46,12 +46,12 @@ from typing import (
 )
 
 
-from qutebrowser.qt import widgets, webkit, webenginecore, network, opengl
+from qutebrowser.qt import widgets, network, opengl
 
 try:
     from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
+    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
 try:
     from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
 except ImportError:
@@ -774,14 +774,14 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
     if pyqt_webengine_qt_version is not None:
         return WebEngineVersions.from_importlib(pyqt_webengine_qt_version)
 
-    assert webenginecore.PYQT_WEBENGINE_VERSION_STR is not None
-    return WebEngineVersions.from_pyqt(webenginecore.PYQT_WEBENGINE_VERSION_STR)
+    assert PYQT_WEBENGINE_VERSION_STR is not None
+    return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
 
 
 def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return 'new QtWebKit (WebKit {})'.format(webkit.qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
         return str(
             qtwebengine_versions(

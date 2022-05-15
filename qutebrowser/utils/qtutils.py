@@ -189,7 +189,7 @@ _QtSerializableType = Union[
     core.QObject,
     core.QByteArray,
     core.QUrl,
-    'webengine.QWebEngineHistory',
+    'webenginecore.QWebEngineHistory',
     'webkit.QWebHistory',
 ]
 

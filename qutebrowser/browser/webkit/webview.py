@@ -18,8 +18,7 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 """The main browser widgets."""
-from qutebrowser.qt import webkit
-from qutebrowser.qt.webkitwidgets import QWebView, QWebPage
+from qutebrowser.qt import webkit, webkitwidgets
 
 from qutebrowser.config import config, stylesheet
 from qutebrowser.keyinput import modeman
@@ -28,7 +27,7 @@ from qutebrowser.browser.webkit import webpage
 from qutebrowser.qt import core
 
 
-class WebView(QWebView):
+class WebView(webkitwidgets.QWebView):
 
     """Custom QWebView subclass with qutebrowser-specific features.
 
@@ -73,8 +72,8 @@ class WebView(QWebView):
                                    tabdata=tab.data, private=private,
                                    parent=self)
         page.setVisibilityState(
-            QWebPage.VisibilityState.VisibilityStateVisible if self.isVisible()
-            else QWebPage.VisibilityState.VisibilityStateHidden)
+            webkitwidgets.QWebPage.VisibilityState.VisibilityStateVisible if self.isVisible()
+            else webkitwidgets.QWebPage.VisibilityState.VisibilityStateHidden)
 
         self.setPage(page)
 
@@ -129,9 +128,9 @@ class WebView(QWebView):
         Return:
             The new QWebView object.
         """
-        debug_type = debug.qenum_key(QWebPage, wintype)
+        debug_type = debug.qenum_key(webkitwidgets.QWebPage, wintype)
         log.webview.debug("createWindow with type {}".format(debug_type))
-        if wintype == QWebPage.WebWindowType.WebModalDialog:
+        if wintype == webkitwidgets.QWebPage.WebWindowType.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -190,7 +189,7 @@ class WebView(QWebView):
             e: The QShowEvent.
         """
         super().showEvent(e)
-        self.page().setVisibilityState(QWebPage.VisibilityState.VisibilityStateVisible)
+        self.page().setVisibilityState(webkitwidgets.QWebPage.VisibilityState.VisibilityStateVisible)
 
     def hideEvent(self, e):
         """Extend hideEvent to set the page visibility state to hidden.
@@ -199,7 +198,7 @@ class WebView(QWebView):
             e: The QHideEvent.
         """
         super().hideEvent(e)
-        self.page().setVisibilityState(QWebPage.VisibilityState.VisibilityStateHidden)
+        self.page().setVisibilityState(webkitwidgets.QWebPage.VisibilityState.VisibilityStateHidden)
 
     def mousePressEvent(self, e):
         """Set the tabdata ClickTarget on a mousepress.

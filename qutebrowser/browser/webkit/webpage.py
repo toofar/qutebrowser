@@ -22,8 +22,7 @@
 import html
 import functools
 from typing import cast
-from qutebrowser.qt import widgets, printsupport, network, gui
-from qutebrowser.qt.webkitwidgets import QWebPage, QWebFrame
+from qutebrowser.qt import widgets, webkitwidgets, printsupport, network, gui
 
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
@@ -33,7 +32,7 @@ from qutebrowser.utils import message, usertypes, log, jinja, objreg
 from qutebrowser.qt import core, sip
 
 
-class BrowserPage(QWebPage):
+class BrowserPage(webkitwidgets.QWebPage):
 
     """Our own QWebPage with advanced features.
 
@@ -62,7 +61,7 @@ class BrowserPage(QWebPage):
         self._win_id = win_id
         self._tabdata = tabdata
         self._is_shutting_down = False
-        extension_enum = QWebPage.Extension
+        extension_enum = webkitwidgets.QWebPage.Extension
         self._extension_handlers = {
             extension_enum.ErrorPageExtension: self._handle_errorpage,
             extension_enum.ChooseMultipleFilesExtension: self._handle_multiple_files,
@@ -132,18 +131,18 @@ class BrowserPage(QWebPage):
         """
         ignored_errors = [
             (
-                QWebPage.ErrorDomain.QtNetwork,
+                webkitwidgets.QWebPage.ErrorDomain.QtNetwork,
                 network.QNetworkReply.NetworkError.OperationCanceledError,
             ),
             # "Loading is handled by the media engine"
-            (QWebPage.ErrorDomain.WebKit, 203),
+            (webkitwidgets.QWebPage.ErrorDomain.WebKit, 203),
             # "Frame load interrupted by policy change"
-            (QWebPage.ErrorDomain.WebKit, 102),
+            (webkitwidgets.QWebPage.ErrorDomain.WebKit, 102),
         ]
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
         if (info.domain, info.error) == (
-            QWebPage.ErrorDomain.QtNetwork,
+            webkitwidgets.QWebPage.ErrorDomain.QtNetwork,
             network.QNetworkReply.NetworkError.ProtocolUnknownError,
         ):
             # For some reason, we get a segfault when we use
@@ -197,7 +196,7 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
-    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str) -> str:
+    def chooseFile(self, parent_frame: webkitwidgets.QWebFrame, suggested_file: str) -> str:
         """Override chooseFile to (optionally) invoke custom file uploader."""
         handler = config.val.fileselect.handler
         if handler == "default":
@@ -354,7 +353,7 @@ class BrowserPage(QWebPage):
     @core.pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
-        if not isinstance(frame, QWebFrame):  # pragma: no cover
+        if not isinstance(frame, webkitwidgets.QWebFrame):  # pragma: no cover
             # This makes no sense whatsoever, but someone reported this being
             # called with a QBuffer...
             log.misc.error("on_feature_permission_requested got called with "
@@ -372,10 +371,10 @@ class BrowserPage(QWebPage):
         }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionPolicy.PermissionGrantedByUser)
+            webkitwidgets.QWebPage.PermissionPolicy.PermissionGrantedByUser)
         no_action = functools.partial(
             self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionPolicy.PermissionDeniedByUser)
+            webkitwidgets.QWebPage.PermissionPolicy.PermissionDeniedByUser)
 
         url = frame.url().adjusted(
             cast(
@@ -506,9 +505,9 @@ class BrowserPage(QWebPage):
 
     def acceptNavigationRequest(
         self,
-        frame: QWebFrame,
+        frame: webkitwidgets.QWebFrame,
         request: network.QNetworkRequest,
-        typ: QWebPage.NavigationType,
+        typ: webkitwidgets.QWebPage.NavigationType,
     ) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
@@ -519,7 +518,7 @@ class BrowserPage(QWebPage):
         Checks if it should open it in a tab (middle-click or control) or not,
         and then conditionally opens the URL here or in another tab/window.
         """
-        nav_type = QtWebKitWidgets.QWebPage.NavigationType
+        nav_type = webkitwidgets.QWebPage.NavigationType
         nav_request = usertypes.NavigationRequest
         type_map = {
             nav_type.NavigationTypeLinkClicked: nav_request.Type.link_clicked,

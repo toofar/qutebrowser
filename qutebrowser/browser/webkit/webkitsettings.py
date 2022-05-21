@@ -27,8 +27,7 @@ Module attributes:
 from typing import cast
 import os.path
 
-from qutebrowser.qt import webkit, gui, core
-from qutebrowser.qt.webkitwidgets import QWebPage
+from qutebrowser.qt import webkit, webkitwidgets, gui, core
 
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
@@ -173,7 +172,7 @@ def _update_settings(option):
 
 def _init_user_agent():
     global parsed_user_agent
-    ua = QWebPage().userAgentForUrl(core.QUrl())
+    ua = webkitwidgets.QWebPage().userAgentForUrl(core.QUrl())
     parsed_user_agent = websettings.UserAgent.parse(ua)
 
 

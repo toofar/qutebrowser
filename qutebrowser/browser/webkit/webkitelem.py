@@ -20,12 +20,11 @@
 """QtWebKit specific part of the web element API."""
 
 from typing import cast, TYPE_CHECKING, Iterator, List, Optional, Set
-from qutebrowser.qt.webkitwidgets import QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
-from qutebrowser.qt import webkit, core
+from qutebrowser.qt import webkit, webkitwidgets, core
 
 if TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab
@@ -214,7 +213,7 @@ class WebKitElement(webelem.AbstractWebElement):
                     int(rect["left"]), int(rect["top"]), int(width), int(height)
                 )
 
-                frame = cast(Optional[QWebFrame], self._elem.webFrame())
+                frame = cast(Optional[webkitwidgets.QWebFrame], self._elem.webFrame())
                 while frame is not None:
                     # Translate to parent frames' position (scroll position
                     # is taken care of inside getClientRects)
@@ -233,11 +232,11 @@ class WebKitElement(webelem.AbstractWebElement):
             geometry = elem_geometry
         rect = core.QRect(geometry)
 
-        frame = cast(Optional[QWebFrame], self._elem.webFrame())
+        frame = cast(Optional[webkitwidgets.QWebFrame], self._elem.webFrame())
         while frame is not None:
             rect.translate(frame.geometry().topLeft())
             rect.translate(frame.scrollPosition() * -1)
-            frame = cast(Optional[QWebFrame], frame.parentFrame())
+            frame = cast(Optional[webkitwidgets.QWebFrame], frame.parentFrame())
 
         return rect
 
@@ -289,7 +288,7 @@ class WebKitElement(webelem.AbstractWebElement):
                         'custom-control-input' in self.classes())
         return invisible or none_display or (zero_opacity and not is_framework)
 
-    def _is_visible(self, mainframe: QWebFrame) -> bool:
+    def _is_visible(self, mainframe: webkitwidgets.QWebFrame) -> bool:
         """Check if the given element is visible in the given frame.
 
         This is not public API because it can't be implemented easily here with
@@ -382,21 +381,21 @@ class WebKitElement(webelem.AbstractWebElement):
         super()._click_fake_event(click_target)
 
 
-def get_child_frames(startframe: QWebFrame) -> List[QWebFrame]:
-    """Get all children recursively of a given QWebFrame.
+def get_child_frames(startframe: webkitwidgets.QWebFrame) -> List[webkitwidgets.QWebFrame]:
+    """Get all children recursively of a given webkitwidgets.QWebFrame.
 
     Loosely based on https://blog.nextgenetics.net/?e=64
 
     Args:
-        startframe: The QWebFrame to start with.
+        startframe: The webkitwidgets.QWebFrame to start with.
 
     Return:
-        A list of children QWebFrame, or an empty list.
+        A list of children webkitwidgets.QWebFrame, or an empty list.
     """
     results = []
     frames = [startframe]
     while frames:
-        new_frames: List[QWebFrame] = []
+        new_frames: List[webkitwidgets.QWebFrame] = []
         for frame in frames:
             results.append(frame)
             new_frames += frame.childFrames()

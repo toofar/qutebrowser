@@ -48,16 +48,6 @@ from typing import (
 
 from qutebrowser.qt import widgets, network, opengl
 
-try:
-    from qutebrowser.qt.webkit import qWebKitVersion
-except ImportError:  # pragma: no cover
-    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
-try:
-    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
-except ImportError:
-    # QtWebKit
-    PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
-
 
 import qutebrowser
 from qutebrowser.utils import (
@@ -72,10 +62,23 @@ from qutebrowser.utils import (
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin, elf
 from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
-from qutebrowser.qt import gui, core
+from qutebrowser.qt import gui, core, webenginecore, webkit
 
 if TYPE_CHECKING:
     from qutebrowser.config import websettings
+
+
+if webkit:
+    qWebKitVersion = webkit.qWebKitVersion
+else:
+    qWebKitVersion = lambda: None  # type: ignore[assignment]  # noqa: N816
+
+
+if webenginecore:
+    PYQT_WEBENGINE_VERSION_STR = webenginecore.PYQT_WEBENGINE_VERSION_STR
+else:
+    PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
+
 
 _LOGO = r'''
          ______     ,,
@@ -418,7 +421,6 @@ MODULE_INFO: Mapping[str, ModuleInfo] = collections.OrderedDict(
             ('pygments', ['__version__']),
             ('yaml', ['__version__']),
             ('adblock', ['__version__'], "0.3.2"),
-            # XXX: fix for qt6
             ('PyQt5.QtWebEngineWidgets', []),
             ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
             ('PyQt5.QtWebKitWidgets', []),

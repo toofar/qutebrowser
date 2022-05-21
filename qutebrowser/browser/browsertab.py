@@ -28,7 +28,7 @@ from typing import (cast, TYPE_CHECKING, Any, Callable, Iterable, List, Optional
 from qutebrowser.qt import widgets, printsupport, network
 
 if TYPE_CHECKING:
-    from qutebrowser.qt import webkit, webkitwidgets, webenginewidgets
+    from qutebrowser.qt import webkit, webkitwidgets, webenginecore
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -144,7 +144,7 @@ class AbstractAction:
     action_base: Type[
         Union[
             'webkitwidgets.QWebPage.WebAction',
-            'webenginewidgets.QWebEnginePage.WebAction',
+            'webenginecore.QWebEnginePage.WebAction',
         ]
     ]
 
@@ -646,7 +646,7 @@ class AbstractHistory:
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
         self._history = cast(
-            Union['qwebkit.QWebHistory', 'webenginewidgets.QWebEngineHistory'], None
+            Union['webkit.QWebHistory', 'webenginecore.QWebEngineHistory'], None
         )
         self.private_api = AbstractHistoryPrivate()
 
@@ -656,7 +656,7 @@ class AbstractHistory:
     def __iter__(
         self,
     ) -> Iterable[
-        Union['qwebkit.QWebHistoryItem', 'webenginewidgets.QWebEngineHistoryItem']
+        Union['webkit.QWebHistoryItem', 'webenginecore.QWebEngineHistoryItem']
     ]:
         raise NotImplementedError
 

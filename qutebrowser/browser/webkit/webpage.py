@@ -361,13 +361,14 @@ class BrowserPage(QWebPage):
                            "{!r}!".format(frame))
             return
 
+        feature_enum = webkitwidgets.QWebPage.Feature
         options = {
-            QWebPage.Feature.Notifications: 'content.notifications.enabled',
-            QWebPage.Feature.Geolocation: 'content.geolocation',
+            feature_enum.Notifications: 'content.notifications.enabled',
+            feature_enum.Geolocation: 'content.geolocation',
         }
         messages = {
-            QWebPage.Feature.Notifications: 'show notifications',
-            QWebPage.Feature.Geolocation: 'access your location',
+            feature_enum.Notifications: 'show notifications',
+            feature_enum.Geolocation: 'access your location',
         }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,

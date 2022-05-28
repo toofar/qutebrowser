@@ -298,15 +298,15 @@ class TabbedBrowser(widgets.QWidget):
         We don't implement this as generator so we can delete tabs while
         iterating over the list.
         """
-        widgets = []
+        widgets_ = []
         for i in range(self.widget.count()):
             widget = self.widget.widget(i)
             if widget is None:
                 log.webview.debug(  # type: ignore[unreachable]
                     "Got None-widget in tabbedbrowser!")
             else:
-                widgets.append(widget)
-        return widgets
+                widgets_.append(widget)
+        return widgets_
 
     def _update_window_title(self, field=None):
         """Change the window title to match the current tab.

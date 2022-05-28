@@ -259,10 +259,11 @@ def _select_backend(config):
     backend = backend_arg or backend_env or _auto_select_backend()
 
     # Fail early if selected backend is not available
+    from qutebrowser.qt import webkit, webenginecore
     if backend == 'webkit':
-        import qutebrowser.qt
+        assert webkit
     elif backend == 'webengine':
-        import qutebrowser.qt.webenginewidgets
+        assert webenginecore
     else:
         raise utils.Unreachable(backend)
 
@@ -271,14 +272,11 @@ def _select_backend(config):
 
 def _auto_select_backend():
     # pylint: disable=unused-import
-    try:
-        # Try to use QtWebKit as the default backend
-        import qutebrowser.qt
+    # Try to use QtWebKit as the default backend
+    from qutebrowser.qt import webkit
+    if webkit:
         return 'webkit'
-    except ImportError:
-        import qutebrowser.qt.webenginewidgets
-        # Try to use QtWebEngine as a fallback and fail early
-        # if that's also not available
+    else:
         return 'webengine'
 
 

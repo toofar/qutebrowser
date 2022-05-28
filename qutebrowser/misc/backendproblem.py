@@ -204,19 +204,15 @@ class _BackendProblemChecker:
         """Check whether backends can be imported and return BackendImports."""
         results = _BackendImports()
 
-        try:
-            from qutebrowser.qt import webkit, webkitwidgets
-        except (ImportError, ValueError) as e:
-            results.webkit_error = str(e)
+        from qutebrowser.qt import webkit, webenginecore
+        if not webkit:
+            results.webkit_error = "Unable to find webkit python module"
             assert results.webkit_error
-        else:
-            if not qtutils.is_new_qtwebkit():
-                results.webkit_error = "Unsupported legacy QtWebKit found"
+        elif not qtutils.is_new_qtwebkit():
+            results.webkit_error = "Unsupported legacy QtWebKit found"
 
-        try:
-            from qutebrowser.qt import webenginecore, webenginewidgets
-        except (ImportError, ValueError) as e:
-            results.webengine_error = str(e)
+        if not webenginecore:
+            results.webengine_error = "Unable to find webenginecore python module"
             assert results.webengine_error
 
         return results

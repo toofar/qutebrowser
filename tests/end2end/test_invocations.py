@@ -802,24 +802,15 @@ def test_unavailable_backend(request, quteproc_new):
     that the chosen backend is actually available - i.e., that the error message is
     properly printed, rather than an unhandled exception.
     """
-    qtwe_module = "qutebrowser.qt.webenginewidgets"
-    qtwk_module = "qutebrowser.qt.webkitwidgets"
+    qtwe_module = "webenginewidgets"
+    qtwk_module = "webkitwidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
         testutils.qt_module_skip(qtwe_module)
-        module = qtwk_module
         backend = 'webkit'
     else:
         testutils.qt_module_skip(qtwk_module)
-        module = qtwe_module
         backend = 'webengine'
-
-    try:
-        importlib.import_module(module)
-    except ImportError:
-        pass
-    else:
-        pytest.skip(f"{module} is available")
 
     args = [
         '--debug', '--json-logging', '--no-err-windows',

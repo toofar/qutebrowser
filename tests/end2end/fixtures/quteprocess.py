@@ -56,6 +56,7 @@ def is_ignored_lowlevel_message(message):
         # Qt 6.2 / 6.3
         'Fontconfig error: Cannot load default config file: No such file: (null)',
         'Fontconfig error: Cannot load default config file',
+        'WARNING: lavapipe is not a conformant vulkan implementation, testing use only.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)

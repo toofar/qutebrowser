@@ -19,7 +19,7 @@
 
 """Wrappers around Qt/PyQt code."""
 
-# pylint: disable=unused-import,import-error
+# pylint: disable=unused-import
 import importlib
 from dataclasses import dataclass
 

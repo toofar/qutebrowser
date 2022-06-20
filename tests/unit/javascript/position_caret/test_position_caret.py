@@ -21,8 +21,11 @@
 
 import pytest
 
-QWebSettings = pytest.importorskip("qutebrowser.qt.webkit").QWebSettings
-QWebPage = pytest.importorskip("qutebrowser.qt.webkitwidgets").QWebPage
+from helpers import testutils
+
+
+QWebSettings = testutils.qt_module_skip("webkit").QWebSettings
+QWebPage = testutils.qt_module_skip("webkitwidgets").QWebPage
 
 
 @pytest.fixture(autouse=True)

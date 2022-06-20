@@ -662,10 +662,12 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalsocket_mock(self, mocker):
+        orig_errors = network.QLocalSocket.LocalSocketError
+        orig_states = network.QLocalSocket.LocalSocketState
         m = mocker.patch('qutebrowser.misc.ipc.network.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
-        m.LocalSocketError = network.QLocalSocket.LocalSocketError
-        m.LocalSocketState = network.QLocalSocket.LocalSocketState
+        m.LocalSocketError = orig_errors
+        m.LocalSocketState = orig_states
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")

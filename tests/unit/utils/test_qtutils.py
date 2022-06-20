@@ -108,6 +108,7 @@ def test_version_check_compiled_and_exact():
     ('602.1', True)     # new QtWebKit TP5, 5.212 Alpha
 ])
 def test_is_new_qtwebkit(monkeypatch, version, is_new):
+    testutils.qt_module_skip('webkit')
     monkeypatch.setattr(qtutils, 'qWebKitVersion', lambda: version)
     assert qtutils.is_new_qtwebkit() == is_new
 

@@ -40,10 +40,14 @@ from qutebrowser.config import config, websettings
 from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin, objects, elf
 from qutebrowser.browser import pdfjs
+from helpers import testutils
 
-try:
-    from qutebrowser.browser.webengine import webenginesettings
-except ImportError:
+
+if webenginecore:
+    webenginesettings = pytest.importorskip(
+        'qutebrowser.browser.webengine.webenginesettings'
+    )
+else:
     webenginesettings = None
 
 
@@ -762,7 +766,7 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
-        module = pytest.importorskip(name)
+        module = testutils.pytest.importorskip(name)
         assert hasattr(module, '__version__') == has_version
 
     def test_existing_sip_attribute(self):
@@ -1001,17 +1005,11 @@ class TestWebEngineVersions:
 
     def test_real_chromium_version(self, qapp):
         """Compare the inferred Chromium version with the real one."""
+        testutils.qt_module_skip('webenginecore')
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
             if '.dev' in core.PYQT_VERSION_STR:
                 pytest.skip("dev version of PyQt")
-
-            try:
-                from qutebrowser.qt.webenginecore import (
-                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
-            except ImportError as e:
-                # QtWebKit
-                pytest.skip(str(e))
 
             if 0x060000 > webenginecore.PYQT_WEBENGINE_VERSION >= 0x050F02:
                 # Starting with Qt 5.15.2, we can only do bad guessing anyways...
@@ -1061,7 +1059,7 @@ class TestChromiumVersion:
 
     @pytest.fixture(autouse=True)
     def clear_parsed_ua(self, monkeypatch):
-        pytest.importorskip('qutebrowser.qt.webenginewidgets')
+        testutils.qt_module_skip('webenginewidgets')
         if webenginesettings is not None:
             # Not available with QtWebKit
             monkeypatch.setattr(webenginesettings, 'parsed_user_agent', None)
@@ -1257,7 +1255,7 @@ def test_version_info(params, stubs, monkeypatch, config_stub):
         'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'QtNetwork.QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
+        'network.QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
@@ -1372,7 +1370,7 @@ class TestOpenGLInfo:
 
     def test_func(self, qapp):
         """Simply call version.opengl_info() and see if it doesn't crash."""
-        pytest.importorskip("qutebrowser.qt.opengl")
+        testutils.qt_module_skip("opengl")
         version.opengl_info()
 
     def test_func_fake(self, qapp, monkeypatch):

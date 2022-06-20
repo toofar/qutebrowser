@@ -26,7 +26,6 @@ from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 import pytest
 from qutebrowser.qt import gui
-pytest.importorskip("qutebrowser.qt.webenginecore")
 if TYPE_CHECKING:
     from qutebrowser.qt import QWebEngineNotification
 
@@ -34,6 +33,10 @@ from qutebrowser.config import configdata
 from qutebrowser.misc import objects
 from qutebrowser.browser.webengine import notification
 from qutebrowser.qt import dbus, core
+from helpers import testutils
+
+
+testutils.qt_module_skip("webenginecore")
 
 
 class FakeDBusMessage:

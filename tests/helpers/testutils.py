@@ -29,9 +29,11 @@ import contextlib
 import pathlib
 import importlib.util
 import importlib.machinery
+from typing import Any, Optional
 
 import pytest
 
+import qutebrowser.qt
 from qutebrowser.qt import gui, webenginecore
 
 from qutebrowser.utils import log, utils, version
@@ -304,3 +306,15 @@ def enum_members(base, enumtype):
             for name, value in vars(base).items()
             if isinstance(value, enumtype)
         }
+
+
+def qt_module_skip(modname: str, reason: Optional[str] = None) -> Any:
+    """Wraps return a PyQt module if is exists, else pytest.skip()."""
+    assert '.' not in modname, "`modname`: should be an attribute of qutebrowser.qt"
+    result = getattr(qutebrowser.qt, modname, None)
+    if result is None:
+        pytest.skip(
+            reason or f"Couldn't import {modname} from qutebrowser.qt",
+            allow_module_level=True,
+        )
+    return result

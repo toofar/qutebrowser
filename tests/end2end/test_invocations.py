@@ -23,7 +23,6 @@ import configparser
 import subprocess
 import sys
 import logging
-import importlib
 import re
 import json
 import platform
@@ -807,11 +806,11 @@ def test_unavailable_backend(request, quteproc_new):
     qtwk_module = "qutebrowser.qt.webkitwidgets"
     # Note we want to try the *opposite* backend here.
     if request.config.webengine:
-        pytest.importorskip(qtwe_module)
+        testutils.qt_module_skip(qtwe_module)
         module = qtwk_module
         backend = 'webkit'
     else:
-        pytest.importorskip(qtwk_module)
+        testutils.qt_module_skip(qtwk_module)
         module = qtwe_module
         backend = 'webengine'
 

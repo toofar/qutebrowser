@@ -24,9 +24,10 @@ from qutebrowser.qt import core
 
 from qutebrowser.utils import utils
 from qutebrowser.config import qtargs
+from helpers import testutils
 
 
-pytest.importorskip('qutebrowser.qt.webenginewidgets')
+testutils.qt_module_skip('webenginewidgets')
 
 
 @pytest.fixture(autouse=True)

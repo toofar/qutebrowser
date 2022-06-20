@@ -28,6 +28,7 @@ from qutebrowser.browser import history
 from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import sql, objects
+from helpers import testutils
 
 
 @pytest.fixture(autouse=True)
@@ -276,7 +277,7 @@ class TestHistoryInterface:
     @pytest.fixture
     def hist_interface(self, web_history):
         # pylint: disable=invalid-name
-        QtWebKit = pytest.importorskip('qutebrowser.qt.webkit')
+        QtWebKit = testutils.qt_module_skip('webkit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
@@ -303,16 +304,14 @@ class TestInit:
         if history.web_history is not None:
             history.web_history.setParent(None)
             history.web_history = None
-        try:
+        if webkit and webkit.QWebHistoryInterface:
             webkit.QWebHistoryInterface.setDefaultInterface(None)
-        except ImportError:
-            pass
 
     @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                          usertypes.Backend.QtWebKit])
     def test_init(self, backend, qapp, tmpdir, data_tmpdir, monkeypatch, cleanup_init):
         if backend == usertypes.Backend.QtWebKit:
-            pytest.importorskip('qutebrowser.qt.webkitwidgets')
+            testutils.qt_module_skip('webkitwidgets')
         else:
             assert backend == usertypes.Backend.QtWebEngine
 
@@ -325,7 +324,7 @@ class TestInit:
             assert default_interface._history is history.web_history
         else:
             assert backend == usertypes.Backend.QtWebEngine
-            if webkit.QWebHistoryInterface is None:
+            if not webkit or not webkit.QWebHistoryInterface:
                 default_interface = None
             else:
                 default_interface = webkit.QWebHistoryInterface.defaultInterface()

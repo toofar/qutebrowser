@@ -247,8 +247,7 @@ def test_qtwe_version_changed(state_writer, qtwe_version_patcher,
 @pytest.mark.parametrize("value", ["no", None])
 def test_version_changed_webkit(stubs, monkeypatch, state_writer,
                                 key, value, attribute, expected):
-    fake = stubs.ImportFake({'qutebrowser.qt.webenginewidgets': False}, monkeypatch)
-    fake.patch()
+    monkeypatch.setattr(configfiles, 'webenginewidgets', None)
 
     if value is not None:
         state_writer(key, value)

@@ -23,15 +23,16 @@ import logging
 
 import pytest
 import yaml
-QWebView = pytest.importorskip('qutebrowser.qt.webkitwidgets').QWebView
 
 from qutebrowser.misc import sessions
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import objreg, qtutils
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.qt import core
+from helpers import testutils
 
 
+QWebView = testutils.qt_module_skip('webkitwidgets').QWebView
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 webengine_refactoring_xfail = pytest.mark.xfail(

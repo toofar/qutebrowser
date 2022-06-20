@@ -22,10 +22,12 @@
 import pathlib
 import pytest
 
-QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
-QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
-
 from qutebrowser.utils import javascript
+from helpers import testutils
+
+
+QtWebEngineCore = testutils.qt_module_skip("webenginecore")
+QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"

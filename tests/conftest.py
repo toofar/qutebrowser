@@ -271,7 +271,6 @@ def _select_backend(config):
 
 
 def _auto_select_backend():
-    # pylint: disable=unused-import
     # Try to use QtWebKit as the default backend
     from qutebrowser.qt import webkit
     if webkit:

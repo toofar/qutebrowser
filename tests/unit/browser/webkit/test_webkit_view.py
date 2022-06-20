@@ -18,7 +18,13 @@
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
 import pytest
-webview = pytest.importorskip('qutebrowser.browser.webkit.webview')
+
+from helpers import testutils
+
+
+webkit = testutils.qt_module_skip('webkit')
+if webkit:
+    from qutebrowser.browser.webkit import webview
 
 
 @pytest.fixture

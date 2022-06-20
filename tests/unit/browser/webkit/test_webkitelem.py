@@ -27,16 +27,19 @@ import itertools
 import dataclasses
 
 import pytest
-QWebElement = pytest.importorskip('qutebrowser.qt.webkit').QWebElement
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
 from qutebrowser.qt import core
+from helpers import testutils
 
 if TYPE_CHECKING:
     from helpers import stubs
+
+QWebElement = testutils.qt_module_skip('webkit').QWebElement
+if QWebElement:
+    from qutebrowser.browser.webkit import webkitelem
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,

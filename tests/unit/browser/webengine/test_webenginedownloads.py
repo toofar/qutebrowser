@@ -21,11 +21,14 @@ import base64
 import dataclasses
 
 import pytest
-pytest.importorskip('qutebrowser.qt.webenginecore')
-from qutebrowser.qt import webenginecore
 
+from qutebrowser.qt import webenginecore
 from qutebrowser.utils import urlutils, usertypes, utils
 from qutebrowser.browser.webengine import webenginedownloads
+from helpers import testutils
+
+
+testutils.qt_module_skip('webenginecore')
 
 
 @pytest.mark.parametrize('path, expected', [

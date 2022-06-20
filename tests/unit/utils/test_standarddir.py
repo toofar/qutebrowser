@@ -456,10 +456,10 @@ def test_no_qapplication(qapp, tmpdir, monkeypatch):
 
         sys.path = sys.argv[1:]  # make sure we have the same python path
 
-        from qutebrowser.qt.widgets import QApplication
+        from qutebrowser.qt import widgets
         from qutebrowser.utils import standarddir
 
-        assert QApplication.instance() is None
+        assert widgets.QApplication.instance() is None
 
         standarddir.APPNAME = 'qute_test'
         standarddir._init_dirs()

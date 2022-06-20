@@ -25,6 +25,9 @@ import uuid
 
 import pytest
 
+from helpers import testutils
+
+testutils.qt_module_skip('webkit')
 mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 

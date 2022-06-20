@@ -25,7 +25,7 @@ import argparse
 import pathlib
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from qutebrowser.qt import core
+from qutebrowser.qt import core, webenginecore
 
 from qutebrowser.config import config
 from qutebrowser.misc import objects
@@ -61,10 +61,7 @@ def qt_args(namespace: argparse.Namespace) -> List[str]:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         return argv
 
-    try:
-        # pylint: disable=unused-import
-        from qutebrowser.browser.webengine import webenginesettings
-    except ImportError:
+    if not webenginecore:
         # This code runs before a QApplication is available, so before
         # backendproblem.py is run to actually inform the user of the missing
         # backend. Thus, we could end up in a situation where we're here, but

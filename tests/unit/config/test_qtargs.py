@@ -25,6 +25,7 @@ import pytest
 from qutebrowser import qutebrowser
 from qutebrowser.config import qtargs, configdata
 from qutebrowser.utils import usertypes, version
+from helpers import testutils
 
 
 @pytest.fixture
@@ -110,7 +111,7 @@ def test_no_webengine_available(monkeypatch, config_stub, parser, stubs):
     here.
     """
     monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
-    monkeypatch.setattr(qtargs, 'webengine', None)
+    monkeypatch.setattr(qtargs, 'webenginecore', None)
 
     parsed = parser.parse_args([])
     args = qtargs.qt_args(parsed)
@@ -123,7 +124,7 @@ class TestWebEngineArgs:
     @pytest.fixture(autouse=True)
     def ensure_webengine(self, monkeypatch):
         """Skip all tests if QtWebEngine is unavailable."""
-        pytest.importorskip("qutebrowser.qt.webenginecore")
+        testutils.qt_module_skip("webenginecore")
         monkeypatch.setattr(qtargs.objects, 'backend', usertypes.Backend.QtWebEngine)
 
     @pytest.mark.parametrize("setting, values", qtargs._WEBENGINE_SETTINGS.items())

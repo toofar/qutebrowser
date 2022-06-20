@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
-pytest.importorskip('qutebrowser.qt.webkitwidgets')
 
-from qutebrowser.browser.webkit import webkitsettings
+from helpers import testutils
+
+
+if testutils.qt_module_skip('webkitwidgets'):
+    from qutebrowser.browser.webkit import webkitsettings
 
 
 def test_parsed_user_agent(qapp):

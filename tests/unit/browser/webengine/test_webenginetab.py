@@ -23,15 +23,18 @@ import logging
 import textwrap
 
 import pytest
-QtWebEngineCore = pytest.importorskip("qutebrowser.qt.webenginecore")
+
+from qutebrowser.browser import greasemonkey
+from qutebrowser.browser.webengine import webenginetab
+from qutebrowser.utils import usertypes
+from helpers import testutils
+
+
+QtWebEngineCore = testutils.qt_module_skip("webenginecore")
 QWebEnginePage = QtWebEngineCore.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineCore.QWebEngineScriptCollection
 QWebEngineScript = QtWebEngineCore.QWebEngineScript
 
-from qutebrowser.browser import greasemonkey
-from qutebrowser.utils import usertypes
-webenginetab = pytest.importorskip(
-    "qutebrowser.browser.webengine.webenginetab")
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 

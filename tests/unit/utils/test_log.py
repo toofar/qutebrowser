@@ -243,7 +243,7 @@ class TestInitLog:
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker):
-        mocker.patch('qutebrowser.utils.log.qtcore.qInstallMessageHandler',
+        mocker.patch('qutebrowser.utils.log.core.qInstallMessageHandler',
                      autospec=True)
         yield
         # Make sure logging is in a sensible default state

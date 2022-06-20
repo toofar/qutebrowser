@@ -21,12 +21,14 @@ import logging
 
 import pytest
 
-QtWebEngineCore = pytest.importorskip('qutebrowser.qt.webenginecore')
-QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
-
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes
 from qutebrowser.config import configdata
+from helpers import testutils
+
+
+QtWebEngineCore = testutils.qt_module_skip('webenginecore')
+QWebEngineSettings = QtWebEngineCore.QWebEngineSettings
 
 
 @pytest.fixture

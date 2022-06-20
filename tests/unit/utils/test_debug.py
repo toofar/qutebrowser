@@ -29,6 +29,7 @@ import pytest
 from qutebrowser.utils import debug, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.qt import widgets, core
+from helpers import testutils
 
 
 @debug.log_events
@@ -189,7 +190,7 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        qwebpage = pytest.importorskip("qutebrowser.qt.webkitwidgets").QWebPage
+        qwebpage = testutils.qt_module_skip("webkitwidgets").QWebPage
 
         flags = qwebpage.FindWrapsAroundDocument
         flags |= qwebpage.FindBackward

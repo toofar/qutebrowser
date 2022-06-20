@@ -50,6 +50,7 @@ from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import core, sip
+from helpers import testutils
 
 
 _qute_scheme_handler = None
@@ -211,6 +212,7 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
                widget_container, download_stub, webpage, monkeypatch):
+    testutils.qt_module_skip('webkit')
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
@@ -236,6 +238,7 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     tabwidget.current_index = 0
     tabwidget.index_of = 0
 
+    testutils.qt_module_skip('webenginecore')
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
 
@@ -263,10 +266,10 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
 def web_tab(request):
     """A WebKitTab/WebEngineTab."""
     if request.param == 'webkit':
-        pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+        testutils.qt_module_skip('webkit')
         return request.getfixturevalue('webkit_tab')
     elif request.param == 'webengine':
-        pytest.importorskip('qutebrowser.browser.webengine.webenginetab')
+        testutils.qt_module_skip('webenginecore')
         return request.getfixturevalue('webengine_tab')
     else:
         raise utils.Unreachable
@@ -441,7 +444,7 @@ def qnam(qapp):
 @pytest.fixture
 def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
-    QtWebEngineWidgets = pytest.importorskip('qutebrowser.qt.webenginewidgets')
+    QtWebEngineWidgets = testutils.qt_module_skip('webenginewidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
@@ -451,7 +454,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 @pytest.fixture
 def webpage(qnam, monkeypatch):
     """Get a new QWebPage object."""
-    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
+    QtWebKitWidgets = testutils.qt_module_skip('webkitwidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     class WebPageStub(QtWebKitWidgets.QWebPage):
@@ -476,7 +479,7 @@ def webpage(qnam, monkeypatch):
 @pytest.fixture
 def webview(qtbot, webpage):
     """Get a new QWebView object."""
-    QtWebKitWidgets = pytest.importorskip('qutebrowser.qt.webkitwidgets')
+    QtWebKitWidgets = testutils.qt_module_skip('webkitwidgets')
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)
@@ -733,7 +736,7 @@ def webengine_versions(testdata_scheme):
     Calling qtwebengine_versions() initializes QtWebEngine, so we depend on
     testdata_scheme here, to make sure that happens before.
     """
-    pytest.importorskip('qutebrowser.qt.webenginewidgets')
+    testutils.qt_module_skip('webenginewidgets')
     return version.qtwebengine_versions()
 
 

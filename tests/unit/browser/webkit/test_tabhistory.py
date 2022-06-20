@@ -26,15 +26,16 @@ import dataclasses
 from typing import Any
 
 import pytest
-pytest.importorskip('qutebrowser.qt.webkit')
 from qutebrowser.qt import webkit
 
 from qutebrowser.browser.webkit import tabhistory
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 from qutebrowser.qt import core
+from helpers import testutils
 
 
+testutils.qt_module_skip('webkit')
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 

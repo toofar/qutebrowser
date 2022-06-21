@@ -171,6 +171,9 @@ def smoke_test(executable: pathlib.Path, debug: bool, qt6: bool) -> None:
             r'Hardware acceleration and features such as WebGL will not be available\.',
             r'Unable to create basic Accelerated OpenGL renderer\.',
             r'Core Image is now using the software OpenGL renderer\. This will be slow\.',
+
+            # https://github.com/qutebrowser/qutebrowser/issues/3719
+            r'[0-9:]* ERROR: Load error: ERR_FILE_NOT_FOUND',
         ])
         if qt6:
             stderr_whitelist.extend([

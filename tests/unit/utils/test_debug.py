@@ -175,7 +175,13 @@ class TestQFlagsKey:
         (core.Qt, core.Qt.KeyboardModifier.ShiftModifier, core.Qt.KeyboardModifier, 'ShiftModifier'),
         (core.Qt, core.Qt.KeyboardModifier.ShiftModifier, None, 'ShiftModifier'),
         (core.Qt, core.Qt.KeyboardModifier.ShiftModifier | core.Qt.KeyboardModifier.ControlModifier, core.Qt.KeyboardModifier, 'ShiftModifier|ControlModifier'),
-        pytest.param(core.Qt, core.Qt.KeyboardModifier.ShiftModifier | core.Qt.KeyboardModifier.ControlModifier, None, 'ShiftModifier|ControlModifier', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
+        pytest.param(
+            core.Qt,
+            core.Qt.KeyboardModifier.ShiftModifier | core.Qt.KeyboardModifier.ControlModifier,
+            None,
+            'ShiftModifier|ControlModifier',
+            marks=pytest.mark.qt5_xfail(raises=AssertionError)
+        ),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)

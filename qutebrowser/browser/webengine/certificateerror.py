@@ -21,9 +21,7 @@
 
 from typing import Any
 
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.webenginecore import QWebEngineCertificateError
+from qutebrowser.qt import webenginecore, core, machinery
 
 from qutebrowser.utils import usertypes, utils, debug
 
@@ -35,7 +33,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     Base code shared between Qt 5 and 6 implementations.
     """
 
-    def __init__(self, error: QWebEngineCertificateError) -> None:
+    def __init__(self, error: webenginecore.QWebEngineCertificateError) -> None:
         super().__init__()
         self._error = error
         self.ignore = False
@@ -53,10 +51,10 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
     def __repr__(self) -> str:
         return utils.get_repr(
             self,
-            error=debug.qenum_key(QWebEngineCertificateError, self._type()),
+            error=debug.qenum_key(webenginecore.QWebEngineCertificateError, self._type()),
             string=str(self))
 
-    def url(self) -> QUrl:
+    def url(self) -> core.QUrl:
         return self._error.url()
 
     def is_overridable(self) -> bool:
@@ -112,7 +110,7 @@ class CertificateErrorWrapperQt6(CertificateErrorWrapper):
         self._error.acceptCertificate()
 
 
-def create(error: QWebEngineCertificateError) -> CertificateErrorWrapper:
+def create(error: webenginecore.QWebEngineCertificateError) -> CertificateErrorWrapper:
     """Factory function picking the right class based on Qt version."""
     if machinery.IS_QT5:
         return CertificateErrorWrapperQt5(error)

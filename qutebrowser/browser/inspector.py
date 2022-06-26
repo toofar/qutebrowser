@@ -24,15 +24,15 @@ import binascii
 import enum
 from typing import cast, Optional, Any
 
-from qutebrowser.qt.widgets import QWidget
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QObject, QEvent
-from qutebrowser.qt.gui import QCloseEvent
+from qutebrowser.qt import widgets
+from qutebrowser.qt import gui
 
 from qutebrowser.browser import eventfilter
 from qutebrowser.config import configfiles, config
 from qutebrowser.utils import log, usertypes
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import core
 
 
 # FIXME:mypy How to annotate this properly without running into Liskov issues?
@@ -55,7 +55,7 @@ class Error(Exception):
     """Raised when the inspector could not be initialized."""
 
 
-class _EventFilter(QObject):
+class _EventFilter(core.QObject):
 
     """Event filter to enter insert mode when inspector was clicked.
 
@@ -70,16 +70,16 @@ class _EventFilter(QObject):
       the QWebInspector.
     """
 
-    clicked = pyqtSignal()
+    clicked = core.pyqtSignal()
 
-    def eventFilter(self, _obj: QObject, event: QEvent) -> bool:
+    def eventFilter(self, _obj: core.QObject, event: core.QEvent) -> bool:
         """Translate mouse presses to a clicked signal."""
-        if event.type() == QEvent.Type.MouseButtonPress:
+        if event.type() == core.QEvent.Type.MouseButtonPress:
             self.clicked.emit()
         return False
 
 
-class AbstractWebInspector(QWidget):
+class AbstractWebInspector(widgets.QWidget):
 
     """Base class for QtWebKit/QtWebEngine inspectors.
 
@@ -91,11 +91,11 @@ class AbstractWebInspector(QWidget):
         recreate: Emitted when the inspector should be recreated.
     """
 
-    recreate = pyqtSignal()
+    recreate = core.pyqtSignal()
 
     def __init__(self, splitter: 'miscwidgets.InspectorSplitter',
                  win_id: int,
-                 parent: QWidget = None) -> None:
+                 parent: widgets.QWidget = None) -> None:
         super().__init__(parent)
         self._widget = cast(_WidgetType, None)
         self._layout = miscwidgets.WrapperLayout(self)
@@ -134,7 +134,7 @@ class AbstractWebInspector(QWidget):
         """
         return False
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _on_clicked(self) -> None:
         """Enter insert mode if a docked inspector was clicked."""
         if (self._position != Position.window and
@@ -197,7 +197,7 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
-    def closeEvent(self, _e: QCloseEvent) -> None:
+    def closeEvent(self, _e: gui.QCloseEvent) -> None:
         """Save the geometry when closed."""
         data = self._widget.saveGeometry().data()
         geom = base64.b64encode(data).decode('ASCII')
@@ -208,7 +208,7 @@ class AbstractWebInspector(QWidget):
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def shutdown(self) -> None:
         """Clean up the inspector."""
         self.close()

@@ -25,12 +25,7 @@ import dataclasses
 import re
 import html as html_utils
 from typing import cast, Union, Optional
-
-from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QTimer, QUrl,
-                          QObject)
-from qutebrowser.qt.network import QAuthenticator
-from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineScript, QWebEngineHistory
+from qutebrowser.qt import webenginewidgets, webenginecore, network
 
 from qutebrowser.config import config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem, greasemonkey
@@ -40,16 +35,16 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version)
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 from qutebrowser.misc import objects, miscwidgets
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
-    usertypes.JsWorld.main: QWebEngineScript.ScriptWorldId.MainWorld,
-    usertypes.JsWorld.application: QWebEngineScript.ScriptWorldId.ApplicationWorld,
-    usertypes.JsWorld.user: QWebEngineScript.ScriptWorldId.UserWorld,
-    usertypes.JsWorld.jseval: QWebEngineScript.ScriptWorldId.UserWorld + 1,
+    usertypes.JsWorld.main: webenginecore.QWebEngineScript.ScriptWorldId.MainWorld,
+    usertypes.JsWorld.application: webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
+    usertypes.JsWorld.user: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld,
+    usertypes.JsWorld.jseval: webenginecore.QWebEngineScript.ScriptWorldId.UserWorld + 1,
 }
 
 
@@ -58,21 +53,21 @@ class WebEngineAction(browsertab.AbstractAction):
     """QtWebEngine implementations related to web actions."""
 
     _widget: webview.WebEngineView
-    action_base = QWebEnginePage.WebAction
+    action_base = webenginecore.QWebEnginePage.WebAction
 
     def exit_fullscreen(self):
-        self._widget.triggerPageAction(QWebEnginePage.WebAction.ExitFullScreen)
+        self._widget.triggerPageAction(webenginecore.QWebEnginePage.WebAction.ExitFullScreen)
 
     def save_page(self):
         """Save the current page."""
-        self._widget.triggerPageAction(QWebEnginePage.WebAction.SavePage)
+        self._widget.triggerPageAction(webenginecore.QWebEnginePage.WebAction.SavePage)
 
     def show_source(self, pygments=False):
         if pygments:
             self._show_source_pygments()
             return
 
-        self._widget.triggerPageAction(QWebEnginePage.WebAction.ViewSource)
+        self._widget.triggerPageAction(webenginecore.QWebEnginePage.WebAction.ViewSource)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -120,12 +115,12 @@ class _FindFlags:
     def to_qt(self):
         """Convert flags into Qt flags."""
         # FIXME:mypy Those should be correct, reevaluate with PyQt6-stubs
-        flags = QWebEnginePage.FindFlag(0)
+        flags = webenginecore.QWebEnginePage.FindFlag(0)
         if self.case_sensitive:
             flags |= (  # type: ignore[assignment]
-                QWebEnginePage.FindFlag.FindCaseSensitively)
+                webenginecore.QWebEnginePage.FindFlag.FindCaseSensitively)
         if self.backward:
-            flags |= QWebEnginePage.FindFlag.FindBackward  # type: ignore[assignment]
+            flags |= webenginecore.QWebEnginePage.FindFlag.FindBackward  # type: ignore[assignment]
         return flags
 
     def __bool__(self):
@@ -310,7 +305,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             flags.add('windows')
         return list(flags)
 
-    @pyqtSlot(usertypes.KeyMode)
+    @core.pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         if mode != usertypes.KeyMode.caret:
             return
@@ -338,7 +333,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         else:
             self.selection_toggled.emit(browsertab.SelectionState.none)
 
-    @pyqtSlot(usertypes.KeyMode)
+    @core.pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
         if mode != usertypes.KeyMode.caret:
             return
@@ -502,7 +497,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._pos_perc = (0, 0)
-        self._pos_px = QPoint()
+        self._pos_px = core.QPoint()
         self._at_bottom = False
 
     def _init_widget(self, widget):
@@ -510,12 +505,12 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
 
-    def _repeated_key_press(self, key, count=1, modifier=Qt.KeyboardModifier.NoModifier):
+    def _repeated_key_press(self, key, count=1, modifier=core.Qt.KeyboardModifier.NoModifier):
         """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 1000)):
             self._tab.fake_key_press(key, modifier)
 
-    @pyqtSlot(QPointF)
+    @core.pyqtSlot(core.QPointF)
     def _update_pos(self, pos):
         """Update the scroll position attributes when it changed."""
         self._pos_px = pos.toPoint()
@@ -589,28 +584,28 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_Up, count)
+        self._repeated_key_press(core.Qt.Key.Key_Up, count)
 
     def down(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_Down, count)
+        self._repeated_key_press(core.Qt.Key.Key_Down, count)
 
     def left(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_Left, count)
+        self._repeated_key_press(core.Qt.Key.Key_Left, count)
 
     def right(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_Right, count)
+        self._repeated_key_press(core.Qt.Key.Key_Right, count)
 
     def top(self):
-        self._tab.fake_key_press(Qt.Key.Key_Home)
+        self._tab.fake_key_press(core.Qt.Key.Key_Home)
 
     def bottom(self):
-        self._tab.fake_key_press(Qt.Key.Key_End)
+        self._tab.fake_key_press(core.Qt.Key.Key_End)
 
     def page_up(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_PageUp, count)
+        self._repeated_key_press(core.Qt.Key.Key_PageUp, count)
 
     def page_down(self, count=1):
-        self._repeated_key_press(Qt.Key.Key_PageDown, count)
+        self._repeated_key_press(core.Qt.Key.Key_PageDown, count)
 
     def at_top(self):
         return self.pos_px().y() == 0
@@ -625,7 +620,7 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def __init__(self, tab: 'WebEngineTab') -> None:
         self._tab = tab
-        self._history = cast(QWebEngineHistory, None)
+        self._history = cast(webenginecore.QWebEngineHistory, None)
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -667,7 +662,7 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
         stream, _data, cur_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
 
-        @pyqtSlot()
+        @core.pyqtSlot()
         def _on_load_finished():
             self._tab.scroller.to_point(cur_data['scroll-pos'])
             self._tab.load_finished.disconnect(_on_load_finished)
@@ -676,7 +671,7 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
-                    self._tab.scroller.pos_px() == QPoint(0, 0)):
+                    self._tab.scroller.pos_px() == core.QPoint(0, 0)):
                 self._tab.load_finished.connect(_on_load_finished)
 
 
@@ -821,7 +816,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         # Implements the intended two-second delay specified at
         # https://doc.qt.io/qt-5/qwebenginepage.html#recentlyAudibleChanged
         delay_ms = 2000
-        self._silence_timer = QTimer(self)
+        self._silence_timer = core.QTimer(self)
         self._silence_timer.setSingleShot(True)
         self._silence_timer.setInterval(delay_ms)
 
@@ -864,7 +859,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page = self._widget.page()
         return page.recentlyAudible()
 
-    @pyqtSlot(QUrl)
+    @core.pyqtSlot(core.QUrl)
     def _on_url_changed(self, url):
         if self._overridden or not url.isValid():
             return
@@ -876,32 +871,32 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._on_url_changed(self._tab.url())
 
 
-class _WebEnginePermissions(QObject):
+class _WebEnginePermissions(core.QObject):
 
     """Handling of various permission-related signals."""
 
     _widget: webview.WebEngineView
 
     _options = {
-        QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
-        QWebEnginePage.Feature.Geolocation: 'content.geolocation',
-        QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
-        QWebEnginePage.Feature.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
+        webenginecore.QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
+        webenginecore.QWebEnginePage.Feature.Geolocation: 'content.geolocation',
+        webenginecore.QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
+        webenginecore.QWebEnginePage.Feature.MediaVideoCapture: 'content.media.video_capture',
+        webenginecore.QWebEnginePage.Feature.MediaAudioVideoCapture: 'content.media.audio_video_capture',
+        webenginecore.QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
+        webenginecore.QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
+        webenginecore.QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
     }
 
     _messages = {
-        QWebEnginePage.Feature.Notifications: 'show notifications',
-        QWebEnginePage.Feature.Geolocation: 'access your location',
-        QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
-        QWebEnginePage.Feature.MediaVideoCapture: 'record video',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'record audio/video',
-        QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
+        webenginecore.QWebEnginePage.Feature.Notifications: 'show notifications',
+        webenginecore.QWebEnginePage.Feature.Geolocation: 'access your location',
+        webenginecore.QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
+        webenginecore.QWebEnginePage.Feature.MediaVideoCapture: 'record video',
+        webenginecore.QWebEnginePage.Feature.MediaAudioVideoCapture: 'record audio/video',
+        webenginecore.QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
+        webenginecore.QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
+        webenginecore.QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
     }
 
     def __init__(self, tab, parent=None):
@@ -922,7 +917,7 @@ class _WebEnginePermissions(QObject):
         page.registerProtocolHandlerRequested.connect(
             self._on_register_protocol_handler_requested)
 
-    @pyqtSlot('QWebEngineFullScreenRequest')
+    @core.pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
         request.accept()
         on = request.toggleOn()
@@ -936,18 +931,18 @@ class _WebEnginePermissions(QObject):
                 notif.set_timeout(timeout)
                 notif.show()
 
-    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
+    @core.pyqtSlot(core.QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
         grant_permission = functools.partial(
             page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionPolicy.PermissionGrantedByUser)
+            webenginecore.QWebEnginePage.PermissionPolicy.PermissionGrantedByUser)
         deny_permission = functools.partial(
             page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionPolicy.PermissionDeniedByUser)
+            webenginecore.QWebEnginePage.PermissionPolicy.PermissionDeniedByUser)
 
-        permission_str = debug.qenum_key(QWebEnginePage, feature)
+        permission_str = debug.qenum_key(webenginecore.QWebEnginePage, feature)
 
         if not url.isValid():
             log.webview.warning("Ignoring feature permission {} for invalid URL {}".format(
@@ -962,7 +957,7 @@ class _WebEnginePermissions(QObject):
             return
 
         question = shared.feature_permission(
-            url=url.adjusted(QUrl.UrlFormattingOption.RemovePath),
+            url=url.adjusted(core.QUrl.UrlFormattingOption.RemovePath),
             option=self._options[feature], msg=self._messages[feature],
             yes_action=grant_permission, no_action=deny_permission,
             abort_on=[self._tab.abort_questions])
@@ -989,7 +984,7 @@ class _WebEnginePermissions(QObject):
     def _on_quota_requested(self, request):
         size = utils.format_size(request.requestedSize())
         shared.feature_permission(
-            url=request.origin().adjusted(QUrl.UrlFormattingOption.RemovePath),
+            url=request.origin().adjusted(core.QUrl.UrlFormattingOption.RemovePath),
             option='content.persistent_storage',
             msg='use {} of persistent storage'.format(size),
             yes_action=request.accept, no_action=request.reject,
@@ -998,7 +993,7 @@ class _WebEnginePermissions(QObject):
 
     def _on_register_protocol_handler_requested(self, request):
         shared.feature_permission(
-            url=request.origin().adjusted(QUrl.UrlFormattingOption.RemovePath),
+            url=request.origin().adjusted(core.QUrl.UrlFormattingOption.RemovePath),
             option='content.register_protocol_handler',
             msg='open all {} links'.format(request.scheme()),
             yes_action=request.accept, no_action=request.reject,
@@ -1010,9 +1005,9 @@ class _WebEnginePermissions(QObject):
 class _Quirk:
 
     filename: str
-    injection_point: QWebEngineScript.InjectionPoint = (
-        QWebEngineScript.InjectionPoint.DocumentCreation)
-    world: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld
+    injection_point: webenginecore.QWebEngineScript.InjectionPoint = (
+        webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation)
+    world: webenginecore.QWebEngineScript.ScriptWorldId = webenginecore.QWebEngineScript.ScriptWorldId.MainWorld
     predicate: bool = True
     name: Optional[str] = None
 
@@ -1021,7 +1016,7 @@ class _Quirk:
             self.name = f"js-{self.filename.replace('_', '-')}"
 
 
-class _WebEngineScripts(QObject):
+class _WebEngineScripts(core.QObject):
 
     _widget: webview.WebEngineView
 
@@ -1039,13 +1034,13 @@ class _WebEngineScripts(QObject):
             self._update_stylesheet, searching=False))
         self._tab.search.finished.connect(self._update_stylesheet)
 
-    @pyqtSlot(str)
+    @core.pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
             self._update_stylesheet()
 
-    @pyqtSlot(bool)
+    @core.pyqtSlot(bool)
     def _update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
         css = shared.get_user_stylesheet(searching=searching)
@@ -1053,11 +1048,11 @@ class _WebEngineScripts(QObject):
         self._tab.run_js_async(code)
 
     def _inject_js(self, name, js_code, *,
-                   world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
-                   injection_point=QWebEngineScript.InjectionPoint.DocumentCreation,
+                   world=webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
+                   injection_point=webenginecore.QWebEngineScript.InjectionPoint.DocumentCreation,
                    subframes=False):
         """Inject the given script to run early on a page load."""
-        script = QWebEngineScript()
+        script = webenginecore.QWebEngineScript()
         script.setInjectionPoint(injection_point)
         script.setSourceCode(js_code)
         script.setWorldId(world)
@@ -1110,7 +1105,7 @@ class _WebEngineScripts(QObject):
         )
         self._inject_js('stylesheet', js_code, subframes=True)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _inject_all_greasemonkey_scripts(self):
         scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
@@ -1147,7 +1142,7 @@ class _WebEngineScripts(QObject):
                 script.dedup_suffix += 1
             seen_names.add(script.full_name())
 
-            new_script = QWebEngineScript()
+            new_script = webenginecore.QWebEngineScript()
 
             try:
                 world = int(script.jsworld)
@@ -1175,7 +1170,7 @@ class _WebEngineScripts(QObject):
             # NOTE that this needs to be done before setSourceCode, so that
             # QtWebEngine's parsing of GreaseMonkey tags will override it if there is a
             # @run-at comment.
-            new_script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
+            new_script.setInjectionPoint(webenginecore.QWebEngineScript.InjectionPoint.DocumentReady)
 
             new_script.setSourceCode(script.code())
             new_script.setName(script.full_name())
@@ -1184,7 +1179,7 @@ class _WebEngineScripts(QObject):
             if script.needs_document_end_workaround():
                 log.greasemonkey.debug(
                     f"Forcing @run-at document-end for {script.name}")
-                new_script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
+                new_script.setInjectionPoint(webenginecore.QWebEngineScript.InjectionPoint.DocumentReady)
 
             log.greasemonkey.debug(f'adding script: {new_script.name()}')
             page_scripts.insert(new_script)
@@ -1198,8 +1193,8 @@ class _WebEngineScripts(QObject):
         quirks = [
             _Quirk(
                 'whatsapp_web',
-                injection_point=QWebEngineScript.InjectionPoint.DocumentReady,
-                world=QWebEngineScript.ScriptWorldId.ApplicationWorld,
+                injection_point=webenginecore.QWebEngineScript.InjectionPoint.DocumentReady,
+                world=webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld,
             ),
             _Quirk('discord'),
             _Quirk(
@@ -1273,9 +1268,9 @@ class WebEngineTab(browsertab.AbstractTab):
             down.
     """
 
-    abort_questions = pyqtSignal()
+    abort_questions = core.pyqtSignal()
 
-    _widget: QWebEngineView
+    _widget: webenginewidgets.QWebEngineView
     search: WebEngineSearch
     audio: WebEngineAudio
 
@@ -1329,7 +1324,7 @@ class WebEngineTab(browsertab.AbstractTab):
             parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _restore_zoom(self):
         if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
@@ -1366,9 +1361,9 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().toHtml(callback)
 
     def run_js_async(self, code, callback=None, *, world=None):
-        world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
+        world_id_type = Union[webenginecore.QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id: world_id_type = QWebEngineScript.ScriptWorldId.ApplicationWorld
+            world_id: world_id_type = webenginecore.QWebEngineScript.ScriptWorldId.ApplicationWorld
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1385,9 +1380,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def reload(self, *, force=False):
         if force:
-            action = QWebEnginePage.WebAction.ReloadAndBypassCache
+            action = webenginecore.QWebEnginePage.WebAction.ReloadAndBypassCache
         else:
-            action = QWebEnginePage.WebAction.Reload
+            action = webenginecore.QWebEnginePage.WebAction.Reload
         self._widget.triggerPageAction(action)
 
     def stop(self):
@@ -1403,7 +1398,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
-    def set_html(self, html, base_url=QUrl()):
+    def set_html(self, html, base_url=core.QUrl()):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
         # Warning: The content will be percent encoded before being sent to the
@@ -1421,7 +1416,7 @@ class WebEngineTab(browsertab.AbstractTab):
             url=url_string, error=error)
         self.set_html(error_page)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _on_history_trigger(self):
         try:
             self._widget.page()
@@ -1437,10 +1432,10 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # Don't save the title if it's generated from the URL
         title = self.title()
-        title_url = QUrl(url)
+        title_url = core.QUrl(url)
         title_url.setScheme('')
         title_url_str = title_url.toDisplayString(
-            QUrl.UrlFormattingOption.RemoveScheme)  # type: ignore[arg-type]
+            core.QUrl.UrlFormattingOption.RemoveScheme)  # type: ignore[arg-type]
         if title == title_url_str.strip('/'):
             title = ""
 
@@ -1451,26 +1446,26 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self.history_item_triggered.emit(url, requested_url, title)
 
-    @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
+    @core.pyqtSlot(core.QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator,
                                           proxy_host):
         """Called when a proxy needs authentication."""
         msg = "<b>{}</b> requires a username and password.".format(
             html_utils.escape(proxy_host))
-        urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+        urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
         answer = message.ask(
             title="Proxy authentication required", text=msg,
             mode=usertypes.PromptMode.user_pwd,
             abort_on=[self.abort_questions], url=urlstr)
 
         if answer is None:
-            sip.assign(authenticator, QAuthenticator())
+            sip.assign(authenticator, network.QAuthenticator())
             return
 
         authenticator.setUser(answer.user)
         authenticator.setPassword(answer.password)
 
-    @pyqtSlot(QUrl, 'QAuthenticator*')
+    @core.pyqtSlot(core.QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
         log.network.debug("Authentication requested for {}, netrc_used {}"
                           .format(url.toDisplayString(), self.data.netrc_used))
@@ -1486,9 +1481,9 @@ class WebEngineTab(browsertab.AbstractTab):
                 url, authenticator, abort_on=[self.abort_questions])
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
-            sip.assign(authenticator, QAuthenticator())
+            sip.assign(authenticator, network.QAuthenticator())
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
         # WORKAROUND for
@@ -1498,27 +1493,27 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_load_started()
         self.data.netrc_used = False
 
-    @pyqtSlot('qint64')
+    @core.pyqtSlot('qint64')
     def _on_renderer_process_pid_changed(self, pid):
         log.webview.debug("Renderer process PID for tab {}: {}"
                           .format(self.tab_id, pid))
 
-    @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
+    @core.pyqtSlot(webenginecore.QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
-        if (status == QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus and
+        if (status == webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus and
                 exitcode == 256):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
-            status = QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus
+            status = webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus
 
         status_map = {
-            QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus:
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.NormalTerminationStatus:
                 browsertab.TerminationStatus.normal,
-            QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus:
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.AbnormalTerminationStatus:
                 browsertab.TerminationStatus.abnormal,
-            QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus:
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.CrashedTerminationStatus:
                 browsertab.TerminationStatus.crashed,
-            QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus:
+            webenginecore.QWebEnginePage.RenderProcessTerminationStatus.KilledTerminationStatus:
                 browsertab.TerminationStatus.killed,
             -1:
                 browsertab.TerminationStatus.unknown,
@@ -1546,7 +1541,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self._show_error_page(self.url(), error=error)
 
-    @pyqtSlot(int)
+    @core.pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:
         """QtWebEngine-specific loadProgress workarounds."""
         super()._on_load_progress(perc)
@@ -1557,7 +1552,7 @@ class WebEngineTab(browsertab.AbstractTab):
         ):
             self._update_load_status(ok=True)
 
-    @pyqtSlot(bool)
+    @core.pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         """QtWebEngine-specific loadFinished code."""
         super()._on_load_finished(ok)
@@ -1571,7 +1566,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._error_page_workaround,
                 self.settings.test_attribute('content.javascript.enabled')))
 
-    @pyqtSlot(certificateerror.CertificateErrorWrapper)
+    @core.pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         url = error.url()
         self._insecure_hosts.add(url.host())
@@ -1599,7 +1594,7 @@ class WebEngineTab(browsertab.AbstractTab):
         log.network.debug("ignore {}, URL {}, requested {}".format(
             error.ignore, url, self.url(requested=True)))
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _on_print_requested(self):
         """Slot for window.print() in JS."""
         try:
@@ -1607,7 +1602,7 @@ class WebEngineTab(browsertab.AbstractTab):
         except browsertab.WebTabError as e:
             message.error(str(e))
 
-    @pyqtSlot(usertypes.NavigationRequest)
+    @core.pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
 

@@ -27,13 +27,12 @@ import netrc
 import tempfile
 from typing import Callable, Mapping, List, Optional, Iterable, Iterator
 
-from qutebrowser.qt.core import QUrl, pyqtBoundSignal
-
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
                                qtutils, version)
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import guiprocess, objects
+from qutebrowser.qt import core
 
 
 class CallSuper(Exception):
@@ -72,7 +71,7 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
-    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+    urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
                          abort_on=abort_on, url=urlstr)
@@ -95,7 +94,7 @@ def javascript_confirm(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+    urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
                       abort_on=abort_on, url=urlstr)
@@ -112,7 +111,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+    urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
@@ -135,7 +134,7 @@ def javascript_alert(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           _format_msg(js_msg))
-    urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+    urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
 
@@ -160,10 +159,10 @@ def javascript_log_message(level, source, line, msg):
 
 def handle_certificate_error(
         *,
-        request_url: QUrl,
-        first_party_url: QUrl,
+        request_url: core.QUrl,
+        first_party_url: core.QUrl,
         error: usertypes.AbstractCertificateErrorWrapper,
-        abort_on: Iterable[pyqtBoundSignal],
+        abort_on: Iterable[core.pyqtBoundSignal],
 ) -> None:
     """Display a certificate error question.
 
@@ -184,7 +183,7 @@ def handle_certificate_error(
         first_party_url.isValid() and
         not request_url.matches(
             first_party_url,
-            QUrl.UrlFormattingOption.RemoveScheme))  # type: ignore[arg-type]
+            core.QUrl.UrlFormattingOption.RemoveScheme))  # type: ignore[arg-type]
 
     if conf == 'ask' or conf == 'ask-block-thirdparty' and not is_resource:
         err_template = jinja.environment.from_string("""
@@ -214,7 +213,7 @@ def handle_certificate_error(
             error=error,
         )
         urlstr = request_url.toString(
-            QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
+            core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)  # type: ignore[arg-type]
         title = "Certificate error"
 
         try:
@@ -275,7 +274,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
     config_val = config.instance.get(option, url=url)
     if config_val == 'ask':
         if url.isValid():
-            urlstr = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+            urlstr = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:

@@ -21,19 +21,17 @@
 
 from typing import Sequence
 
-from qutebrowser.qt.network import QNetworkCookie, QNetworkCookieJar
-from qutebrowser.qt.core import pyqtSignal, QDateTime
-
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir, objreg, log
 from qutebrowser.misc import lineparser, objects
+from qutebrowser.qt import network, core
 
 
 cookie_jar = None
 ram_cookie_jar = None
 
 
-class RAMCookieJar(QNetworkCookieJar):
+class RAMCookieJar(network.QNetworkCookieJar):
 
     """An in-RAM cookie jar.
 
@@ -41,7 +39,7 @@ class RAMCookieJar(QNetworkCookieJar):
         changed: Emitted when the cookie store was changed.
     """
 
-    changed = pyqtSignal()
+    changed = core.pyqtSignal()
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
@@ -93,9 +91,9 @@ class CookieJar(RAMCookieJar):
 
     def parse_cookies(self):
         """Parse cookies from lineparser and store them."""
-        cookies: Sequence[QNetworkCookie] = []
+        cookies: Sequence[network.QNetworkCookie] = []
         for line in self._lineparser:
-            line_cookies = QNetworkCookie.parseCookies(line)
+            line_cookies = network.QNetworkCookie.parseCookies(line)
             cookies += line_cookies  # type: ignore[operator]
         self.setAllCookies(cookies)
 
@@ -103,7 +101,7 @@ class CookieJar(RAMCookieJar):
         """Purge expired cookies from the cookie jar."""
         # Based on:
         # https://doc.qt.io/archives/qt-5.5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
-        now = QDateTime.currentDateTime()
+        now = core.QDateTime.currentDateTime()
         cookies = [c for c in self.allCookies()
                    if c.isSessionCookie() or
                    c.expirationDate() >= now]  # type: ignore[operator]

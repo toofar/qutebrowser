@@ -21,7 +21,7 @@
 
 from typing import Dict, Sequence
 
-from qutebrowser.qt.core import QAbstractItemModel
+from qutebrowser.qt import core
 
 from qutebrowser.completion.models import (completionmodel, filepathcategory,
                                            listcategory, histcategory)
@@ -74,7 +74,7 @@ def url(*, info):
                      in sorted(config.val.url.searchengines.items())
                      if k != 'DEFAULT']
     categories = config.val.completion.open_categories
-    models: Dict[str, QAbstractItemModel] = {}
+    models: Dict[str, core.QAbstractItemModel] = {}
 
     if searchengines and 'searchengines' in categories:
         models['searchengines'] = listcategory.ListCategory(

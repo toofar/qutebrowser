@@ -24,7 +24,7 @@ import hypothesis
 from hypothesis import strategies
 
 import pytest
-from qutebrowser.qt.core import QModelIndex
+from qutebrowser.qt import core
 
 from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import qtutils
@@ -114,5 +114,5 @@ def test_delete_cur_item_no_cat():
     model.rowsAboutToBeRemoved.connect(callback)
     model.rowsRemoved.connect(callback)
     with pytest.raises(qtutils.QtValueError):
-        model.delete_cur_item(QModelIndex())
+        model.delete_cur_item(core.QModelIndex())
     callback.assert_not_called()

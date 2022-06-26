@@ -23,7 +23,7 @@ import logging
 import pathlib
 
 import pytest
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.utils import usertypes, version
 from qutebrowser.browser import greasemonkey
@@ -207,7 +207,7 @@ def test_get_scripts_by_url(gm_manager, url, expected_matches):
     _save_script(test_gm_script, 'test.user.js')
     gm_manager.load_scripts()
 
-    scripts = gm_manager.scripts_for(QUrl(url))
+    scripts = gm_manager.scripts_for(core.QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
@@ -231,7 +231,7 @@ def test_regex_includes_scripts_for(gm_manager, url, expected_matches):
     _save_script(gh_dark_example, 'test.user.js')
     gm_manager.load_scripts()
 
-    scripts = gm_manager.scripts_for(QUrl(url))
+    scripts = gm_manager.scripts_for(core.QUrl(url))
     assert len(scripts.start + scripts.end + scripts.idle) == expected_matches
 
 
@@ -242,7 +242,7 @@ def test_no_metadata(gm_manager, caplog):
     with caplog.at_level(logging.WARNING):
         gm_manager.load_scripts()
 
-    scripts = gm_manager.scripts_for(QUrl('http://notamatch.invalid/'))
+    scripts = gm_manager.scripts_for(core.QUrl('http://notamatch.invalid/'))
     assert len(scripts.start + scripts.end + scripts.idle) == 1
     assert len(scripts.end) == 1
 
@@ -283,7 +283,7 @@ def test_bad_scheme(gm_manager, caplog):
     with caplog.at_level(logging.WARNING):
         gm_manager.load_scripts()
 
-    scripts = gm_manager.scripts_for(QUrl('qute://settings'))
+    scripts = gm_manager.scripts_for(core.QUrl('qute://settings'))
     assert len(scripts.start + scripts.end + scripts.idle) == 0
 
 

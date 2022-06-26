@@ -23,12 +23,11 @@ import os.path
 import collections
 from typing import MutableMapping
 
-from qutebrowser.qt.core import pyqtSlot, QObject, QTimer
-
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, message, usertypes, error
 from qutebrowser.misc import objects
+from qutebrowser.qt import core
 
 
 class Saveable:
@@ -101,7 +100,7 @@ class Saveable:
             self._dirty = False
 
 
-class SaveManager(QObject):
+class SaveManager(core.QObject):
 
     """Responsible to save 'saveables' periodically and on exit.
 
@@ -150,7 +149,7 @@ class SaveManager(QObject):
         self.saveables[name] = saveable
         if dirty:
             saveable.mark_dirty()
-            QTimer.singleShot(0, saveable.save)
+            core.QTimer.singleShot(0, saveable.save)
 
     def save(self, name, is_exit=False, explicit=False, silent=False,
              force=False):
@@ -172,7 +171,7 @@ class SaveManager(QObject):
         for saveable in self.saveables:
             self.save(saveable, *args, **kwargs)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def autosave(self):
         """Slot used when the configs are auto-saved."""
         for (key, saveable) in self.saveables.items():
@@ -205,7 +204,7 @@ class SaveManager(QObject):
                     message.error("Could not save {}: {}".format(key, e))
         log.save.debug(":save saved {}".format(', '.join(what)))
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def shutdown(self):
         """Save all saveables when shutting down."""
         for key in self.saveables:

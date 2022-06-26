@@ -19,29 +19,26 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-from qutebrowser.qt.core import QUrl, QByteArray
-from qutebrowser.qt.webenginecore import (QWebEngineUrlRequestInterceptor,
-                                   QWebEngineUrlRequestInfo)
-
 from qutebrowser.config import websettings, config
 from qutebrowser.browser import shared
 from qutebrowser.utils import debug, log
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
+from qutebrowser.qt import webenginecore, core
 
 
 class WebEngineRequest(interceptors.Request):
 
     """QtWebEngine-specific request interceptor functionality."""
 
-    _WHITELISTED_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
+    _WHITELISTED_REQUEST_METHODS = {core.QByteArray(b'GET'), core.QByteArray(b'HEAD')}
 
     def __init__(self, *args, webengine_info, **kwargs):
         super().__init__(*args, **kwargs)
         self._webengine_info = webengine_info
         self._redirected = False
 
-    def redirect(self, url: QUrl, *, ignore_unsupported: bool = False) -> None:
+    def redirect(self, url: core.QUrl, *, ignore_unsupported: bool = False) -> None:
         if self._redirected:
             raise interceptors.RedirectException("Request already redirected.")
         if self._webengine_info is None:
@@ -62,7 +59,7 @@ class WebEngineRequest(interceptors.Request):
         self._redirected = True
 
 
-class RequestInterceptor(QWebEngineUrlRequestInterceptor):
+class RequestInterceptor(webenginecore.QWebEngineUrlRequestInterceptor):
     """Handle ad blocking and custom headers."""
 
     def __init__(self, parent=None):
@@ -71,47 +68,47 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         # extension ResourceTypes. If a ResourceType is added to Qt, this table
         # should be updated too.
         self._resource_types = {
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMainFrame:
                 interceptors.ResourceType.main_frame,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubFrame:
                 interceptors.ResourceType.sub_frame,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeStylesheet:
                 interceptors.ResourceType.stylesheet,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeScript:
                 interceptors.ResourceType.script,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeImage:
                 interceptors.ResourceType.image,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFontResource:
                 interceptors.ResourceType.font_resource,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSubResource:
                 interceptors.ResourceType.sub_resource,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeObject:
                 interceptors.ResourceType.object,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeMedia:
                 interceptors.ResourceType.media,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeWorker:
                 interceptors.ResourceType.worker,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeSharedWorker:
                 interceptors.ResourceType.shared_worker,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePrefetch:
                 interceptors.ResourceType.prefetch,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeFavicon:
                 interceptors.ResourceType.favicon,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr:
                 interceptors.ResourceType.xhr,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePing:
                 interceptors.ResourceType.ping,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeServiceWorker:
                 interceptors.ResourceType.service_worker,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeCspReport:
                 interceptors.ResourceType.csp_report,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypePluginResource:
                 interceptors.ResourceType.plugin_resource,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeUnknown:
                 interceptors.ResourceType.unknown,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadMainFrame:
                 interceptors.ResourceType.preload_main_frame,
-            QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame:
+            webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeNavigationPreloadSubFrame:
                 interceptors.ResourceType.preload_sub_frame,
         }
 
@@ -132,9 +129,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info: QWebEngineUrlRequestInfo &info
         """
         if 'log-requests' in objects.debug_flags:
-            resource_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+            resource_type_str = debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
                                                 info.resourceType())
-            navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+            navigation_type_str = debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
                                                   info.navigationType())
             log.network.debug("{} {}, first-party {}, resource {}, "
                               "navigation {}".format(
@@ -157,15 +154,15 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         except KeyError:
             log.network.warning(
                 "Resource type {} not found in RequestInterceptor dict."
-                .format(debug.qenum_key(QWebEngineUrlRequestInfo,
+                .format(debug.qenum_key(webenginecore.QWebEngineUrlRequestInfo,
                                         info.resourceType())))
             resource_type = interceptors.ResourceType.unknown
 
-        is_xhr = info.resourceType() == QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr
+        is_xhr = info.resourceType() == webenginecore.QWebEngineUrlRequestInfo.ResourceType.ResourceTypeXhr
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
-            if first_party != QUrl('qute://settings/') or not is_xhr:
+            if first_party != core.QUrl('qute://settings/') or not is_xhr:
                 log.network.warning("Blocking malicious request from {} to {}"
                                     .format(first_party.toDisplayString(),
                                             url.toDisplayString()))

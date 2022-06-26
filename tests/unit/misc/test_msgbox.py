@@ -20,8 +20,7 @@
 
 import pytest
 
-from qutebrowser.qt.core import Qt
-from qutebrowser.qt.widgets import QMessageBox, QWidget
+from qutebrowser.qt import widgets, core
 
 from qutebrowser.misc import msgbox
 from qutebrowser.utils import utils
@@ -36,10 +35,10 @@ def test_attributes(qtbot):
     """Test basic QMessageBox attributes."""
     title = 'title'
     text = 'text'
-    parent = QWidget()
+    parent = widgets.QWidget()
     qtbot.add_widget(parent)
-    icon = QMessageBox.Icon.Critical
-    buttons = QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel
+    icon = widgets.QMessageBox.Icon.Critical
+    buttons = widgets.QMessageBox.StandardButton.Ok | widgets.QMessageBox.StandardButton.Cancel
 
     box = msgbox.msgbox(parent=parent, title=title, text=text, icon=icon,
                         buttons=buttons)
@@ -53,13 +52,13 @@ def test_attributes(qtbot):
 
 
 @pytest.mark.parametrize('plain_text, expected', [
-    (True, Qt.TextFormat.PlainText),
-    (False, Qt.TextFormat.RichText),
-    (None, Qt.TextFormat.AutoText),
+    (True, core.Qt.TextFormat.PlainText),
+    (False, core.Qt.TextFormat.RichText),
+    (None, core.Qt.TextFormat.AutoText),
 ])
 def test_plain_text(qtbot, plain_text, expected):
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Icon.Information, plain_text=plain_text)
+                        icon=widgets.QMessageBox.Icon.Information, plain_text=plain_text)
     qtbot.add_widget(box)
     assert box.textFormat() == expected
 
@@ -73,7 +72,7 @@ def test_finished_signal(qtbot):
         signal_triggered = True
 
     box = msgbox.msgbox(parent=None, title='foo', text='foo',
-                        icon=QMessageBox.Icon.Information, on_finished=on_finished)
+                        icon=widgets.QMessageBox.Icon.Information, on_finished=on_finished)
 
     qtbot.add_widget(box)
 
@@ -89,7 +88,7 @@ def test_information(qtbot):
     if not utils.is_mac:
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
-    assert box.icon() == QMessageBox.Icon.Information
+    assert box.icon() == widgets.QMessageBox.Icon.Information
 
 
 def test_no_err_windows(fake_args, caplog):

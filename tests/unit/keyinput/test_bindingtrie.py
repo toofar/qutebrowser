@@ -25,7 +25,7 @@ import textwrap
 
 import pytest
 
-from qutebrowser.qt.gui import QKeySequence
+from qutebrowser.qt import gui
 
 from qutebrowser.keyinput import basekeyparser
 from qutebrowser.keyinput import keyutils
@@ -39,7 +39,7 @@ def test_matches_single(entered, configured, match_type):
     configured = keyutils.KeySequence.parse(configured)
     trie = basekeyparser.BindingTrie()
     trie[configured] = "eeloo"
-    command = "eeloo" if match_type == QKeySequence.SequenceMatch.ExactMatch else None
+    command = "eeloo" if match_type == gui.QKeySequence.SequenceMatch.ExactMatch else None
     result = basekeyparser.MatchResult(match_type=match_type,
                                        command=command,
                                        sequence=entered)
@@ -82,22 +82,22 @@ def test_str():
 @pytest.mark.parametrize('configured, expected', [
     ([],
      # null match
-     [('a', QKeySequence.SequenceMatch.NoMatch),
-      ('', QKeySequence.SequenceMatch.NoMatch)]),
+     [('a', gui.QKeySequence.SequenceMatch.NoMatch),
+      ('', gui.QKeySequence.SequenceMatch.NoMatch)]),
     (['abcd'],
-     [('abcd', QKeySequence.SequenceMatch.ExactMatch),
-      ('abc', QKeySequence.SequenceMatch.PartialMatch)]),
+     [('abcd', gui.QKeySequence.SequenceMatch.ExactMatch),
+      ('abc', gui.QKeySequence.SequenceMatch.PartialMatch)]),
     (['aa', 'ab', 'ac', 'ad'],
-     [('ac', QKeySequence.SequenceMatch.ExactMatch),
-      ('a', QKeySequence.SequenceMatch.PartialMatch),
-      ('f', QKeySequence.SequenceMatch.NoMatch),
-      ('acd', QKeySequence.SequenceMatch.NoMatch)]),
+     [('ac', gui.QKeySequence.SequenceMatch.ExactMatch),
+      ('a', gui.QKeySequence.SequenceMatch.PartialMatch),
+      ('f', gui.QKeySequence.SequenceMatch.NoMatch),
+      ('acd', gui.QKeySequence.SequenceMatch.NoMatch)]),
     (['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
-     [('aaaaaaab', QKeySequence.SequenceMatch.ExactMatch),
-      ('z', QKeySequence.SequenceMatch.NoMatch)]),
+     [('aaaaaaab', gui.QKeySequence.SequenceMatch.ExactMatch),
+      ('z', gui.QKeySequence.SequenceMatch.NoMatch)]),
     (string.ascii_letters,
-     [('a', QKeySequence.SequenceMatch.ExactMatch),
-      ('!', QKeySequence.SequenceMatch.NoMatch)]),
+     [('a', gui.QKeySequence.SequenceMatch.ExactMatch),
+      ('!', gui.QKeySequence.SequenceMatch.NoMatch)]),
 ])
 def test_matches_tree(configured, expected, benchmark):
     trie = basekeyparser.BindingTrie()
@@ -107,7 +107,7 @@ def test_matches_tree(configured, expected, benchmark):
     def run():
         for entered, match_type in expected:
             sequence = keyutils.KeySequence.parse(entered)
-            command = ("eeloo" if match_type == QKeySequence.SequenceMatch.ExactMatch
+            command = ("eeloo" if match_type == gui.QKeySequence.SequenceMatch.ExactMatch
                        else None)
             result = basekeyparser.MatchResult(match_type=match_type,
                                                command=command,

@@ -26,7 +26,7 @@ import logging
 import pathlib
 from typing import cast, IO, Set
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.api import (
     hook,
@@ -115,7 +115,7 @@ class HostBlocker:
 
         self._config_hosts_file = str(config_dir / "blocked-hosts")
 
-    def _is_blocked(self, request_url: QUrl, first_party_url: QUrl = None) -> bool:
+    def _is_blocked(self, request_url: core.QUrl, first_party_url: core.QUrl = None) -> bool:
         """Check whether the given request is blocked."""
         if not self.enabled:
             return False

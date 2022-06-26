@@ -29,9 +29,7 @@ import re
 import shlex
 import math
 import operator
-
-from qutebrowser.qt.core import QUrl, QRect, QPoint
-from qutebrowser.qt.gui import QClipboard
+from qutebrowser.qt import gui
 import pytest
 import hypothesis
 from hypothesis import strategies
@@ -41,6 +39,7 @@ import qutebrowser
 import qutebrowser.utils  # for test_qualname
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.utils.utils import VersionNumber
+from qutebrowser.qt import core
 
 
 class TestVersionNumber:
@@ -676,7 +675,7 @@ class TestGetSetClipboard:
     def test_set(self, clipboard_mock, caplog):
         utils.set_clipboard('Hello World')
         clipboard_mock.setText.assert_called_with('Hello World',
-                                                  mode=QClipboard.Mode.Clipboard)
+                                                  mode=gui.QClipboard.Mode.Clipboard)
         assert not caplog.records
 
     def test_set_unsupported_selection(self, clipboard_mock):
@@ -776,7 +775,7 @@ class TestOpenFile:
         result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
-        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+        openurl_mock.assert_called_with(core.QUrl('file:///foo/bar'))
 
     def test_cmdline_sandboxed(self, fake_flatpak,
                                config_stub, message_mock, caplog):
@@ -795,12 +794,12 @@ class TestOpenFile:
 
         assert caplog.messages[1] == ('Ignoring download dispatcher from '
                                       'config in sandbox environment')
-        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+        openurl_mock.assert_called_with(core.QUrl('file:///foo/bar'))
 
     def test_system_default_sandboxed(self, config_stub, openurl_mock,
                                       fake_flatpak):
         utils.open_file('/foo/bar')
-        openurl_mock.assert_called_with(QUrl('file:///foo/bar'))
+        openurl_mock.assert_called_with(core.QUrl('file:///foo/bar'))
 
 
 def test_unused():
@@ -998,8 +997,8 @@ class TestCleanupFileContext:
 class TestParseRect:
 
     @pytest.mark.parametrize('value, expected', [
-        ('1x1+0+0', QRect(0, 0, 1, 1)),
-        ('123x789+12+34', QRect(12, 34, 123, 789)),
+        ('1x1+0+0', core.QRect(0, 0, 1, 1)),
+        ('123x789+12+34', core.QRect(12, 34, 123, 789)),
     ])
     def test_valid(self, value, expected):
         assert utils.parse_rect(value) == expected
@@ -1048,9 +1047,9 @@ class TestParseRect:
 class TestParsePoint:
 
     @pytest.mark.parametrize('value, expected', [
-        ('1,1', QPoint(1, 1)),
-        ('123,789', QPoint(123, 789)),
-        ('-123,-789', QPoint(-123, -789)),
+        ('1,1', core.QPoint(1, 1)),
+        ('123,789', core.QPoint(123, 789)),
+        ('-123,-789', core.QPoint(-123, -789)),
     ])
     def test_valid(self, value, expected):
         assert utils.parse_point(value) == expected

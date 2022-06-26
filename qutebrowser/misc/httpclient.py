@@ -23,23 +23,20 @@ import functools
 import urllib.parse
 from typing import MutableMapping
 
-from qutebrowser.qt.core import pyqtSignal, QObject, QTimer
-from qutebrowser.qt.network import (QNetworkAccessManager, QNetworkRequest,
-                             QNetworkReply)
-
 from qutebrowser.utils import log
+from qutebrowser.qt import network, core
 
 
-class HTTPRequest(QNetworkRequest):
+class HTTPRequest(network.QNetworkRequest):
     """A QNetworkRquest that follows (secure) redirects by default."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAttribute(QNetworkRequest.Attribute.RedirectPolicyAttribute,
-                          QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
+        self.setAttribute(network.QNetworkRequest.Attribute.RedirectPolicyAttribute,
+                          network.QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
 
 
-class HTTPClient(QObject):
+class HTTPClient(core.QObject):
 
     """An HTTP client based on QNetworkAccessManager.
 
@@ -56,16 +53,16 @@ class HTTPClient(QObject):
                arg: The error message, as string.
     """
 
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
+    success = core.pyqtSignal(str)
+    error = core.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when messages are printed, see our
             # NetworkAccessManager subclass for details.
-            self._nam = QNetworkAccessManager(self)
-        self._timers: MutableMapping[QNetworkReply, QTimer] = {}
+            self._nam = network.QNetworkAccessManager(self)
+        self._timers: MutableMapping[network.QNetworkReply, core.QTimer] = {}
 
     def post(self, url, data=None):
         """Create a new POST request.
@@ -78,7 +75,7 @@ class HTTPClient(QObject):
             data = {}
         encoded_data = urllib.parse.urlencode(data).encode('utf-8')
         request = HTTPRequest(url)
-        request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader,
+        request.setHeader(network.QNetworkRequest.KnownHeaders.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
         reply = self._nam.post(request, encoded_data)
         self._handle_reply(reply)
@@ -100,7 +97,7 @@ class HTTPClient(QObject):
         if reply.isFinished():
             self.on_reply_finished(reply)
         else:
-            timer = QTimer(self)
+            timer = core.QTimer(self)
             timer.setInterval(10000)
             timer.timeout.connect(reply.abort)
             timer.start()
@@ -118,7 +115,7 @@ class HTTPClient(QObject):
         if timer is not None:
             timer.stop()
             timer.deleteLater()
-        if reply.error() != QNetworkReply.NetworkError.NoError:
+        if reply.error() != network.QNetworkReply.NetworkError.NoError:
             self.error.emit(reply.errorString())
             return
         try:

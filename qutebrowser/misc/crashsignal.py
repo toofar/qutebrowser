@@ -31,15 +31,12 @@ import threading
 import faulthandler
 import dataclasses
 from typing import TYPE_CHECKING, Optional, MutableMapping, cast, List
-
-from qutebrowser.qt.core import (pyqtSlot, qInstallMessageHandler, QObject,
-                          QSocketNotifier, QTimer, QUrl)
-from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt import widgets
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 if TYPE_CHECKING:
     from qutebrowser.misc import quitter
 
@@ -57,7 +54,7 @@ class ExceptionInfo:
 crash_handler = cast('CrashHandler', None)
 
 
-class CrashHandler(QObject):
+class CrashHandler(core.QObject):
 
     """Handler for crashes, reports and exceptions.
 
@@ -135,7 +132,7 @@ class CrashHandler(QObject):
             for tab in tabbed_browser.widgets():
                 try:
                     urlstr = tab.url().toString(
-                        QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+                        core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
                     if urlstr:
                         win_pages.append(urlstr)
                 except Exception:
@@ -178,7 +175,7 @@ class CrashHandler(QObject):
         else:
             self._crash_dialog.report(info=info, contact=contact)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def shutdown(self):
         self.destroy_crashlogfile()
 
@@ -303,7 +300,7 @@ class CrashHandler(QObject):
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
         # here.
-        qInstallMessageHandler(None)
+        core.qInstallMessageHandler(None)
         self.destroy_crashlogfile()
         sys.exit(usertypes.Exit.exception)
 
@@ -313,7 +310,7 @@ class CrashHandler(QObject):
             self._crash_dialog.raise_()
 
 
-class SignalHandler(QObject):
+class SignalHandler(core.QObject):
 
     """Handler responsible for handling OS signals (SIGINT, SIGTERM, etc.).
 
@@ -358,8 +355,8 @@ class SignalHandler(QObject):
             for fd in [read_fd, write_fd]:
                 flags = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-            self._notifier = QSocketNotifier(cast(sip.voidptr, read_fd),
-                                             QSocketNotifier.Type.Read,
+            self._notifier = core.QSocketNotifier(cast(sip.voidptr, read_fd),
+                                             core.QSocketNotifier.Type.Read,
                                              self)
             self._notifier.activated.connect(self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
@@ -385,7 +382,7 @@ class SignalHandler(QObject):
         self._timer.stop()
         self._activated = False
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def handle_signal_wakeup(self):
         """Handle a newly arrived signal.
 
@@ -406,7 +403,7 @@ class SignalHandler(QObject):
     def _log_later(self, *lines):
         """Log the given text line-wise with a QTimer."""
         for line in lines:
-            QTimer.singleShot(0, functools.partial(log.destroy.info, line))
+            core.QTimer.singleShot(0, functools.partial(log.destroy.info, line))
 
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).
@@ -419,7 +416,7 @@ class SignalHandler(QObject):
         # Signals can arrive anywhere, so we do this in the main thread
         self._log_later("SIGINT/SIGTERM received, shutting down!",
                         "Do the same again to forcefully quit.")
-        QTimer.singleShot(0, functools.partial(
+        core.QTimer.singleShot(0, functools.partial(
             self._quitter.shutdown, 128 + signum))
 
     def interrupt_forcefully(self, signum, _frame):
@@ -434,7 +431,7 @@ class SignalHandler(QObject):
         # Signals can arrive anywhere, so we do this in the main thread
         self._log_later("Forceful quit requested, goodbye cruel world!",
                         "Do the same again to quit with even more force.")
-        QTimer.singleShot(0, functools.partial(self._app.exit, 128 + signum))
+        core.QTimer.singleShot(0, functools.partial(self._app.exit, 128 + signum))
 
     def interrupt_really_forcefully(self, signum, _frame):
         """Interrupt with even more force on the third SIGINT/SIGTERM request.
@@ -446,7 +443,7 @@ class SignalHandler(QObject):
         sys.exit(128 + signum)
 
 
-def init(q_app: QApplication,
+def init(q_app: widgets.QApplication,
          args: argparse.Namespace,
          quitter: 'quitter.Quitter') -> None:
     """Initialize crash/signal handlers."""

@@ -24,8 +24,7 @@ import logging
 import dataclasses
 import urllib.parse
 
-from qutebrowser.qt.core import QUrl
-from qutebrowser.qt.network import QNetworkProxy
+from qutebrowser.qt import network, core
 import pytest
 import hypothesis
 import hypothesis.strategies
@@ -135,7 +134,7 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('foo', cwd='cwd', relative=True)
 
         os_mock.path.exists.assert_called_once_with('cwd/foo')
-        assert url == QUrl('file:cwd/foo')
+        assert url == core.QUrl('file:cwd/foo')
 
     def test_file_relative(self, os_mock):
         """Test with relative=True and cwd unset."""
@@ -146,7 +145,7 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('foo', relative=True)
 
         os_mock.path.exists.assert_called_once_with('abs_path')
-        assert url == QUrl('file:abs_path')
+        assert url == core.QUrl('file:abs_path')
 
     def test_file_relative_os_error(self, os_mock, is_url_mock):
         """Test with relative=True, cwd unset and abspath raising OSError."""
@@ -157,11 +156,11 @@ class TestFuzzyUrl:
 
         url = urlutils.fuzzy_url('foo', relative=True)
         assert not os_mock.path.exists.called
-        assert url == QUrl('http://foo')
+        assert url == core.QUrl('http://foo')
 
     @pytest.mark.parametrize('path, expected', [
-        ('/foo', QUrl('file:///foo')),
-        ('/bar\n', QUrl('file:///bar')),
+        ('/foo', core.QUrl('file:///foo')),
+        ('/bar\n', core.QUrl('file:///bar')),
     ])
     def test_file_absolute(self, path, expected, os_mock):
         """Test with an absolute path."""
@@ -178,7 +177,7 @@ class TestFuzzyUrl:
         os_mock.path.isabs.return_value = True
 
         url = urlutils.fuzzy_url('~/foo')
-        assert url == QUrl('file://' + os.path.expanduser('~/foo'))
+        assert url == core.QUrl('file://' + os.path.expanduser('~/foo'))
 
     def test_address(self, os_mock, is_url_mock):
         """Test passing something with relative=False."""
@@ -186,16 +185,16 @@ class TestFuzzyUrl:
         is_url_mock.return_value = True
 
         url = urlutils.fuzzy_url('foo')
-        assert url == QUrl('http://foo')
+        assert url == core.QUrl('http://foo')
 
     def test_search_term(self, os_mock, is_url_mock, get_search_url_mock):
         """Test passing something with do_search=True."""
         os_mock.path.isabs.return_value = False
         is_url_mock.return_value = False
-        get_search_url_mock.return_value = QUrl('search_url')
+        get_search_url_mock.return_value = core.QUrl('search_url')
 
         url = urlutils.fuzzy_url('foo', do_search=True)
-        assert url == QUrl('search_url')
+        assert url == core.QUrl('search_url')
 
     def test_search_term_value_error(self, os_mock, is_url_mock,
                                      get_search_url_mock):
@@ -205,14 +204,14 @@ class TestFuzzyUrl:
         get_search_url_mock.side_effect = ValueError
 
         url = urlutils.fuzzy_url('foo', do_search=True)
-        assert url == QUrl('http://foo')
+        assert url == core.QUrl('http://foo')
 
     def test_no_do_search(self, is_url_mock):
         """Test with do_search = False."""
         is_url_mock.return_value = False
 
         url = urlutils.fuzzy_url('foo', do_search=False)
-        assert url == QUrl('http://foo')
+        assert url == core.QUrl('http://foo')
 
     @pytest.mark.parametrize('do_search', [True, False])
     def test_invalid_url(self, do_search, caplog):
@@ -233,11 +232,11 @@ class TestFuzzyUrl:
     ])
     def test_force_search(self, urlstring, get_search_url_mock):
         """Test the force search option."""
-        get_search_url_mock.return_value = QUrl('search_url')
+        get_search_url_mock.return_value = core.QUrl('search_url')
 
         url = urlutils.fuzzy_url(urlstring, force_search=True)
 
-        assert url == QUrl('search_url')
+        assert url == core.QUrl('search_url')
 
     @pytest.mark.parametrize('path, check_exists', [
         ('/foo', False),
@@ -273,7 +272,7 @@ class TestFuzzyUrl:
     ('www.qutebrowser.org', False),
 ])
 def test_special_urls(url, special):
-    assert urlutils.is_special_url(QUrl(url)) == special
+    assert urlutils.is_special_url(core.QUrl(url)) == special
 
 
 @pytest.mark.parametrize('open_base_url', [True, False])
@@ -321,7 +320,7 @@ def test_get_search_url_for_path_search(config_stub, url, host, path, open_base_
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
     assert url.host() == host
-    assert url.path(options=QUrl.ComponentFormattingOption.PrettyDecoded) == '/' + path
+    assert url.path(options=core.QUrl.ComponentFormattingOption.PrettyDecoded) == '/' + path
 
 
 @pytest.mark.parametrize('url, host', [
@@ -352,7 +351,7 @@ def test_get_search_url_invalid(url):
 @dataclasses.dataclass
 class UrlParams:
 
-    url: QUrl
+    url: core.QUrl
     is_url: bool = True
     is_url_no_autosearch: bool = True
     use_dns: bool = True
@@ -497,7 +496,7 @@ def test_invalid_url_error(message_mock, caplog, url, valid, has_err_string):
         valid: Whether the QUrl is valid (isValid() == True).
         has_err_string: Whether the QUrl is expected to have errorString set.
     """
-    qurl = QUrl(url)
+    qurl = core.QUrl(url)
     assert qurl.isValid() == valid
     if valid:
         with pytest.raises(ValueError):
@@ -530,7 +529,7 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
         valid: Whether the QUrl is valid (isValid() == True).
         has_err_string: Whether the QUrl is expected to have errorString set.
     """
-    qurl = QUrl(url)
+    qurl = core.QUrl(url)
     assert qurl.isValid() == valid
     if valid:
         urlutils.raise_cmdexc_if_invalid(qurl)
@@ -545,36 +544,36 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
 
 
 @pytest.mark.parametrize('qurl, output', [
-    (QUrl(), None),
-    (QUrl('http://qutebrowser.org/test.html'), 'test.html'),
-    (QUrl('http://qutebrowser.org/foo.html#bar'), 'foo.html'),
-    (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'), 'foo'),
-    (QUrl('http://qutebrowser.org/'), 'qutebrowser.org.html'),
-    (QUrl('qute://'), None),
+    (core.QUrl(), None),
+    (core.QUrl('http://qutebrowser.org/test.html'), 'test.html'),
+    (core.QUrl('http://qutebrowser.org/foo.html#bar'), 'foo.html'),
+    (core.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'), 'foo'),
+    (core.QUrl('http://qutebrowser.org/'), 'qutebrowser.org.html'),
+    (core.QUrl('qute://'), None),
     # data URL support
-    (QUrl('data:text/plain,'), 'download.txt'),
-    (QUrl('data:application/pdf,'), 'download.pdf'),
-    (QUrl('data:foo/bar,'), 'download'),  # unknown extension
-    (QUrl('data:text/xul,'), 'download.xul'),  # strict=False
-    (QUrl('data:'), None),  # invalid data URL
+    (core.QUrl('data:text/plain,'), 'download.txt'),
+    (core.QUrl('data:application/pdf,'), 'download.pdf'),
+    (core.QUrl('data:foo/bar,'), 'download'),  # unknown extension
+    (core.QUrl('data:text/xul,'), 'download.xul'),  # strict=False
+    (core.QUrl('data:'), None),  # invalid data URL
 ])
 def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
-@pytest.mark.parametrize('qurl', [QUrl(), QUrl('qute://'), QUrl('data:')])
+@pytest.mark.parametrize('qurl', [core.QUrl(), core.QUrl('qute://'), core.QUrl('data:')])
 def test_filename_from_url_fallback(qurl):
     assert urlutils.filename_from_url(qurl, fallback='fallback') == 'fallback'
 
 
 @pytest.mark.parametrize('qurl, expected', [
-    (QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
-    (QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
-    (QUrl('http://qutebrowser.org:8010/waterfall'),
+    (core.QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
+    (core.QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
+    (core.QUrl('http://qutebrowser.org:8010/waterfall'),
      ('http', 'qutebrowser.org', 8010)),
-    (QUrl('https://example.com/'), ('https', 'example.com', 443)),
-    (QUrl('https://example.com:4343/'), ('https', 'example.com', 4343)),
-    (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
+    (core.QUrl('https://example.com/'), ('https', 'example.com', 443)),
+    (core.QUrl('https://example.com:4343/'), ('https', 'example.com', 4343)),
+    (core.QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
      ('http', 'qutebrowser.org', 80)),
 ])
 def test_host_tuple_valid(qurl, expected):
@@ -582,10 +581,10 @@ def test_host_tuple_valid(qurl, expected):
 
 
 @pytest.mark.parametrize('qurl, expected', [
-    (QUrl(), urlutils.InvalidUrlError),
-    (QUrl('qute://'), ValueError),
-    (QUrl('qute://foobar'), ValueError),
-    (QUrl('mailto:nobody'), ValueError),
+    (core.QUrl(), urlutils.InvalidUrlError),
+    (core.QUrl('qute://'), ValueError),
+    (core.QUrl('qute://foobar'), ValueError),
+    (core.QUrl('mailto:nobody'), ValueError),
 ])
 def test_host_tuple_invalid(qurl, expected):
     with pytest.raises(expected):
@@ -595,9 +594,9 @@ def test_host_tuple_invalid(qurl, expected):
 class TestInvalidUrlError:
 
     @pytest.mark.parametrize('url, raising, has_err_string', [
-        (QUrl(), False, False),
-        (QUrl('http://www.example.com/'), True, False),
-        (QUrl('://'), False, True),
+        (core.QUrl(), False, False),
+        (core.QUrl('http://www.example.com/'), True, False),
+        (core.QUrl('://'), False, True),
     ])
     def test_invalid_url_error(self, url, raising, has_err_string):
         """Test InvalidUrlError.
@@ -641,8 +640,8 @@ class TestInvalidUrlError:
 @pytest.mark.qt5_only  # https://bugreports.qt.io/browse/QTBUG-80308
 def test_same_domain(are_same, url1, url2):
     """Test same_domain."""
-    assert urlutils.same_domain(QUrl(url1), QUrl(url2)) == are_same
-    assert urlutils.same_domain(QUrl(url2), QUrl(url1)) == are_same
+    assert urlutils.same_domain(core.QUrl(url1), core.QUrl(url2)) == are_same
+    assert urlutils.same_domain(core.QUrl(url2), core.QUrl(url1)) == are_same
 
 
 @pytest.mark.parametrize('url1, url2', [
@@ -652,7 +651,7 @@ def test_same_domain(are_same, url1, url2):
 def test_same_domain_invalid_url(url1, url2):
     """Test same_domain with invalid URLs."""
     with pytest.raises(urlutils.InvalidUrlError):
-        urlutils.same_domain(QUrl(url1), QUrl(url2))
+        urlutils.same_domain(core.QUrl(url1), core.QUrl(url2))
 
 
 @pytest.mark.parametrize('url, expected', [
@@ -662,7 +661,7 @@ def test_same_domain_invalid_url(url1, url2):
      'http://foo.bar/?header=text/pl%C3%A4in'),
 ])
 def test_encoded_url(url, expected):
-    url = QUrl(url)
+    url = core.QUrl(url)
     assert urlutils.encoded_url(url) == expected
 
 
@@ -672,7 +671,7 @@ def test_file_url():
 
 def test_data_url():
     url = urlutils.data_url('text/plain', b'foo')
-    assert url == QUrl('data:text/plain;base64,Zm9v')
+    assert url == core.QUrl('data:text/plain;base64,Zm9v')
 
 
 qurl_idna2003 = pytest.mark.skipif(
@@ -689,24 +688,24 @@ qurl_uts46 = pytest.mark.xfail(
 
 @pytest.mark.parametrize('url, expected', [
     # No IDN
-    (QUrl('http://www.example.com'), 'http://www.example.com'),
+    (core.QUrl('http://www.example.com'), 'http://www.example.com'),
     # IDN in domain
-    (QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
+    (core.QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
     # IDN with non-whitelisted TLD
-    (QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
+    (core.QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
     # Unicode only in path
-    (QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
+    (core.QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
     # Unicode only in TLD (looks like Qt shows Punycode with рф...)
-    (QUrl('http://www.example.xn--p1ai'),
+    (core.QUrl('http://www.example.xn--p1ai'),
      '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
     pytest.param(
-        QUrl('http://www.xn--80ak6aa92e.com'),
+        core.QUrl('http://www.xn--80ak6aa92e.com'),
         'http://www.xn--80ak6aa92e.com',
         marks=qurl_idna2003,
     ),
     pytest.param(
-        QUrl('http://www.xn--80ak6aa92e.com'),
+        core.QUrl('http://www.xn--80ak6aa92e.com'),
         '(www.xn--80ak6aa92e.com) http://www.аррӏе.com',
         marks=qurl_uts46,
     ),
@@ -717,34 +716,34 @@ def test_safe_display_string(url, expected):
 
 def test_safe_display_string_invalid():
     with pytest.raises(urlutils.InvalidUrlError):
-        urlutils.safe_display_string(QUrl())
+        urlutils.safe_display_string(core.QUrl())
 
 
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
         ('socks://example.com/',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com')),
         ('socks5://example.com:2342',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2342)),
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2342)),
         ('socks5://foo@example.com',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo')),
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo')),
         ('socks5://foo:bar@example.com',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo',
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 0, 'foo',
                        'bar')),
         ('socks5://foo:bar@example.com:2323',
-         QNetworkProxy(QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
+         network.QNetworkProxy(network.QNetworkProxy.ProxyType.Socks5Proxy, 'example.com', 2323,
                        'foo', 'bar')),
-        ('direct://', QNetworkProxy(QNetworkProxy.ProxyType.NoProxy)),
+        ('direct://', network.QNetworkProxy(network.QNetworkProxy.ProxyType.NoProxy)),
     ])
     def test_proxy_from_url_valid(self, url, expected):
-        assert urlutils.proxy_from_url(QUrl(url)) == expected
+        assert urlutils.proxy_from_url(core.QUrl(url)) == expected
 
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
     def test_proxy_from_url_pac(self, scheme, qapp):
-        fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
+        fetcher = urlutils.proxy_from_url(core.QUrl('{}://foo'.format(scheme)))
         assert isinstance(fetcher, pac.PACFetcher)
 
     @pytest.mark.parametrize('url, exception', [
@@ -756,17 +755,17 @@ class TestProxyFromUrl:
     ])
     def test_invalid(self, url, exception):
         with pytest.raises(exception):
-            urlutils.proxy_from_url(QUrl(url))
+            urlutils.proxy_from_url(core.QUrl(url))
 
 
 class TestParseJavascriptUrl:
 
     @pytest.mark.parametrize('url, message', [
-        (QUrl(), ""),
-        (QUrl('https://example.com'), "Expected a javascript:... URL"),
-        (QUrl('javascript://example.com'),
+        (core.QUrl(), ""),
+        (core.QUrl('https://example.com'), "Expected a javascript:... URL"),
+        (core.QUrl('javascript://example.com'),
          "URL contains unexpected components: example.com"),
-        (QUrl('javascript://foo:bar@example.com:1234'),
+        (core.QUrl('javascript://foo:bar@example.com:1234'),
          "URL contains unexpected components: foo:bar@example.com:1234"),
     ])
     def test_invalid(self, url, message):
@@ -774,13 +773,13 @@ class TestParseJavascriptUrl:
             urlutils.parse_javascript_url(url)
 
     @pytest.mark.parametrize('url, source', [
-        (QUrl('javascript:"hello" %0a "world"'), '"hello" \n "world"'),
-        (QUrl('javascript:/'), '/'),
-        (QUrl('javascript:///'), '///'),
+        (core.QUrl('javascript:"hello" %0a "world"'), '"hello" \n "world"'),
+        (core.QUrl('javascript:/'), '/'),
+        (core.QUrl('javascript:///'), '///'),
         # https://github.com/web-platform-tests/wpt/blob/master/html/browsers/browsing-the-web/navigating-across-documents/javascript-url-query-fragment-components.html
-        (QUrl('javascript:"nope" ? "yep" : "what";'), '"nope" ? "yep" : "what";'),
-        (QUrl('javascript:"wrong"; // # %0a "ok";'), '"wrong"; // # \n "ok";'),
-        (QUrl('javascript:"%252525 ? %252525 # %252525"'),
+        (core.QUrl('javascript:"nope" ? "yep" : "what";'), '"nope" ? "yep" : "what";'),
+        (core.QUrl('javascript:"wrong"; // # %0a "ok";'), '"wrong"; // # \n "ok";'),
+        (core.QUrl('javascript:"%252525 ? %252525 # %252525"'),
          '"%2525 ? %2525 # %2525"'),
     ])
     def test_valid(self, url, source):
@@ -789,7 +788,7 @@ class TestParseJavascriptUrl:
     @hypothesis.given(source=hypothesis.strategies.text())
     def test_hypothesis(self, source):
         scheme = 'javascript:'
-        url = QUrl(scheme + urllib.parse.quote(source))
+        url = core.QUrl(scheme + urllib.parse.quote(source))
         hypothesis.assume(url.isValid())
 
         try:

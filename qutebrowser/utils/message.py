@@ -27,9 +27,8 @@ import dataclasses
 import traceback
 from typing import Any, Callable, Iterable, List, Union, Optional
 
-from qutebrowser.qt.core import pyqtSignal, pyqtBoundSignal, QObject
-
 from qutebrowser.utils import usertypes, log
+from qutebrowser.qt import core
 
 
 @dataclasses.dataclass
@@ -123,7 +122,7 @@ def _build_question(title: str,
                     text: str = None, *,
                     mode: usertypes.PromptMode,
                     default: Union[None, bool, str] = None,
-                    abort_on: Iterable[pyqtBoundSignal] = (),
+                    abort_on: Iterable[core.pyqtBoundSignal] = (),
                     url: str = None,
                     option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
@@ -222,7 +221,7 @@ def confirm_async(*, yes_action: _ActionType,
     return question
 
 
-class GlobalMessageBridge(QObject):
+class GlobalMessageBridge(core.QObject):
 
     """Global (not per-window) message bridge for errors/infos/warnings.
 
@@ -245,13 +244,13 @@ class GlobalMessageBridge(QObject):
         mode_left: Emitted when a keymode was left in any window.
     """
 
-    show_message = pyqtSignal(MessageInfo)
-    prompt_done = pyqtSignal(usertypes.KeyMode)
-    ask_question = pyqtSignal(usertypes.Question, bool)
-    mode_left = pyqtSignal(usertypes.KeyMode)
-    clear_messages = pyqtSignal()
+    show_message = core.pyqtSignal(MessageInfo)
+    prompt_done = core.pyqtSignal(usertypes.KeyMode)
+    ask_question = core.pyqtSignal(usertypes.Question, bool)
+    mode_left = core.pyqtSignal(usertypes.KeyMode)
+    clear_messages = core.pyqtSignal()
 
-    def __init__(self, parent: QObject = None) -> None:
+    def __init__(self, parent: core.QObject = None) -> None:
         super().__init__(parent)
         self._connected = False
         self._cache: List[MessageInfo] = []

@@ -29,13 +29,12 @@ import textwrap
 import dataclasses
 from typing import cast, List, Sequence, Tuple, Optional
 
-from qutebrowser.qt.core import pyqtSignal, QObject, QUrl
-
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes, message)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+from qutebrowser.qt import core
 
 
 gm_manager = cast('GreasemonkeyManager', None)
@@ -221,7 +220,7 @@ class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 
-    url: QUrl
+    url: core.QUrl
     start: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
     end: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
     idle: List[GreasemonkeyScript] = dataclasses.field(default_factory=list)
@@ -270,7 +269,7 @@ class GreasemonkeyMatcher:
 
     def __init__(self, url):
         self._url = url
-        self._url_string = url.toString(QUrl.ComponentFormattingOption.FullyEncoded)
+        self._url_string = url.toString(core.QUrl.ComponentFormattingOption.FullyEncoded)
         self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
 
     def _match_pattern(self, pattern):
@@ -295,7 +294,7 @@ class GreasemonkeyMatcher:
         return (matching_includes or matching_match) and not matching_excludes
 
 
-class GreasemonkeyManager(QObject):
+class GreasemonkeyManager(core.QObject):
 
     """Manager of userscripts and a Greasemonkey compatible environment.
 
@@ -305,7 +304,7 @@ class GreasemonkeyManager(QObject):
             considered obsolete.
     """
 
-    scripts_reloaded = pyqtSignal()
+    scripts_reloaded = core.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -444,7 +443,7 @@ class GreasemonkeyManager(QObject):
         for url, target_path in required_dls:
             target = downloads.FileDownloadTarget(target_path,
                                                   force_overwrite=True)
-            download = download_manager.get(QUrl(url), target=target,
+            download = download_manager.get(core.QUrl(url), target=target,
                                             auto_remove=True)
             # FIXME:mypy Build this into downloads instead of patching here?
             download.requested_url = url

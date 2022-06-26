@@ -20,7 +20,7 @@
 
 import pytest
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.browser import downloads, qtnetworkdownloads, downloadview
 
@@ -35,8 +35,8 @@ class FakeDownload(downloads.AbstractDownloadItem):
         self.done = done
         self.successful = successful
 
-    def url(self) -> QUrl:
-        return QUrl('https://example.org/')
+    def url(self) -> core.QUrl:
+        return core.QUrl('https://example.org/')
 
 
 @pytest.fixture

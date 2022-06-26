@@ -23,7 +23,7 @@ import dataclasses
 import pytest
 webview = pytest.importorskip('qutebrowser.browser.webengine.webview')
 
-from qutebrowser.qt.webenginecore import QWebEnginePage
+from qutebrowser.qt import webenginecore
 
 from helpers import testutils
 
@@ -58,18 +58,18 @@ def test_camel_to_snake(naming, name, expected):
 
 @pytest.mark.parametrize("enum_type, naming, mapping", [
     (
-        QWebEnginePage.JavaScriptConsoleMessageLevel,
+        webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel,
         Naming(suffix="MessageLevel"),
         webview.WebEnginePage._JS_LOG_LEVEL_MAPPING,
     ),
     (
-        QWebEnginePage.NavigationType,
+        webenginecore.QWebEnginePage.NavigationType,
         Naming(prefix="NavigationType"),
         webview.WebEnginePage._NAVIGATION_TYPE_MAPPING,
     )
 ])
 def test_enum_mappings(enum_type, naming, mapping):
-    members = testutils.enum_members(QWebEnginePage, enum_type).items()
+    members = testutils.enum_members(webenginecore.QWebEnginePage, enum_type).items()
     for name, val in members:
         mapped = mapping[val]
         assert camel_to_snake(naming, name) == mapped.name

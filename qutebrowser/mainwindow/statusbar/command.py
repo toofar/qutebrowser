@@ -20,10 +20,7 @@
 """The commandline in the statusbar."""
 
 from typing import Optional
-
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, Qt, QSize
-from qutebrowser.qt.gui import QKeyEvent
-from qutebrowser.qt.widgets import QSizePolicy, QWidget
+from qutebrowser.qt import widgets, gui
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils
@@ -31,6 +28,7 @@ from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
+from qutebrowser.qt import core
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -52,17 +50,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         hide_cmd: Emitted when command input can be hidden.
     """
 
-    got_cmd = pyqtSignal([str], [str, int])
-    got_search = pyqtSignal(str, bool)  # text, reverse
-    clear_completion_selection = pyqtSignal()
-    hide_completion = pyqtSignal()
-    update_completion = pyqtSignal()
-    show_cmd = pyqtSignal()
-    hide_cmd = pyqtSignal()
+    got_cmd = core.pyqtSignal([str], [str, int])
+    got_search = core.pyqtSignal(str, bool)  # text, reverse
+    clear_completion_selection = core.pyqtSignal()
+    hide_completion = core.pyqtSignal()
+    update_completion = core.pyqtSignal()
+    show_cmd = core.pyqtSignal()
+    hide_cmd = core.pyqtSignal()
 
     def __init__(self, *, win_id: int,
                  private: bool,
-                 parent: QWidget = None) -> None:
+                 parent: widgets.QWidget = None) -> None:
         misc.CommandLineEdit.__init__(self, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
@@ -70,7 +68,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             command_history = objreg.get('command-history')
             self.history.history = command_history.data
             self.history.changed.connect(command_history.changed)
-        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Ignored)
+        self.setSizePolicy(widgets.QSizePolicy.Policy.MinimumExpanding, widgets.QSizePolicy.Policy.Ignored)
 
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)
@@ -223,7 +221,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         ed.file_updated.connect(callback)
         ed.edit(self.text())
 
-    @pyqtSlot(usertypes.KeyMode)
+    @core.pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode: usertypes.KeyMode) -> None:
         """Clear up when command mode was left.
 
@@ -252,7 +250,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                                     "'{}'!".format(text))
         super().setText(text)
 
-    def keyPressEvent(self, e: QKeyEvent) -> None:
+    def keyPressEvent(self, e: gui.QKeyEvent) -> None:
         """Override keyPressEvent to ignore Return key presses.
 
         If this widget is focused, we are in passthrough key mode, and
@@ -260,27 +258,27 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         without command_accept to be called.
         """
         text = self.text()
-        if text in modeparsers.STARTCHARS and e.key() == Qt.Key.Key_Backspace:
+        if text in modeparsers.STARTCHARS and e.key() == core.Qt.Key.Key_Backspace:
             e.accept()
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted')
             return
-        if e.key() == Qt.Key.Key_Return:
+        if e.key() == core.Qt.Key.Key_Return:
             e.ignore()
             return
         else:
             super().keyPressEvent(e)
 
-    def sizeHint(self) -> QSize:
+    def sizeHint(self) -> core.QSize:
         """Dynamically calculate the needed size."""
         height = super().sizeHint().height()
         text = self.text()
         if not text:
             text = 'x'
         width = self.fontMetrics().boundingRect(text).width()
-        return QSize(width, height)
+        return core.QSize(width, height)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _incremental_search(self) -> None:
         if not config.val.search.incremental:
             return

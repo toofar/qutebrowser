@@ -25,30 +25,29 @@ import time
 import textwrap
 
 import pytest
-from qutebrowser.qt.core import pyqtSignal, Qt, QEvent, QObject, QTimer
-from qutebrowser.qt.widgets import QStyle, QFrame, QSpinBox
 
 from qutebrowser.utils import debug, qtutils
 from qutebrowser.misc import objects
+from qutebrowser.qt import widgets, core
 
 
 @debug.log_events
-class EventObject(QObject):
+class EventObject(core.QObject):
 
     pass
 
 
 def test_log_events(qapp, caplog):
     obj = EventObject()
-    qapp.sendEvent(obj, QEvent(QEvent.Type.User))
+    qapp.sendEvent(obj, core.QEvent(core.QEvent.Type.User))
     qapp.processEvents()
     assert caplog.messages == ['Event in test_debug.EventObject: User']
 
 
-class SignalObject(QObject):
+class SignalObject(core.QObject):
 
-    signal1 = pyqtSignal()
-    signal2 = pyqtSignal(str, str)
+    signal1 = core.pyqtSignal()
+    signal2 = core.pyqtSignal(str, str)
 
     def __repr__(self):
         """This is not a nice thing to do, but it makes our tests easier."""
@@ -129,21 +128,21 @@ class TestQEnumKey:
         If Qt/PyQt even changes and our tests wouldn't test the full
         functionality of qenum_key because of that, this test will tell us.
         """
-        assert not hasattr(QStyle.PrimitiveElement, 'staticMetaObject')
-        assert hasattr(QFrame, 'staticMetaObject')
+        assert not hasattr(widgets.QStyle.PrimitiveElement, 'staticMetaObject')
+        assert hasattr(widgets.QFrame, 'staticMetaObject')
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (QStyle, QStyle.PrimitiveElement.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
-        (QFrame, QFrame.Shadow.Sunken, None, 'Sunken'),
-        (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
-        (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
-        (Qt, Qt.AnchorPoint.AnchorLeft, None, 'AnchorLeft'),
+        (widgets.QStyle, widgets.QStyle.PrimitiveElement.PE_PanelButtonCommand, None, 'PE_PanelButtonCommand'),
+        (widgets.QFrame, widgets.QFrame.Shadow.Sunken, None, 'Sunken'),
+        (widgets.QFrame, 0x0030, widgets.QFrame.Shadow, 'Sunken'),
+        (widgets.QFrame, 0x1337, widgets.QFrame.Shadow, '0x1337'),
+        (core.Qt, core.Qt.AnchorPoint.AnchorLeft, None, 'AnchorLeft'),
 
         # No static meta object, passing in an int on Qt 6
-        (QEvent, qtutils.extract_enum_val(QEvent.Type.User), QEvent.Type, 'User'),
+        (core.QEvent, qtutils.extract_enum_val(core.QEvent.Type.User), core.QEvent.Type, 'User'),
 
         # Unknown value with IntFlags
-        (Qt, Qt.AlignmentFlag(1024), None, '0x0400'),
+        (core.Qt, core.Qt.AlignmentFlag(1024), None, '0x0400'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
@@ -152,7 +151,7 @@ class TestQEnumKey:
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
         with pytest.raises(TypeError):
-            debug.qenum_key(QFrame, 42)
+            debug.qenum_key(widgets.QFrame, 42)
 
 
 class TestQFlagsKey:
@@ -163,19 +162,19 @@ class TestQFlagsKey:
     """
 
     @pytest.mark.parametrize('base, value, klass, expected', [
-        (Qt, Qt.AlignmentFlag.AlignTop, None, 'AlignTop'),
-        pytest.param(Qt, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, None,
+        (core.Qt, core.Qt.AlignmentFlag.AlignTop, None, 'AlignTop'),
+        pytest.param(core.Qt, core.Qt.AlignmentFlag.AlignLeft | core.Qt.AlignmentFlag.AlignTop, None,
                      'AlignLeft|AlignTop', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
-        (Qt, Qt.AlignmentFlag.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
-        pytest.param(Qt, 0x0021, Qt.AlignmentFlag, 'AlignLeft|AlignTop',
+        (core.Qt, core.Qt.AlignmentFlag.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
+        pytest.param(core.Qt, 0x0021, core.Qt.AlignmentFlag, 'AlignLeft|AlignTop',
                      marks=pytest.mark.qt5_xfail(raises=AssertionError)),
-        (Qt, 0x1100, Qt.AlignmentFlag, 'AlignBaseline|0x1000'),
-        (Qt, Qt.DockWidgetArea(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
-        (Qt, Qt.DockWidgetArea(0), None, 'NoDockWidgetArea'),
-        (Qt, Qt.KeyboardModifier.ShiftModifier, Qt.KeyboardModifier, 'ShiftModifier'),
-        (Qt, Qt.KeyboardModifier.ShiftModifier, None, 'ShiftModifier'),
-        (Qt, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, Qt.KeyboardModifier, 'ShiftModifier|ControlModifier'),
-        pytest.param(Qt, Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier, None, 'ShiftModifier|ControlModifier', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
+        (core.Qt, 0x1100, core.Qt.AlignmentFlag, 'AlignBaseline|0x1000'),
+        (core.Qt, core.Qt.DockWidgetArea(0), core.Qt.DockWidgetArea, 'NoDockWidgetArea'),
+        (core.Qt, core.Qt.DockWidgetArea(0), None, 'NoDockWidgetArea'),
+        (core.Qt, core.Qt.KeyboardModifier.ShiftModifier, core.Qt.KeyboardModifier, 'ShiftModifier'),
+        (core.Qt, core.Qt.KeyboardModifier.ShiftModifier, None, 'ShiftModifier'),
+        (core.Qt, core.Qt.KeyboardModifier.ShiftModifier | core.Qt.KeyboardModifier.ControlModifier, core.Qt.KeyboardModifier, 'ShiftModifier|ControlModifier'),
+        pytest.param(core.Qt, core.Qt.KeyboardModifier.ShiftModifier | core.Qt.KeyboardModifier.ControlModifier, None, 'ShiftModifier|ControlModifier', marks=pytest.mark.qt5_xfail(raises=AssertionError)),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
@@ -204,14 +203,14 @@ class TestQFlagsKey:
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
         with pytest.raises(TypeError):
-            debug.qflags_key(Qt, 42)
+            debug.qflags_key(core.Qt, 42)
 
 
 @pytest.mark.parametrize('cls, signal', [
     (SignalObject, 'signal1'),
     (SignalObject, 'signal2'),
-    (QTimer, 'timeout'),
-    (QSpinBox, 'valueChanged'),  # Overloaded signal
+    (core.QTimer, 'timeout'),
+    (widgets.QSpinBox, 'valueChanged'),  # Overloaded signal
 ])
 @pytest.mark.parametrize('bound', [True, False])
 def test_signal_name(cls, signal, bound):
@@ -258,7 +257,7 @@ def test_dbg_signal(stubs, args, expected):
 
 class TestGetAllObjects:
 
-    class Object(QObject):
+    class Object(core.QObject):
 
         def __init__(self, name, parent=None):
             self._name = name
@@ -273,7 +272,7 @@ class TestGetAllObjects:
         app = stubs.FakeQApplication(all_widgets=widgets)
         monkeypatch.setattr(objects, 'qapp', app)
 
-        root = QObject()
+        root = core.QObject()
         o1 = self.Object('Object 1', root)
         o2 = self.Object('Object 2', o1)  # noqa: F841
         o3 = self.Object('Object 3', root)  # noqa: F841

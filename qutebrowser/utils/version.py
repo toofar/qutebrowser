@@ -36,19 +36,14 @@ import dataclasses
 from typing import (Mapping, Optional, Sequence, Tuple, ClassVar, Dict, cast,
                     TYPE_CHECKING)
 
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import PYQT_VERSION_STR
-from qutebrowser.qt.network import QSslSocket
-from qutebrowser.qt.gui import QOpenGLContext, QOffscreenSurface
-from qutebrowser.qt.opengl import QOpenGLVersionProfile
-from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt import opengl, widgets, webkit, webenginecore, network, gui, core, machinery
 
 try:
-    from qutebrowser.qt.webkit import qWebKitVersion
+    pass
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 try:
-    from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION_STR
+    pass
 except ImportError:  # pragma: no cover
     # QtWebKit
     PYQT_WEBENGINE_VERSION_STR = None  # type: ignore[assignment]
@@ -780,16 +775,13 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         return WebEngineVersions.from_pyqt(override, source='override')
 
     try:
-        from qutebrowser.qt.webenginecore import (
-            qWebEngineVersion,
-            qWebEngineChromiumVersion,
-        )
+        pass
     except ImportError:
         pass  # Needs QtWebEngine 6.2+ with PyQtWebEngine 6.3.1+
     else:
         return WebEngineVersions.from_api(
-            qtwe_version=qWebEngineVersion(),
-            chromium_version=qWebEngineChromiumVersion(),
+            qtwe_version=webenginecore.qWebEngineVersion(),
+            chromium_version=webenginecore.qWebEngineChromiumVersion(),
         )
 
     from qutebrowser.browser.webengine import webenginesettings
@@ -809,14 +801,14 @@ def qtwebengine_versions(*, avoid_init: bool = False) -> WebEngineVersions:
         return WebEngineVersions.from_webengine(
             pyqt_webengine_qt_version, source='importlib')
 
-    assert PYQT_WEBENGINE_VERSION_STR is not None
-    return WebEngineVersions.from_pyqt(PYQT_WEBENGINE_VERSION_STR)
+    assert webenginecore.PYQT_WEBENGINE_VERSION_STR is not None
+    return WebEngineVersions.from_pyqt(webenginecore.PYQT_WEBENGINE_VERSION_STR)
 
 
 def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(webkit.qWebKitVersion())
     elif objects.backend == usertypes.Backend.QtWebEngine:
         return str(qtwebengine_versions(
             avoid_init='avoid-chromium-init' in objects.debug_flags))
@@ -857,7 +849,7 @@ def version_info() -> str:
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'PyQt: {}'.format(PYQT_VERSION_STR),
+        'PyQt: {}'.format(core.PYQT_VERSION_STR),
         '',
     ]
 
@@ -866,8 +858,8 @@ def version_info() -> str:
     lines += [
         'pdf.js: {}'.format(_pdfjs_version()),
         'sqlite: {}'.format(sql.version()),
-        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
-                                     if QSslSocket.supportsSsl() else 'no'),
+        'QtNetwork SSL: {}\n'.format(network.QSslSocket.sslLibraryVersionString()
+                                     if network.QSslSocket.supportsSsl() else 'no'),
     ]
 
     if objects.qapp:
@@ -983,7 +975,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
     'Intel Open Source Technology Center'; or None if the vendor can't be
     determined.
     """
-    assert QApplication.instance()
+    assert widgets.QApplication.instance()
 
     override = os.environ.get('QUTE_FAKE_OPENGL')
     if override is not None:
@@ -991,13 +983,13 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
         vendor, version = override.split(', ', maxsplit=1)
         return OpenGLInfo.parse(vendor=vendor, version=version)
 
-    old_context = cast(Optional[QOpenGLContext], QOpenGLContext.currentContext())
+    old_context = cast(Optional[gui.QOpenGLContext], gui.QOpenGLContext.currentContext())
     old_surface = None if old_context is None else old_context.surface()
 
-    surface = QOffscreenSurface()
+    surface = gui.QOffscreenSurface()
     surface.create()
 
-    ctx = QOpenGLContext()
+    ctx = gui.QOpenGLContext()
     ok = ctx.create()
     if not ok:
         log.init.debug("Creating context failed!")
@@ -1013,7 +1005,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
             # Can't use versionFunctions there
             return OpenGLInfo(gles=True)
 
-        vp = QOpenGLVersionProfile()
+        vp = opengl.QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
         try:
@@ -1021,11 +1013,7 @@ def opengl_info() -> Optional[OpenGLInfo]:  # pragma: no cover
                 # Qt 5
                 vf = ctx.versionFunctions(vp)
             except AttributeError:
-                # Qt 6
-                # FIXME:qt6 (lint)
-                # pylint: disable-next=no-name-in-module
-                from qutebrowser.qt.opengl import QOpenGLVersionFunctionsFactory
-                vf = QOpenGLVersionFunctionsFactory.get(vp, ctx)
+                vf = opengl.QOpenGLVersionFunctionsFactory.get(vp, ctx)
         except ImportError as e:
             log.init.debug("Importing version functions failed: {}".format(e))
             return None
@@ -1068,7 +1056,7 @@ def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
         _yank_url(pastebin_url)
         return
 
-    app = QApplication.instance()
+    app = widgets.QApplication.instance()
     http_client = httpclient.HTTPClient()
 
     misc_api = pastebin.PastebinClient.MISC_API_URL

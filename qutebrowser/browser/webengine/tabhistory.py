@@ -19,9 +19,8 @@
 
 """QWebHistory serializer for QtWebEngine."""
 
-from qutebrowser.qt.core import QByteArray, QDataStream, QIODevice, QUrl
-
 from qutebrowser.utils import qtutils
+from qutebrowser.qt import core
 
 
 # kHistoryStreamVersion = 3 was originally set when history serializing was
@@ -64,7 +63,7 @@ def _serialize_item(item, stream):
 
     ## QByteArray(encodedPageState.data(), encodedPageState.size());
     # \xff\xff\xff\xff
-    qtutils.serialize_stream(stream, QByteArray())
+    qtutils.serialize_stream(stream, core.QByteArray())
 
     ## static_cast<qint32>(entry->GetTransitionType());
     # chromium/ui/base/page_transition_types.h
@@ -77,7 +76,7 @@ def _serialize_item(item, stream):
 
     ## toQt(entry->GetReferrer().url);
     # \xff\xff\xff\xff
-    qtutils.serialize_stream(stream, QUrl())
+    qtutils.serialize_stream(stream, core.QUrl())
 
     ## static_cast<qint32>(entry->GetReferrer().policy);
     # chromium/third_party/WebKit/public/platform/WebReferrerPolicy.h
@@ -123,8 +122,8 @@ def serialize(items):
         If 'data' goes out of scope, reading from 'stream' will result in a
         segfault!
     """
-    data = QByteArray()
-    stream = QDataStream(data, QIODevice.OpenModeFlag.ReadWrite)
+    data = core.QByteArray()
+    stream = core.QDataStream(data, core.QIODevice.OpenModeFlag.ReadWrite)
     cur_user_data = None
 
     current_idx = None

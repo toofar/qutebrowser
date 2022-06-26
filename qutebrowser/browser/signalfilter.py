@@ -21,12 +21,12 @@
 
 import functools
 
-from qutebrowser.qt.core import QObject
+from qutebrowser.qt import core
 
 from qutebrowser.utils import debug, log, objreg
 
 
-class SignalFilter(QObject):
+class SignalFilter(core.QObject):
 
     """A filter for signals.
 

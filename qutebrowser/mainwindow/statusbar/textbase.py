@@ -19,14 +19,12 @@
 
 """Base text widgets for statusbar."""
 
-from qutebrowser.qt.core import Qt
-from qutebrowser.qt.widgets import QLabel, QSizePolicy
-from qutebrowser.qt.gui import QPainter
+from qutebrowser.qt import widgets, gui, core
 
 from qutebrowser.utils import qtutils, utils
 
 
-class TextBase(QLabel):
+class TextBase(widgets.QLabel):
 
     """A text in the statusbar.
 
@@ -40,9 +38,9 @@ class TextBase(QLabel):
         _elided_text: The current elided text.
     """
 
-    def __init__(self, parent=None, elidemode=Qt.TextElideMode.ElideRight):
+    def __init__(self, parent=None, elidemode=core.Qt.TextElideMode.ElideRight):
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(widgets.QSizePolicy.Policy.Preferred, widgets.QSizePolicy.Policy.Minimum)
         self._elidemode = elidemode
         self._elided_text = ''
 
@@ -57,7 +55,7 @@ class TextBase(QLabel):
         """
         if self.text():
             self._elided_text = self.fontMetrics().elidedText(
-                self.text(), self._elidemode, width, Qt.TextFlag.TextShowMnemonic)
+                self.text(), self._elidemode, width, core.Qt.TextFlag.TextShowMnemonic)
         else:
             self._elided_text = ''
 
@@ -68,7 +66,7 @@ class TextBase(QLabel):
             txt: The text to set (string).
         """
         super().setText(txt)
-        if self._elidemode != Qt.TextElideMode.ElideNone:
+        if self._elidemode != core.Qt.TextElideMode.ElideNone:
             self._update_elided_text(self.geometry().width())
 
     def resizeEvent(self, e):
@@ -80,11 +78,11 @@ class TextBase(QLabel):
 
     def paintEvent(self, e):
         """Override QLabel::paintEvent to draw elided text."""
-        if self._elidemode == Qt.TextElideMode.ElideNone:
+        if self._elidemode == core.Qt.TextElideMode.ElideNone:
             super().paintEvent(e)
         else:
             e.accept()
-            painter = QPainter(self)
+            painter = gui.QPainter(self)
             geom = self.geometry()
             qtutils.ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),

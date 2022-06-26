@@ -21,11 +21,7 @@
 
 from typing import List, Iterable
 
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
-from qutebrowser.qt.gui import QPalette
-from qutebrowser.qt.webenginewidgets import QWebEngineView
-from qutebrowser.qt.webenginecore import QWebEnginePage, QWebEngineCertificateError
+from qutebrowser.qt import webenginewidgets, webenginecore, gui, core, machinery
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
@@ -34,8 +30,8 @@ from qutebrowser.utils import log, debug, usertypes
 
 
 _QB_FILESELECTION_MODES = {
-    QWebEnginePage.FileSelectionMode.FileSelectOpen: shared.FileSelectionMode.single_file,
-    QWebEnginePage.FileSelectionMode.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
+    webenginecore.QWebEnginePage.FileSelectionMode.FileSelectOpen: shared.FileSelectionMode.single_file,
+    webenginecore.QWebEnginePage.FileSelectionMode.FileSelectOpenMultiple: shared.FileSelectionMode.multiple_files,
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-91489
     #
     # QtWebEngine doesn't expose this value from its internal
@@ -43,11 +39,11 @@ _QB_FILESELECTION_MODES = {
     # the public QWebEnginePage::FileSelectionMode enum).
     # However, QWebEnginePage::chooseFiles is still called with the matching value
     # (2) when a file input with "webkitdirectory" is used.
-    QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
+    webenginecore.QWebEnginePage.FileSelectionMode(2): shared.FileSelectionMode.folder,
 }
 
 
-class WebEngineView(QWebEngineView):
+class WebEngineView(webenginewidgets.QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
@@ -56,7 +52,7 @@ class WebEngineView(QWebEngineView):
         self._win_id = win_id
         self._tabdata = tabdata
 
-        theme_color = self.style().standardPalette().color(QPalette.ColorRole.Base)
+        theme_color = self.style().standardPalette().color(gui.QPalette.ColorRole.Base)
         if private:
             assert webenginesettings.private_profile is not None
             profile = webenginesettings.private_profile
@@ -102,27 +98,27 @@ class WebEngineView(QWebEngineView):
         Return:
             The new QWebEngineView object.
         """
-        debug_type = debug.qenum_key(QWebEnginePage, wintype)
+        debug_type = debug.qenum_key(webenginecore.QWebEnginePage, wintype)
         background = config.val.tabs.background
 
         log.webview.debug("createWindow with type {}, background {}".format(
             debug_type, background))
 
-        if wintype == QWebEnginePage.WebWindowType.WebBrowserWindow:
+        if wintype == webenginecore.QWebEnginePage.WebWindowType.WebBrowserWindow:
             # Shift-Alt-Click
             target = usertypes.ClickTarget.window
-        elif wintype == QWebEnginePage.WebWindowType.WebDialog:
+        elif wintype == webenginecore.QWebEnginePage.WebWindowType.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
             target = usertypes.ClickTarget.tab
-        elif wintype == QWebEnginePage.WebWindowType.WebBrowserTab:
+        elif wintype == webenginecore.QWebEnginePage.WebWindowType.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift
             # FIXME:qtwebengine this also affects target=_blank links...
             if background:
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == QWebEnginePage.WebWindowType.WebBrowserBackgroundTab:
+        elif wintype == webenginecore.QWebEnginePage.WebWindowType.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
             if background:
                 target = usertypes.ClickTarget.tab_bg
@@ -142,7 +138,7 @@ class WebEngineView(QWebEngineView):
         super().contextMenuEvent(ev)
 
 
-class WebEnginePage(QWebEnginePage):
+class WebEnginePage(webenginecore.QWebEnginePage):
 
     """Custom QWebEnginePage subclass with qutebrowser-specific features.
 
@@ -159,33 +155,33 @@ class WebEnginePage(QWebEnginePage):
         navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    certificate_error = pyqtSignal(certificateerror.CertificateErrorWrapper)
-    shutting_down = pyqtSignal()
-    navigation_request = pyqtSignal(usertypes.NavigationRequest)
+    certificate_error = core.pyqtSignal(certificateerror.CertificateErrorWrapper)
+    shutting_down = core.pyqtSignal()
+    navigation_request = core.pyqtSignal(usertypes.NavigationRequest)
 
     _JS_LOG_LEVEL_MAPPING = {
-        QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel:
+        webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel:
             usertypes.JsLogLevel.info,
-        QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel:
+        webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel:
             usertypes.JsLogLevel.warning,
-        QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel:
+        webenginecore.QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel:
             usertypes.JsLogLevel.error,
     }
 
     _NAVIGATION_TYPE_MAPPING = {
-        QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeLinkClicked:
             usertypes.NavigationRequest.Type.link_clicked,
-        QWebEnginePage.NavigationType.NavigationTypeTyped:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeTyped:
             usertypes.NavigationRequest.Type.typed,
-        QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeFormSubmitted:
             usertypes.NavigationRequest.Type.form_submitted,
-        QWebEnginePage.NavigationType.NavigationTypeBackForward:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeBackForward:
             usertypes.NavigationRequest.Type.back_forward,
-        QWebEnginePage.NavigationType.NavigationTypeReload:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeReload:
             usertypes.NavigationRequest.Type.reload,
-        QWebEnginePage.NavigationType.NavigationTypeOther:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeOther:
             usertypes.NavigationRequest.Type.other,
-        QWebEnginePage.NavigationType.NavigationTypeRedirect:
+        webenginecore.QWebEnginePage.NavigationType.NavigationTypeRedirect:
             usertypes.NavigationRequest.Type.redirect,
     }
 
@@ -212,7 +208,7 @@ class WebEnginePage(QWebEnginePage):
         self._is_shutting_down = True
         self.shutting_down.emit()
 
-    @pyqtSlot(QWebEngineCertificateError)
+    @core.pyqtSlot(webenginecore.QWebEngineCertificateError)
     def _handle_certificate_error(self, qt_error):
         """Handle certificate errors coming from Qt."""
         error = certificateerror.create(qt_error)
@@ -259,8 +255,8 @@ class WebEnginePage(QWebEnginePage):
         shared.javascript_log_message(self._JS_LOG_LEVEL_MAPPING[level], source, line, msg)
 
     def acceptNavigationRequest(self,
-                                url: QUrl,
-                                typ: QWebEnginePage.NavigationType,
+                                url: core.QUrl,
+                                typ: webenginecore.QWebEnginePage.NavigationType,
                                 is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         navigation = usertypes.NavigationRequest(
@@ -273,7 +269,7 @@ class WebEnginePage(QWebEnginePage):
 
     def chooseFiles(
         self,
-        mode: QWebEnginePage.FileSelectionMode,
+        mode: webenginecore.QWebEnginePage.FileSelectionMode,
         old_files: Iterable[str],
         accepted_mimetypes: Iterable[str],
     ) -> List[str]:

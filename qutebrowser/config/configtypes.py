@@ -55,10 +55,7 @@ from typing import (Any, Callable, Dict as DictType, Iterable, Iterator,
                     List as ListType, Optional, Pattern, Sequence, Tuple, Union)
 
 import yaml
-from qutebrowser.qt.core import QUrl, Qt
-from qutebrowser.qt.gui import QColor
-from qutebrowser.qt.widgets import QTabWidget, QTabBar
-from qutebrowser.qt.network import QNetworkProxy
+from qutebrowser.qt import widgets, network, gui
 
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
@@ -66,6 +63,7 @@ from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes, log)
 from qutebrowser.keyinput import keyutils
 from qutebrowser.browser.network import pac
+from qutebrowser.qt import core
 
 
 class _SystemProxy:
@@ -1062,9 +1060,9 @@ class ColorSystem(MappingType):
     """The color system to use for color interpolation."""
 
     MAPPING = {
-        'rgb': (QColor.Spec.Rgb, "Interpolate in the RGB color system."),
-        'hsv': (QColor.Spec.Hsv, "Interpolate in the HSV color system."),
-        'hsl': (QColor.Spec.Hsl, "Interpolate in the HSL color system."),
+        'rgb': (gui.QColor.Spec.Rgb, "Interpolate in the RGB color system."),
+        'hsv': (gui.QColor.Spec.Hsv, "Interpolate in the HSV color system."),
+        'hsl': (gui.QColor.Spec.Hsl, "Interpolate in the HSL color system."),
         'none': (None, "Don't show a gradient."),
     }
 
@@ -1113,7 +1111,7 @@ class QtColor(BaseType):
         except ValueError:
             raise configexc.ValidationError(val, "must be a valid color value")
 
-    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QColor]:
+    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, gui.QColor]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1125,11 +1123,11 @@ class QtColor(BaseType):
             kind = value[:openparen]
             vals = value[openparen+1:-1].split(',')
 
-            converters: DictType[str, Callable[..., QColor]] = {
-                'rgba': QColor.fromRgb,
-                'rgb': QColor.fromRgb,
-                'hsva': QColor.fromHsv,
-                'hsv': QColor.fromHsv,
+            converters: DictType[str, Callable[..., gui.QColor]] = {
+                'rgba': gui.QColor.fromRgb,
+                'rgb': gui.QColor.fromRgb,
+                'hsva': gui.QColor.fromHsv,
+                'hsv': gui.QColor.fromHsv,
             }
 
             conv = converters.get(kind)
@@ -1147,7 +1145,7 @@ class QtColor(BaseType):
                         for kind, val in zip(kind, vals)]
             return conv(*int_vals)
 
-        color = QColor(value)
+        color = gui.QColor(value)
         if color.isValid():
             return color
         else:
@@ -1185,7 +1183,7 @@ class QssColor(BaseType):
             # QColor doesn't handle these
             return value
 
-        if not QColor.isValidColor(value):
+        if not gui.QColor.isValidColor(value):
             raise configexc.ValidationError(value, "must be a valid color")
 
         return value
@@ -1649,7 +1647,7 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> Union[_UnsetNone, QNetworkProxy, _SystemProxy, pac.PACFetcher]:
+    ) -> Union[_UnsetNone, network.QNetworkProxy, _SystemProxy, pac.PACFetcher]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1661,13 +1659,13 @@ class Proxy(BaseType):
                 return SYSTEM_PROXY
 
             if value == 'none':
-                url = QUrl('direct://')
+                url = core.QUrl('direct://')
             else:
                 # If we add a special value to valid_values, we need to handle
                 # it here!
                 assert self.valid_values is not None
                 assert value not in self.valid_values, value
-                url = QUrl(value)
+                url = core.QUrl(value)
             return urlutils.proxy_from_url(url)
         except (urlutils.InvalidUrlError, urlutils.InvalidProxyTypeError) as e:
             raise configexc.ValidationError(value, e)
@@ -1722,7 +1720,7 @@ class FuzzyUrl(BaseType):
 
     """A URL which gets interpreted as search if needed."""
 
-    def to_py(self, value: _StrUnset) -> Union[QUrl, _UnsetNone]:
+    def to_py(self, value: _StrUnset) -> Union[core.QUrl, _UnsetNone]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
@@ -1798,10 +1796,10 @@ class Position(MappingType):
     """The position of the tab bar."""
 
     MAPPING = {
-        'top': (QTabWidget.TabPosition.North, None),
-        'bottom': (QTabWidget.TabPosition.South, None),
-        'left': (QTabWidget.TabPosition.West, None),
-        'right': (QTabWidget.TabPosition.East, None),
+        'top': (widgets.QTabWidget.TabPosition.North, None),
+        'bottom': (widgets.QTabWidget.TabPosition.South, None),
+        'left': (widgets.QTabWidget.TabPosition.West, None),
+        'right': (widgets.QTabWidget.TabPosition.East, None),
     }
 
 
@@ -1810,9 +1808,9 @@ class TextAlignment(MappingType):
     """Alignment of text."""
 
     MAPPING = {
-        'left': (Qt.AlignmentFlag.AlignLeft, None),
-        'right': (Qt.AlignmentFlag.AlignRight, None),
-        'center': (Qt.AlignmentFlag.AlignCenter, None),
+        'left': (core.Qt.AlignmentFlag.AlignLeft, None),
+        'right': (core.Qt.AlignmentFlag.AlignRight, None),
+        'center': (core.Qt.AlignmentFlag.AlignCenter, None),
     }
 
 
@@ -1833,14 +1831,14 @@ class Url(BaseType):
 
     """A URL as a string."""
 
-    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, QUrl]:
+    def to_py(self, value: _StrUnset) -> Union[_UnsetNone, core.QUrl]:
         self._basic_py_validation(value, str)
         if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
 
-        qurl = QUrl.fromUserInput(value)
+        qurl = core.QUrl.fromUserInput(value)
         if not qurl.isValid():
             raise configexc.ValidationError(value, "invalid URL - "
                                             "{}".format(qurl.errorString()))
@@ -1868,17 +1866,17 @@ class SelectOnRemove(MappingType):
 
     MAPPING = {
         'prev': (
-            QTabBar.SelectionBehavior.SelectLeftTab,
+            widgets.QTabBar.SelectionBehavior.SelectLeftTab,
             ("Select the tab which came before the closed one "
              "(left in horizontal, above in vertical)."),
         ),
         'next': (
-            QTabBar.SelectionBehavior.SelectRightTab,
+            widgets.QTabBar.SelectionBehavior.SelectRightTab,
             ("Select the tab which came after the closed one "
              "(right in horizontal, below in vertical)."),
         ),
         'last-used': (
-            QTabBar.SelectionBehavior.SelectPreviousTab,
+            widgets.QTabBar.SelectionBehavior.SelectPreviousTab,
             "Select the previously selected tab.",
         ),
     }

@@ -20,9 +20,8 @@
 """Clock displayed in the statusbar."""
 from datetime import datetime
 
-from qutebrowser.qt.core import Qt, QTimer
-
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.qt import core
 
 
 class Clock(textbase.TextBase):
@@ -32,10 +31,10 @@ class Clock(textbase.TextBase):
     UPDATE_DELAY = 500  # ms
 
     def __init__(self, parent=None):
-        super().__init__(parent, elidemode=Qt.TextElideMode.ElideNone)
+        super().__init__(parent, elidemode=core.Qt.TextElideMode.ElideNone)
         self.format = ""
 
-        self.timer = QTimer(self)
+        self.timer = core.QTimer(self)
         self.timer.timeout.connect(self._show_time)
 
     def _show_time(self):

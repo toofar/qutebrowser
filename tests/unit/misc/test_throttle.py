@@ -21,9 +21,8 @@
 
 from unittest import mock
 
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 import pytest
-from qutebrowser.qt.core import QObject
 
 from helpers import testutils
 from qutebrowser.misc import throttle
@@ -145,7 +144,7 @@ def test_set(func, qtbot):
 
 
 def test_deleted_object(qtbot):
-    class Obj(QObject):
+    class Obj(core.QObject):
 
         def func(self):
             self.setObjectName("test")

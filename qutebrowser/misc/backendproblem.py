@@ -29,10 +29,7 @@ import argparse
 import dataclasses
 from typing import Any, Optional, Sequence, Tuple
 
-from qutebrowser.qt.core import Qt
-from qutebrowser.qt.widgets import (QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QLabel,
-                             QMessageBox, QWidget)
-from qutebrowser.qt.network import QSslSocket
+from qutebrowser.qt import widgets, network, core
 
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
@@ -44,10 +41,10 @@ class _Result(enum.IntEnum):
 
     """The result code returned by the backend problem dialog."""
 
-    quit = QDialog.DialogCode.Accepted + 1
-    restart = QDialog.DialogCode.Accepted + 2
-    restart_webkit = QDialog.DialogCode.Accepted + 3
-    restart_webengine = QDialog.DialogCode.Accepted + 4
+    quit = widgets.QDialog.DialogCode.Accepted + 1
+    restart = widgets.QDialog.DialogCode.Accepted + 2
+    restart_webkit = widgets.QDialog.DialogCode.Accepted + 3
+    restart_webengine = widgets.QDialog.DialogCode.Accepted + 4
 
 
 @dataclasses.dataclass
@@ -100,7 +97,7 @@ def _error_text(
     return text
 
 
-class _Dialog(QDialog):
+class _Dialog(widgets.QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""
 
@@ -109,22 +106,22 @@ class _Dialog(QDialog):
                  backend: usertypes.Backend,
                  suggest_other_backend: bool = True,
                  buttons: Sequence[_Button] = None,
-                 parent: QWidget = None) -> None:
+                 parent: widgets.QWidget = None) -> None:
         super().__init__(parent)
-        vbox = QVBoxLayout(self)
+        vbox = widgets.QVBoxLayout(self)
 
         text = _error_text(because, text, backend,
                            suggest_other_backend=suggest_other_backend)
 
-        label = QLabel(text)
+        label = widgets.QLabel(text)
         label.setWordWrap(True)
-        label.setTextFormat(Qt.TextFormat.RichText)
+        label.setTextFormat(core.Qt.TextFormat.RichText)
         vbox.addWidget(label)
 
-        hbox = QHBoxLayout()
+        hbox = widgets.QHBoxLayout()
         buttons = [] if buttons is None else buttons
 
-        quit_button = QPushButton("Quit")
+        quit_button = widgets.QPushButton("Quit")
         quit_button.clicked.connect(lambda: self.done(_Result.quit))
         hbox.addWidget(quit_button)
 
@@ -133,13 +130,13 @@ class _Dialog(QDialog):
             backend_text = "Force {} backend".format(other_backend.name)
             if other_backend == usertypes.Backend.QtWebKit:
                 backend_text += ' (not recommended)'
-            backend_button = QPushButton(backend_text)
+            backend_button = widgets.QPushButton(backend_text)
             backend_button.clicked.connect(functools.partial(
                 self._change_setting, 'backend', other_setting))
             hbox.addWidget(backend_button)
 
         for button in buttons:
-            btn = QPushButton(button.text)
+            btn = widgets.QPushButton(button.text)
             btn.setDefault(button.default)
             btn.clicked.connect(functools.partial(
                 self._change_setting, button.setting, button.value))
@@ -190,7 +187,7 @@ class _BackendProblemChecker:
         status = dialog.exec()
         self._save_manager.save_all(is_exit=True)
 
-        if status in [_Result.quit, QDialog.DialogCode.Rejected]:
+        if status in [_Result.quit, widgets.QDialog.DialogCode.Rejected]:
             pass
         elif status == _Result.restart_webkit:
             quitter.instance.restart(override_args={'backend': 'webkit'})
@@ -209,7 +206,7 @@ class _BackendProblemChecker:
         results = _BackendImports()
 
         try:
-            from qutebrowser.qt import webkit, webkitwidgets
+            pass
         except (ImportError, ValueError) as e:
             results.webkit_error = str(e)
             assert results.webkit_error
@@ -218,7 +215,7 @@ class _BackendProblemChecker:
                 results.webkit_error = "Unsupported legacy QtWebKit found"
 
         try:
-            from qutebrowser.qt import webenginecore, webenginewidgets
+            pass
         except (ImportError, ValueError) as e:
             results.webengine_error = str(e)
             assert results.webengine_error
@@ -230,7 +227,7 @@ class _BackendProblemChecker:
 
         If "fatal" is given, show an error and exit.
         """
-        if QSslSocket.supportsSsl():
+        if network.QSslSocket.supportsSsl():
             return
 
         text = ("Could not initialize QtNetwork SSL support. This only "
@@ -240,7 +237,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="SSL error",
                                    text="Could not initialize SSL support.",
-                                   icon=QMessageBox.Icon.Critical,
+                                   icon=widgets.QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
@@ -266,7 +263,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="No backend library found!",
                                    text=text,
-                                   icon=QMessageBox.Icon.Critical,
+                                   icon=widgets.QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)
@@ -357,12 +354,12 @@ class _BackendProblemChecker:
             parent=None,
             title="QtWebEngine version change",
             text=text,
-            icon=QMessageBox.Icon.Warning,
+            icon=widgets.QMessageBox.Icon.Warning,
             plain_text=False,
-            buttons=QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Abort,
+            buttons=widgets.QMessageBox.StandardButton.Ok | widgets.QMessageBox.StandardButton.Abort,
         )
         response = box.exec()
-        if response != QMessageBox.StandardButton.Ok:
+        if response != widgets.QMessageBox.StandardButton.Ok:
             sys.exit(usertypes.Exit.err_init)
 
     def _check_webengine_version(self) -> None:
@@ -374,7 +371,7 @@ class _BackendProblemChecker:
             errbox = msgbox.msgbox(parent=None,
                                    title="QtWebEngine too old",
                                    text=text,
-                                   icon=QMessageBox.Icon.Critical,
+                                   icon=widgets.QMessageBox.Icon.Critical,
                                    plain_text=False)
             errbox.exec()
             sys.exit(usertypes.Exit.err_init)

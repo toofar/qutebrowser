@@ -32,14 +32,14 @@ import importlib.machinery
 
 import pytest
 
-from qutebrowser.qt.gui import QColor
+from qutebrowser.qt import gui
 
 from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
 
 
-class Color(QColor):
+class Color(gui.QColor):
 
     """A QColor with a nicer repr()."""
 
@@ -269,7 +269,7 @@ def disable_seccomp_bpf_sandbox():
     newer kernels.
     """
     try:
-        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
+        pass
     except ImportError:
         # no QtWebEngine available
         return False

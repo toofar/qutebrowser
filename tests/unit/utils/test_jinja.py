@@ -24,7 +24,7 @@ import logging
 
 import jinja2.exceptions
 import pytest
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.utils import jinja
 from qutebrowser.config import configexc
@@ -70,7 +70,7 @@ def test_resource_url():
     """Test resource_url() which can be used from templates."""
     data = jinja.render('test2.html')
     print(data)
-    url = QUrl(data)
+    url = core.QUrl(data)
     assert url.isValid()
     assert url.toDisplayString() == 'qute://resource/utils/testfile'
 
@@ -79,7 +79,7 @@ def test_data_url():
     """Test data_url() which can be used from templates."""
     data = jinja.render('test3.html')
     print(data)
-    url = QUrl(data)
+    url = core.QUrl(data)
     assert url.isValid()
     assert data == 'data:text/plain;base64,Zm9v'  # 'foo'
 

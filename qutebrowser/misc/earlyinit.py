@@ -78,22 +78,21 @@ def _die(message, exception=None):
         message: The message to display.
         exception: The exception object if we're handling an exception.
     """
-    from qutebrowser.qt.widgets import QApplication, QMessageBox
-    from qutebrowser.qt.core import Qt
+    from qutebrowser.qt import widgets, network, core
     if (('--debug' in sys.argv or '--no-err-windows' in sys.argv) and
             exception is not None):
         print(file=sys.stderr)
         traceback.print_exc()
-    app = QApplication(sys.argv)
+    app = widgets.QApplication(sys.argv)
     if '--no-err-windows' in sys.argv:
         print(message, file=sys.stderr)
         print("Exiting because of --no-err-windows.", file=sys.stderr)
     else:
         if exception is not None:
             message = message.replace('%ERROR%', str(exception))
-        msgbox = QMessageBox(QMessageBox.Icon.Critical, "qutebrowser: Fatal error!",
+        msgbox = widgets.QMessageBox(widgets.QMessageBox.Icon.Critical, "qutebrowser: Fatal error!",
                              message)
-        msgbox.setTextFormat(Qt.TextFormat.RichText)
+        msgbox.setTextFormat(core.Qt.TextFormat.RichText)
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec()
     app.quit()
@@ -165,11 +164,9 @@ def check_pyqt():
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
-        from qutebrowser.qt.core import qVersion
-        qversion = qVersion()
+        qversion = core.qVersion()
     if qt_version_str is None:
-        from qutebrowser.qt.core import QT_VERSION_STR
-        qt_version_str = QT_VERSION_STR
+        qt_version_str = core.QT_VERSION_STR
 
     if qversion != qt_version_str:
         return '{} (compiled {})'.format(qversion, qt_version_str)
@@ -179,31 +176,29 @@ def qt_version(qversion=None, qt_version_str=None):
 
 def check_qt_version():
     """Check if the Qt version is recent enough."""
-    from qutebrowser.qt.core import QT_VERSION, PYQT_VERSION, PYQT_VERSION_STR
     try:
-        from qutebrowser.qt.core import QVersionNumber, QLibraryInfo
-        qt_ver = QLibraryInfo.version().normalized()
-        recent_qt_runtime = qt_ver >= QVersionNumber(5, 15)  # type: ignore[operator]
+        qt_ver = core.QLibraryInfo.version().normalized()
+        recent_qt_runtime = qt_ver >= core.QVersionNumber(5, 15)  # type: ignore[operator]
     except (ImportError, AttributeError):
         # QVersionNumber was added in Qt 5.6, QLibraryInfo.version() in 5.8
         recent_qt_runtime = False
 
-    if QT_VERSION < 0x050F00 or PYQT_VERSION < 0x050F00 or not recent_qt_runtime:
+    if core.QT_VERSION < 0x050F00 or core.PYQT_VERSION < 0x050F00 or not recent_qt_runtime:
         text = ("Fatal error: Qt >= 5.15.0 and PyQt >= 5.15.0 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
-                                                           PYQT_VERSION_STR))
+                                                           core.PYQT_VERSION_STR))
         _die(text)
 
-    if 0x060000 <= PYQT_VERSION < 0x060202:
+    if 0x060000 <= core.PYQT_VERSION < 0x060202:
         text = ("Fatal error: With Qt 6, PyQt >= 6.2.2 is required, but "
-                "{} is installed.".format(PYQT_VERSION_STR))
+                "{} is installed.".format(core.PYQT_VERSION_STR))
         _die(text)
 
 
 def check_ssl_support():
     """Check if SSL support is available."""
     try:
-        from qutebrowser.qt.network import QSslSocket  # pylint: disable=unused-import
+        pass
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -255,8 +250,7 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from qutebrowser.qt.core import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    core.pyqtRemoveInputHook()
 
     from qutebrowser.qt import sip
     try:
@@ -296,7 +290,7 @@ def webengine_early_import():
     error messages in backendproblem.py are accurate.
     """
     try:
-        from qutebrowser.qt import webenginewidgets  # pylint: disable=unused-import
+        pass
     except ImportError:
         pass
 

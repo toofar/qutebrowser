@@ -22,7 +22,7 @@
 
 import pytest
 
-from qutebrowser.qt.core import QUrl
+from qutebrowser.qt import core
 
 from qutebrowser.utils import usertypes, urlutils, qtutils
 from qutebrowser.mainwindow.statusbar import url
@@ -79,7 +79,7 @@ def test_set_url(url_widget, url_text, expected, which):
         if url_text is None:
             qurl = None
         else:
-            qurl = QUrl(url_text)
+            qurl = core.QUrl(url_text)
             if not qurl.isValid():
                 # Special case for the invalid URL above
                 expected = "Invalid URL!"
@@ -105,28 +105,28 @@ def test_set_url(url_widget, url_text, expected, which):
 ])
 def test_on_load_status_changed(url_widget, status, expected):
     """Test text when status is changed."""
-    url_widget.set_url(QUrl('www.example.com'))
+    url_widget.set_url(core.QUrl('www.example.com'))
     url_widget.on_load_status_changed(status)
     assert url_widget._urltype == expected
 
 
 @pytest.mark.parametrize('load_status, qurl', [
     (usertypes.LoadStatus.success,
-     QUrl('http://abc123.com/this/awesome/url.html')),
+     core.QUrl('http://abc123.com/this/awesome/url.html')),
     (usertypes.LoadStatus.success,
-     QUrl('http://reddit.com/r/linux')),
+     core.QUrl('http://reddit.com/r/linux')),
     (usertypes.LoadStatus.success,
-     QUrl('http://ä.com/')),
+     core.QUrl('http://ä.com/')),
     (usertypes.LoadStatus.success_https,
-     QUrl('www.google.com')),
+     core.QUrl('www.google.com')),
     (usertypes.LoadStatus.success_https,
-     QUrl('https://supersecret.gov/nsa/files.txt')),
+     core.QUrl('https://supersecret.gov/nsa/files.txt')),
     (usertypes.LoadStatus.warn,
-     QUrl('www.shadysite.org/some/file/with/issues.htm')),
+     core.QUrl('www.shadysite.org/some/file/with/issues.htm')),
     (usertypes.LoadStatus.error,
-     QUrl('invalid::/url')),
+     core.QUrl('invalid::/url')),
     (usertypes.LoadStatus.error,
-     QUrl()),
+     core.QUrl()),
 ])
 def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     tab_widget = fake_web_tab(load_status=load_status, url=qurl)
@@ -142,22 +142,22 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
 
 @pytest.mark.parametrize('qurl, load_status, expected_status', [
     (
-        QUrl('http://abc123.com/this/awesome/url.html'),
+        core.QUrl('http://abc123.com/this/awesome/url.html'),
         usertypes.LoadStatus.success,
         url.UrlType.success
     ),
     (
-        QUrl('https://supersecret.gov/nsa/files.txt'),
+        core.QUrl('https://supersecret.gov/nsa/files.txt'),
         usertypes.LoadStatus.success_https,
         url.UrlType.success_https
     ),
     (
-        QUrl('http://www.qutebrowser.org/CONTRIBUTING.html'),
+        core.QUrl('http://www.qutebrowser.org/CONTRIBUTING.html'),
         usertypes.LoadStatus.loading,
         url.UrlType.normal
     ),
     (
-        QUrl('www.whatisthisurl.com'),
+        core.QUrl('www.whatisthisurl.com'),
         usertypes.LoadStatus.warn,
         url.UrlType.warn
     ),

@@ -21,16 +21,15 @@
 
 import functools
 from typing import Optional, FrozenSet
-
-from qutebrowser.qt.core import pyqtSlot, QObject
-from qutebrowser.qt.widgets import QWidget
+from qutebrowser.qt import widgets
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats
 from qutebrowser.utils import jinja, log
+from qutebrowser.qt import core
 
 
-def set_register(obj: QWidget,
+def set_register(obj: widgets.QWidget,
                  stylesheet: str = None, *,
                  update: bool = True) -> None:
     """Set the stylesheet for an object.
@@ -60,7 +59,7 @@ def init() -> None:
     config.instance.changed.connect(_render_stylesheet.cache_clear)
 
 
-class _StyleSheetObserver(QObject):
+class _StyleSheetObserver(core.QObject):
 
     """Set the stylesheet on the given object and update it on changes.
 
@@ -72,7 +71,7 @@ class _StyleSheetObserver(QObject):
                   None.
     """
 
-    def __init__(self, obj: QWidget,
+    def __init__(self, obj: widgets.QWidget,
                  stylesheet: Optional[str], update: bool) -> None:
         super().__init__()
         self._obj = obj
@@ -100,7 +99,7 @@ class _StyleSheetObserver(QObject):
         """
         return _render_stylesheet(self._stylesheet)
 
-    @pyqtSlot(str)
+    @core.pyqtSlot(str)
     def _maybe_update_stylesheet(self, option: str) -> None:
         """Update the stylesheet for obj if the option changed affects it."""
         assert self._options is not None

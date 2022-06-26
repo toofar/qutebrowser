@@ -19,7 +19,7 @@
 
 """Tests for the qutebrowser.app module."""
 
-from qutebrowser.qt.core import QBuffer
+from qutebrowser.qt import core
 
 from qutebrowser.misc import objects
 from qutebrowser import app
@@ -33,7 +33,7 @@ def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     """
     monkeypatch.setattr(objects, 'qapp', qapp)
 
-    buf = QBuffer()
+    buf = core.QBuffer()
     app.on_focus_changed(buf, buf)
 
     expected = "on_focus_changed called with non-QWidget {!r}".format(buf)

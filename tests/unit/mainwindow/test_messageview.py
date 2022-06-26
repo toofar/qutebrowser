@@ -20,7 +20,7 @@
 import contextlib
 
 import pytest
-from qutebrowser.qt.core import Qt
+from qutebrowser.qt import core
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes, message
@@ -84,9 +84,9 @@ def test_word_wrap(view, qtbot):
 
 
 @pytest.mark.parametrize("rich, higher, expected_format", [
-    (True, True, Qt.TextFormat.RichText),
-    (False, False, Qt.TextFormat.PlainText),
-    (None, False, Qt.TextFormat.PlainText),
+    (True, True, core.Qt.TextFormat.RichText),
+    (False, False, core.Qt.TextFormat.PlainText),
+    (None, False, core.Qt.TextFormat.PlainText),
 ])
 @pytest.mark.parametrize("replace", ["test", None])
 def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
@@ -114,7 +114,7 @@ def test_rich_text(view, qtbot, rich, higher, expected_format, replace):
         height1 = view.sizeHint().height()
         assert height1 > 0
 
-        assert view._messages[0].textFormat() == Qt.TextFormat.PlainText  # default
+        assert view._messages[0].textFormat() == core.Qt.TextFormat.PlainText  # default
 
     view.show_message(info2)
     assert len(view._messages) == 1
@@ -248,10 +248,10 @@ def test_replacing_geometry(qtbot, view):
 
 
 @pytest.mark.parametrize('button, count', [
-    (Qt.MouseButton.LeftButton, 0),
-    (Qt.MouseButton.MiddleButton, 0),
-    (Qt.MouseButton.RightButton, 0),
-    (Qt.MouseButton.BackButton, 2),
+    (core.Qt.MouseButton.LeftButton, 0),
+    (core.Qt.MouseButton.MiddleButton, 0),
+    (core.Qt.MouseButton.RightButton, 0),
+    (core.Qt.MouseButton.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
     """Messages should disappear when we click on them."""

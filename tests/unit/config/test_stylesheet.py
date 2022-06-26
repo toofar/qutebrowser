@@ -18,12 +18,12 @@
 
 import pytest
 
-from qutebrowser.qt.core import QObject
+from qutebrowser.qt import core
 
 from qutebrowser.config import stylesheet
 
 
-class StyleObj(QObject):
+class StyleObj(core.QObject):
 
     def __init__(self, stylesheet=None, parent=None):
         super().__init__(parent)

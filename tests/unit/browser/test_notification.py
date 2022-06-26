@@ -25,16 +25,15 @@ import inspect
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 import pytest
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject
-from qutebrowser.qt.gui import QImage
-from qutebrowser.qt.dbus import QDBusMessage, QDBus, QDBusConnection
+from qutebrowser.qt import webenginecore, gui
 pytest.importorskip("qutebrowser.qt.webenginecore")
 if TYPE_CHECKING:
-    from qutebrowser.qt.webenginecore import QWebEngineNotification
+    from qutebrowser.qt import QWebEngineNotification
 
 from qutebrowser.config import configdata
 from qutebrowser.misc import objects
 from qutebrowser.browser.webengine import notification
+from qutebrowser.qt import dbus, core
 
 
 class FakeDBusMessage:
@@ -43,7 +42,7 @@ class FakeDBusMessage:
         self,
         signature: str,
         *arguments: Any,
-        typ: QDBusMessage.MessageType = QDBusMessage.MessageType.ReplyMessage,
+        typ: dbus.QDBusMessage.MessageType = dbus.QDBusMessage.MessageType.ReplyMessage,
         error_name: Optional[str] = None,
     ) -> None:
         self._signature = signature
@@ -57,7 +56,7 @@ class FakeDBusMessage:
     def signature(self) -> str:
         return self._signature
 
-    def type(self) -> QDBusMessage.MessageType:
+    def type(self) -> dbus.QDBusMessage.MessageType:
         return self._type
 
     def errorName(self) -> str:
@@ -73,7 +72,7 @@ class FakeDBusMessage:
         return cls(
             "s",
             f"error argument: {error_name}",
-            typ=QDBusMessage.MessageType.ErrorMessage,
+            typ=dbus.QDBusMessage.MessageType.ErrorMessage,
             error_name=error_name,
         )
 
@@ -87,7 +86,7 @@ class FakeDBusInterface:
         service: str,
         path: str,
         interface: str,
-        bus: QDBusConnection,
+        bus: dbus.QDBusConnection,
     ) -> None:
         assert service.startswith(notification.DBusNotificationAdapter.TEST_SERVICE)
         assert path == notification.DBusNotificationAdapter.PATH
@@ -98,7 +97,7 @@ class FakeDBusInterface:
     def isValid(self) -> bool:
         return True
 
-    def call(self, mode: QDBus.CallMode, method: str, *args: Any) -> FakeDBusMessage:
+    def call(self, mode: dbus.QDBus.CallMode, method: str, *args: Any) -> FakeDBusMessage:
         meth = getattr(self, f"_call_{method}")
         return meth(*args)
 
@@ -120,15 +119,15 @@ class FakeDBusInterface:
         return self.notify_reply
 
 
-class FakeWebEngineNotification(QObject):
+class FakeWebEngineNotification(core.QObject):
 
-    closed = pyqtSignal()
+    closed = core.pyqtSignal()
 
-    def origin(self) -> QUrl:
-        return QUrl("https://example.org")
+    def origin(self) -> core.QUrl:
+        return core.QUrl("https://example.org")
 
-    def icon(self) -> QImage:
-        return QImage()
+    def icon(self) -> gui.QImage:
+        return gui.QImage()
 
     def title(self) -> str:
         return "notification title"
@@ -180,7 +179,7 @@ class FakeNotificationAdapter(notification.AbstractNotificationAdapter):
         self.presented.append(qt_notification)
         return next(self.id_gen)
 
-    @pyqtSlot(int)
+    @core.pyqtSlot(int)
     def on_web_closed(self, notification_id: int) -> None:
         """Called when a notification was closed by the website."""
         raise NotImplementedError

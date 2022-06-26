@@ -33,7 +33,7 @@ import dataclasses
 import pytest
 import hypothesis
 import hypothesis.strategies
-from qutebrowser.qt.core import PYQT_VERSION_STR
+from qutebrowser.qt import webenginecore, core
 
 import qutebrowser
 from qutebrowser.config import config, websettings
@@ -1003,21 +1003,20 @@ class TestWebEngineVersions:
         """Compare the inferred Chromium version with the real one."""
         pyqt_webengine_version = version._get_pyqt_webengine_qt_version()
         if pyqt_webengine_version is None:
-            if '.dev' in PYQT_VERSION_STR:
+            if '.dev' in core.PYQT_VERSION_STR:
                 pytest.skip("dev version of PyQt")
 
             try:
-                from qutebrowser.qt.webenginecore import (
-                    PYQT_WEBENGINE_VERSION_STR, PYQT_WEBENGINE_VERSION)
+                pass
             except ImportError as e:
                 # QtWebKit
                 pytest.skip(str(e))
 
-            if 0x060000 > PYQT_WEBENGINE_VERSION >= 0x050F02:
+            if 0x060000 > webenginecore.PYQT_WEBENGINE_VERSION >= 0x050F02:
                 # Starting with Qt 5.15.2, we can only do bad guessing anyways...
                 pytest.skip("Could be QtWebEngine 5.15.2 or 5.15.3")
 
-            pyqt_webengine_version = PYQT_WEBENGINE_VERSION_STR
+            pyqt_webengine_version = webenginecore.PYQT_WEBENGINE_VERSION_STR
 
         versions = version.WebEngineVersions.from_pyqt(pyqt_webengine_version)
         inferred = versions.chromium

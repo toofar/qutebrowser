@@ -20,12 +20,12 @@
 """Tests for Timer."""
 
 import pytest
-from qutebrowser.qt.core import QObject
+from qutebrowser.qt import core
 
 from qutebrowser.utils import usertypes
 
 
-class Parent(QObject):
+class Parent(core.QObject):
 
     """Class for test_parent()."""
 

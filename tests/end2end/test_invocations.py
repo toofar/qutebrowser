@@ -29,10 +29,10 @@ import json
 import platform
 
 import pytest
-from qutebrowser.qt.core import QProcess, QPoint
 
 from helpers import testutils
 from qutebrowser.utils import qtutils, utils, version
+from qutebrowser.qt import core
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -261,8 +261,8 @@ def test_version(request):
     args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
     # can't use quteproc_new here because it's confused by
     # early process termination
-    proc = QProcess()
-    proc.setProcessChannelMode(QProcess.ProcessChannelMode.SeparateChannels)
+    proc = core.QProcess()
+    proc.setProcessChannelMode(core.QProcess.ProcessChannelMode.SeparateChannels)
 
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
@@ -275,7 +275,7 @@ def test_version(request):
     print(stderr)
 
     assert ok
-    assert proc.exitStatus() == QProcess.ExitStatus.NormalExit
+    assert proc.exitStatus() == core.QProcess.ExitStatus.NormalExit
 
     match = re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout, re.MULTILINE)
     assert match is not None
@@ -547,7 +547,7 @@ def test_preferred_colorscheme_with_dark_mode(
                               else testutils.Color(127, 127, 127))
         xfail = "Chromium bug 1177973"
 
-    pos = QPoint(0, 0)
+    pos = core.QPoint(0, 0)
     img = quteproc_new.get_screenshot(probe_pos=pos, probe_color=expected_color)
     color = testutils.Color(img.pixelColor(pos))
 
@@ -732,7 +732,7 @@ def test_dark_mode(webengine_versions, quteproc_new, request,
     # Position chosen by fair dice roll.
     # https://xkcd.com/221/
     quteproc_new.get_screenshot(
-        probe_pos=QPoint(4, 4),
+        probe_pos=core.QPoint(4, 4),
         probe_color=expected,
     )
 
@@ -759,13 +759,13 @@ def test_dark_mode_mathml(webengine_versions, quteproc_new, request, qtbot, suff
         expected = testutils.Color(0, 0, 206) if IS_ARM else testutils.Color(0, 0, 204)
 
     quteproc_new.get_screenshot(
-        probe_pos=QPoint(105, 0),
+        probe_pos=core.QPoint(105, 0),
         probe_color=expected,
     )
 
     # Then get the actual formula color, probing again in case it's not displayed yet...
     quteproc_new.get_screenshot(
-        probe_pos=QPoint(4, 4),
+        probe_pos=core.QPoint(4, 4),
         probe_color=testutils.Color(255, 255, 255),
     )
 

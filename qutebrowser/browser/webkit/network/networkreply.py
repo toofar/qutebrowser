@@ -25,12 +25,10 @@
 # pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
-
-from qutebrowser.qt.network import QNetworkReply, QNetworkRequest
-from qutebrowser.qt.core import pyqtSlot, QIODevice, QByteArray, QTimer
+from qutebrowser.qt import network, core
 
 
-class FixedDataNetworkReply(QNetworkReply):
+class FixedDataNetworkReply(network.QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
@@ -49,21 +47,21 @@ class FixedDataNetworkReply(QNetworkReply):
 
         self.setRequest(request)
         self.setUrl(request.url())
-        self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
+        self.setOpenMode(core.QIODevice.OpenModeFlag.ReadOnly)
 
-        self.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, mimeType)
-        self.setHeader(QNetworkRequest.KnownHeaders.ContentLengthHeader,
-                       QByteArray.number(len(fileData)))
-        self.setAttribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute, 200)
-        self.setAttribute(QNetworkRequest.Attribute.HttpReasonPhraseAttribute, 'OK')
+        self.setHeader(network.QNetworkRequest.KnownHeaders.ContentTypeHeader, mimeType)
+        self.setHeader(network.QNetworkRequest.KnownHeaders.ContentLengthHeader,
+                       core.QByteArray.number(len(fileData)))
+        self.setAttribute(network.QNetworkRequest.Attribute.HttpStatusCodeAttribute, 200)
+        self.setAttribute(network.QNetworkRequest.Attribute.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
         # pylint: disable=unnecessary-lambda
-        QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
-        QTimer.singleShot(0, lambda: self.readyRead.emit())
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        core.QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
+        core.QTimer.singleShot(0, lambda: self.readyRead.emit())
+        core.QTimer.singleShot(0, lambda: self.finished.emit())
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def abort(self):
         """Abort the operation."""
 
@@ -96,7 +94,7 @@ class FixedDataNetworkReply(QNetworkReply):
         return False
 
 
-class ErrorNetworkReply(QNetworkReply):
+class ErrorNetworkReply(network.QNetworkReply):
 
     """QNetworkReply which always returns an error."""
 
@@ -114,10 +112,10 @@ class ErrorNetworkReply(QNetworkReply):
         self.setUrl(req.url())
         # We don't actually want to read anything, but we still need to open
         # the device to avoid getting a warning.
-        self.setOpenMode(QIODevice.OpenModeFlag.ReadOnly)
+        self.setOpenMode(core.QIODevice.OpenModeFlag.ReadOnly)
         self.setError(error, errorstring)
-        QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        core.QTimer.singleShot(0, lambda: self.errorOccurred.emit(error))
+        core.QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
         """Do nothing since it's a fake reply."""
@@ -137,14 +135,14 @@ class ErrorNetworkReply(QNetworkReply):
         return False
 
 
-class RedirectNetworkReply(QNetworkReply):
+class RedirectNetworkReply(network.QNetworkReply):
 
     """A reply which redirects to the given URL."""
 
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
-        self.setAttribute(QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        self.setAttribute(network.QNetworkRequest.Attribute.RedirectionTargetAttribute, new_url)
+        core.QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""

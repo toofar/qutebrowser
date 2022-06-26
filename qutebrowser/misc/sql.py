@@ -25,10 +25,7 @@ import dataclasses
 import types
 from typing import Any, Dict, Iterator, List, Mapping, MutableSequence, Optional, Type
 
-from qutebrowser.qt.core import QObject, pyqtSignal
-from qutebrowser.qt.sql import QSqlDatabase, QSqlError, QSqlQuery
-
-from qutebrowser.qt import sip
+from qutebrowser.qt import sql, core, sip
 from qutebrowser.utils import debug, log
 
 
@@ -93,7 +90,7 @@ class Error(Exception):
 
     """Base class for all SQL related errors."""
 
-    def __init__(self, msg: str, error: Optional[QSqlError] = None) -> None:
+    def __init__(self, msg: str, error: Optional[sql.QSqlError] = None) -> None:
         super().__init__(msg)
         self.error = error
 
@@ -125,14 +122,14 @@ class BugError(Error):
     """
 
 
-def raise_sqlite_error(msg: str, error: QSqlError) -> None:
+def raise_sqlite_error(msg: str, error: sql.QSqlError) -> None:
     """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
     database_text = error.databaseText()
     driver_text = error.driverText()
 
     log.sql.debug("SQL error:")
-    log.sql.debug(f"type: {debug.qenum_key(QSqlError, error.type())}")
+    log.sql.debug(f"type: {debug.qenum_key(sql.QSqlError, error.type())}")
     log.sql.debug(f"database text: {database_text}")
     log.sql.debug(f"driver text: {driver_text}")
     log.sql.debug(f"error code: {error_code}")
@@ -169,11 +166,11 @@ class Database:
     _USER_VERSION = UserVersion(0, 4)  # The current / newest user version
 
     def __init__(self, path: str) -> None:
-        if QSqlDatabase.database(path).isValid():
+        if sql.QSqlDatabase.database(path).isValid():
             raise BugError(f'A connection to the database at "{path}" already exists')
 
         self._path = path
-        database = QSqlDatabase.addDatabase('QSQLITE', path)
+        database = sql.QSqlDatabase.addDatabase('QSQLITE', path)
         if not database.isValid():
             raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
                              'support installed?')
@@ -200,9 +197,9 @@ class Database:
             self.query("PRAGMA journal_mode=WAL").run()
             self.query("PRAGMA synchronous=NORMAL").run()
 
-    def qt_database(self) -> QSqlDatabase:
+    def qt_database(self) -> sql.QSqlDatabase:
         """Return the wrapped QSqlDatabase instance."""
-        database = QSqlDatabase.database(self._path, open=True)
+        database = sql.QSqlDatabase.database(self._path, open=True)
         if not database.isValid():
             raise BugError('Failed to get connection. Did you close() this Database '
                            'instance?')
@@ -214,7 +211,7 @@ class Database:
 
     def table(self, name: str, fields: List[str],
               constraints: Optional[Dict[str, str]] = None,
-              parent: Optional[QObject] = None) -> 'SqlTable':
+              parent: Optional[core.QObject] = None) -> 'SqlTable':
         """Return a SqlTable instance linked to this Database."""
         return SqlTable(self, name, fields, constraints, parent)
 
@@ -238,7 +235,7 @@ class Database:
         database = self.qt_database()
         database.close()
         sip.delete(database)
-        QSqlDatabase.removeDatabase(self._path)
+        sql.QSqlDatabase.removeDatabase(self._path)
 
     def transaction(self) -> 'Transaction':
         """Return a Transaction object linked to this Database."""
@@ -293,7 +290,7 @@ class Query:
                           Must be false for completion queries.
         """
         self._database = database
-        self.query = QSqlQuery(database.qt_database())
+        self.query = sql.QSqlQuery(database.qt_database())
 
         log.sql.vdebug(f'Preparing: {querystr}')  # type: ignore[attr-defined]
         ok = self.query.prepare(querystr)
@@ -396,7 +393,7 @@ class Query:
         }
 
 
-class SqlTable(QObject):
+class SqlTable(core.QObject):
 
     """Interface to a SQL table.
 
@@ -408,12 +405,12 @@ class SqlTable(QObject):
         changed: Emitted when the table is modified.
     """
 
-    changed = pyqtSignal()
+    changed = core.pyqtSignal()
     database: Database
 
     def __init__(self, database: Database, name: str, fields: List[str],
                  constraints: Optional[Dict[str, str]] = None,
-                 parent: Optional[QObject] = None) -> None:
+                 parent: Optional[core.QObject] = None) -> None:
         """Wrapper over a table in the SQL database.
 
         Args:

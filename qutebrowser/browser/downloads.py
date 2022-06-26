@@ -30,22 +30,19 @@ import tempfile
 import enum
 from typing import Any, Dict, IO, List, MutableSequence, Optional, Union
 
-from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
-                          QTimer, QAbstractListModel, QUrl)
-
 from qutebrowser.browser import pdfjs
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils, objreg)
-from qutebrowser.qt import sip
+from qutebrowser.qt import core, sip
 
 
 class ModelRole(enum.IntEnum):
 
     """Custom download model roles."""
 
-    item = Qt.ItemDataRole.UserRole
+    item = core.Qt.ItemDataRole.UserRole
 
 
 # Remember the last used directory
@@ -78,7 +75,7 @@ def init():
     config.instance.changed.connect(_clear_last_used)
 
 
-@pyqtSlot()
+@core.pyqtSlot()
 def shutdown():
     temp_download_manager.cleanup()
 
@@ -188,7 +185,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.url = url.toString(QUrl.UrlFormattingOption.RemovePassword | QUrl.ComponentFormattingOption.FullyEncoded)
+    q.url = url.toString(core.QUrl.UrlFormattingOption.RemovePassword | core.QUrl.ComponentFormattingOption.FullyEncoded)
     q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
@@ -329,7 +326,7 @@ class PDFJSDownloadTarget(_DownloadTarget):
         return 'temporary PDF.js file'
 
 
-class DownloadItemStats(QObject):
+class DownloadItemStats(core.QObject):
 
     """Statistics (bytes done, total bytes, time, etc.) about a download.
 
@@ -398,7 +395,7 @@ class DownloadItemStats(QObject):
         else:
             return remaining_bytes / avg
 
-    @pyqtSlot('qint64', 'qint64')
+    @core.pyqtSlot('qint64', 'qint64')
     def on_download_progress(self, bytes_done, bytes_total):
         """Update local variables when the download progress changed.
 
@@ -412,7 +409,7 @@ class DownloadItemStats(QObject):
         self.total = bytes_total
 
 
-class AbstractDownloadItem(QObject):
+class AbstractDownloadItem(core.QObject):
 
     """Shared QtNetwork/QtWebEngine part of a download item.
 
@@ -441,12 +438,12 @@ class AbstractDownloadItem(QObject):
                          arg 2: The original download URL.
     """
 
-    data_changed = pyqtSignal()
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
-    cancelled = pyqtSignal()
-    remove_requested = pyqtSignal()
-    pdfjs_requested = pyqtSignal(str, QUrl)
+    data_changed = core.pyqtSignal()
+    finished = core.pyqtSignal()
+    error = core.pyqtSignal(str)
+    cancelled = core.pyqtSignal()
+    remove_requested = core.pyqtSignal()
+    pdfjs_requested = core.pyqtSignal(str, core.QUrl)
 
     def __init__(self, manager, parent=None):
         super().__init__(parent)
@@ -565,7 +562,7 @@ class AbstractDownloadItem(QObject):
         """Actual cancel implementation."""
         raise NotImplementedError
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def cancel(self, *, remove_data=True):
         """Cancel the download.
 
@@ -581,7 +578,7 @@ class AbstractDownloadItem(QObject):
         self.finished.emit()
         self.data_changed.emit()
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def remove(self):
         """Remove the download from the model."""
         self.remove_requested.emit()
@@ -597,12 +594,12 @@ class AbstractDownloadItem(QObject):
         except OSError:
             log.downloads.exception("Failed to remove partial file")
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def retry(self):
         """Retry a failed download."""
         raise NotImplementedError
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def try_retry(self):
         """Try to retry a download and show an error if it's unsupported."""
         try:
@@ -610,11 +607,11 @@ class AbstractDownloadItem(QObject):
         except UnsupportedOperationError as e:
             message.error(str(e))
 
-    def url(self) -> QUrl:
+    def url(self) -> core.QUrl:
         """Get the download's URL (i.e. where the file is downloaded from)."""
         raise NotImplementedError
 
-    def origin(self) -> QUrl:
+    def origin(self) -> core.QUrl:
         """Get the download's origin URL (i.e. the page starting the download)."""
         raise NotImplementedError
 
@@ -625,7 +622,7 @@ class AbstractDownloadItem(QObject):
         """
         raise NotImplementedError
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def open_file(self, cmdline=None, open_dir=False):
         """Open the downloaded file.
 
@@ -647,7 +644,7 @@ class AbstractDownloadItem(QObject):
         # is important on systems where process creation takes long, as
         # otherwise the prompt might hang around and cause bugs
         # (see issue #2296)
-        QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
+        core.QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
@@ -884,7 +881,7 @@ class AbstractDownloadItem(QObject):
             raise ValueError("Unsupported download target: {}".format(target))
 
 
-class AbstractDownloadManager(QObject):
+class AbstractDownloadManager(core.QObject):
 
     """Backend-independent download manager code.
 
@@ -901,11 +898,11 @@ class AbstractDownloadManager(QObject):
                       The argument is the index of the changed download
     """
 
-    begin_remove_row = pyqtSignal(int)
-    end_remove_row = pyqtSignal()
-    begin_insert_row = pyqtSignal(int)
-    end_insert_row = pyqtSignal()
-    data_changed = pyqtSignal(int)
+    begin_remove_row = core.pyqtSignal(int)
+    end_remove_row = core.pyqtSignal()
+    begin_insert_row = core.pyqtSignal(int)
+    end_insert_row = core.pyqtSignal()
+    data_changed = core.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -917,7 +914,7 @@ class AbstractDownloadManager(QObject):
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def _update_gui(self):
         """Periodical GUI update of all items."""
         assert self.downloads
@@ -925,8 +922,8 @@ class AbstractDownloadManager(QObject):
             dl.stats.update_speed()
         self.data_changed.emit(-1)
 
-    @pyqtSlot(str, QUrl)
-    def _on_pdfjs_requested(self, filename: str, original_url: QUrl) -> None:
+    @core.pyqtSlot(str, core.QUrl)
+    def _on_pdfjs_requested(self, filename: str, original_url: core.QUrl) -> None:
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
@@ -942,7 +939,7 @@ class AbstractDownloadManager(QObject):
         delay = config.val.downloads.remove_finished
         if delay > -1:
             download.finished.connect(
-                lambda: QTimer.singleShot(delay, download.remove))
+                lambda: core.QTimer.singleShot(delay, download.remove))
         elif auto_remove:
             download.finished.connect(download.remove)
 
@@ -961,7 +958,7 @@ class AbstractDownloadManager(QObject):
         if not self._update_timer.isActive():
             self._update_timer.start()
 
-    @pyqtSlot(AbstractDownloadItem)
+    @core.pyqtSlot(AbstractDownloadItem)
     def _on_data_changed(self, download):
         """Emit data_changed signal when download data changed."""
         try:
@@ -971,12 +968,12 @@ class AbstractDownloadManager(QObject):
             return
         self.data_changed.emit(idx)
 
-    @pyqtSlot(str)
+    @core.pyqtSlot(str)
     def _on_error(self, msg):
         """Display error message on download errors."""
         message.error("Download error: {}".format(msg))
 
-    @pyqtSlot(AbstractDownloadItem)
+    @core.pyqtSlot(AbstractDownloadItem)
     def _remove_item(self, download):
         """Remove a given download."""
         if sip.isdeleted(self):
@@ -1009,7 +1006,7 @@ class AbstractDownloadManager(QObject):
         download.cancelled.connect(question.abort)
         download.error.connect(question.abort)
 
-    @pyqtSlot()
+    @core.pyqtSlot()
     def shutdown(self):
         """Cancel all downloads when shutting down."""
         for download in self.downloads:
@@ -1017,7 +1014,7 @@ class AbstractDownloadManager(QObject):
                 download.cancel(remove_data=False)
 
 
-class DownloadModel(QAbstractListModel):
+class DownloadModel(core.QAbstractListModel):
 
     """A list model showing downloads."""
 
@@ -1066,25 +1063,25 @@ class DownloadModel(QAbstractListModel):
         log.downloads.debug("_on_begin_insert_row with idx {}, "
                             "webengine {}".format(idx, webengine))
         if idx == -1:
-            self.beginInsertRows(QModelIndex(), 0, -1)
+            self.beginInsertRows(core.QModelIndex(), 0, -1)
             return
 
         assert idx >= 0, idx
         if webengine:
             idx += len(self._qtnetwork_manager.downloads)
-        self.beginInsertRows(QModelIndex(), idx, idx)
+        self.beginInsertRows(core.QModelIndex(), idx, idx)
 
     def _on_begin_remove_row(self, idx, webengine=False):
         log.downloads.debug("_on_begin_remove_row with idx {}, "
                             "webengine {}".format(idx, webengine))
         if idx == -1:
-            self.beginRemoveRows(QModelIndex(), 0, -1)
+            self.beginRemoveRows(core.QModelIndex(), 0, -1)
             return
 
         assert idx >= 0, idx
         if webengine:
             idx += len(self._qtnetwork_manager.downloads)
-        self.beginRemoveRows(QModelIndex(), idx, idx)
+        self.beginRemoveRows(core.QModelIndex(), idx, idx)
 
     def _on_data_changed(self, idx, *, webengine):
         """Called when a downloader's data changed.
@@ -1266,10 +1263,10 @@ class DownloadModel(QAbstractListModel):
         idx = self.index(self.rowCount() - 1)
         return idx
 
-    def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
+    def headerData(self, section, orientation, role=core.Qt.ItemDataRole.DisplayRole):
         """Simple constant header."""
-        if (section == 0 and orientation == Qt.Orientation.Horizontal and
-                role == Qt.ItemDataRole.DisplayRole):
+        if (section == 0 and orientation == core.Qt.Orientation.Horizontal and
+                role == core.Qt.ItemDataRole.DisplayRole):
             return "Downloads"
         else:
             return ""
@@ -1283,15 +1280,15 @@ class DownloadModel(QAbstractListModel):
             return None
 
         item = self[index.row()]
-        if role == Qt.ItemDataRole.DisplayRole:
+        if role == core.Qt.ItemDataRole.DisplayRole:
             data: Any = str(item)
-        elif role == Qt.ItemDataRole.ForegroundRole:
+        elif role == core.Qt.ItemDataRole.ForegroundRole:
             data = item.get_status_color('fg')
-        elif role == Qt.ItemDataRole.BackgroundRole:
+        elif role == core.Qt.ItemDataRole.BackgroundRole:
             data = item.get_status_color('bg')
         elif role == ModelRole.item:
             data = item
-        elif role == Qt.ItemDataRole.ToolTipRole:
+        elif role == core.Qt.ItemDataRole.ToolTipRole:
             if item.error_msg is None:
                 data = None
             else:
@@ -1306,10 +1303,10 @@ class DownloadModel(QAbstractListModel):
         The default would be Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable.
         """
         if not index.isValid():
-            return Qt.ItemFlag.NoItemFlags
-        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemNeverHasChildren
+            return core.Qt.ItemFlag.NoItemFlags
+        return core.Qt.ItemFlag.ItemIsEnabled | core.Qt.ItemFlag.ItemNeverHasChildren
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=core.QModelIndex()):
         """Get count of active downloads."""
         if parent.isValid():
             # We don't have children

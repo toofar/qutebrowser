@@ -23,14 +23,13 @@ import os.path
 import contextlib
 from typing import TYPE_CHECKING, Iterator, List, Optional, Any, Tuple
 
-from qutebrowser.qt.core import QUrl, QUrlQuery
-
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
+from qutebrowser.qt import core
 
 if TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig
@@ -108,7 +107,7 @@ class ConfigCommands:
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.load_url(QUrl('qute://settings'), newtab=False)
+            tabbed_browser.load_url(core.QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('!'):
@@ -151,7 +150,7 @@ class ConfigCommands:
             default: If given, restore a default binding.
         """
         if key is None:
-            url = QUrl('qute://bindings')
+            url = core.QUrl('qute://bindings')
             if mode != "normal":
                 url.setFragment(mode)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -287,9 +286,9 @@ class ConfigCommands:
         Args:
             include_hidden: Also include internal qutebrowser settings.
         """
-        url = QUrl('qute://configdiff')
+        url = core.QUrl('qute://configdiff')
         if include_hidden:
-            query = QUrlQuery()
+            query = core.QUrlQuery()
             query.addQueryItem("include_hidden", "true")
             url.setQuery(query)
 

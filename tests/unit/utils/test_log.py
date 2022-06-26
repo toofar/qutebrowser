@@ -28,7 +28,7 @@ import dataclasses
 
 import pytest
 import _pytest.logging  # pylint: disable=import-private-name
-from qutebrowser.qt import core as qtcore
+from qutebrowser.qt import core
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import log
@@ -429,5 +429,5 @@ class TestQtMessageHandler:
 
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""
-        log.qt_message_handler(qtcore.QtMsgType.QtDebugMsg, self.Context(), "")
+        log.qt_message_handler(core.QtMsgType.QtDebugMsg, self.Context(), "")
         assert caplog.messages == ["Logged empty message!"]

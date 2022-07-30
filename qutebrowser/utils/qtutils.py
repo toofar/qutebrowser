@@ -115,8 +115,8 @@ MAX_WORLD_ID = 256
 
 def is_new_qtwebkit() -> bool:
     """Check if the given version is a new QtWebKit."""
-    assert webkit.qWebKitVersion is not None
-    return (utils.VersionNumber.parse(webkit.qWebKitVersion()) >
+    assert qWebKitVersion is not None
+    return (utils.VersionNumber.parse(qWebKitVersion()) >
             utils.VersionNumber.parse('538.1'))
 
 

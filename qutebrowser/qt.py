@@ -94,6 +94,8 @@ try:
         from PyQt5 import QtWebEngineCore as webenginecore
         from PyQt5 import QtWebEngineWidgets as webenginewidgets
         # Some stuff moved from widgets to core in Qt6
+        # fixme:mypy cannot follow these renamings and I can't seem to get it
+        # to ignore the PyQt5 codepaths.
         for attr in [
             "QWebEngineSettings",
             "QWebEngineProfile",

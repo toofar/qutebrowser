@@ -173,15 +173,13 @@ def greasemonkey_manager(monkeypatch, data_tmpdir, config_tmpdir):
 
 @pytest.fixture(scope='session')
 def testdata_scheme(qapp):
-    try:
-        global _qute_scheme_handler
+    global _qute_scheme_handler
+    if webenginecore:
         from qutebrowser.browser.webengine import webenginequtescheme
         webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
         _qute_scheme_handler.install(webenginecore.QWebEngineProfile.defaultProfile())
-    except ImportError:
-        pass
 
     @qutescheme.add_handler('testdata')
     def handler(url):

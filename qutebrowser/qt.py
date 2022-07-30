@@ -20,6 +20,7 @@
 """Wrappers around Qt/PyQt code."""
 
 # pylint: disable=unused-import
+import os
 from dataclasses import dataclass
 
 
@@ -87,6 +88,8 @@ elif PyQt6:
     from PyQt6 import QtOpenGL as opengl  # type: ignore[no-redef]
 
 try:
+    if os.environ.get("SKIP_WEBENGINE_IMPORT"):
+        raise ImportError
     if PyQt5:
         from PyQt5 import QtWebEngineCore as webenginecore  # type: ignore[no-redef]
         from PyQt5 import QtWebEngineWidgets as webenginewidgets  # type: ignore[no-redef]
@@ -126,6 +129,8 @@ except ImportError:
     webenginewidgets = None  # type: ignore[assignment]
 
 try:
+    if os.environ.get("SKIP_WEBKIT_IMPORT"):
+        raise ImportError
     if PyQt5:
         from PyQt5 import QtWebKit as webkit  # type: ignore[no-redef]
         from PyQt5 import QtWebKitWidgets as webkitwidgets  # type: ignore[no-redef]

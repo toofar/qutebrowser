@@ -44,7 +44,7 @@ from qutebrowser.qt import core, gui, webkit
 
 
 if webkit:
-    qWebKitVersion = webkit.qWebKitVersion  # noqa: N816
+    qWebKitVersion = webkit.qWebKitVersion  # type: ignore[unreachable] # noqa: N816
 else:
     qWebKitVersion = lambda: None  # pylint: disable=unnecessary-lambda-assignment  # type: ignore[assignment]  # noqa: N816
 

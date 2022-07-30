@@ -67,7 +67,7 @@ try:
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-    _NIL_KEY = 0
+    _NIL_KEY: core.Qt.Key = 0
 
 _ModifierType = core.Qt.KeyboardModifier
 

@@ -489,7 +489,7 @@ class AbstractCertificateErrorWrapper:
     """A wrapper over an SSL/certificate error."""
 
     def __init__(self) -> None:
-        self._certificate_accepted = None
+        self._certificate_accepted: Optional[bool] = None
 
     def __str__(self) -> str:
         raise NotImplementedError
@@ -512,7 +512,7 @@ class AbstractCertificateErrorWrapper:
     def defer(self) -> None:
         raise NotImplementedError
 
-    def certificate_was_accepted(self) -> None:
+    def certificate_was_accepted(self) -> bool:
         """Check whether the certificate was accepted by the user."""
         if not self.is_overridable():
             return False

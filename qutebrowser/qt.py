@@ -33,7 +33,7 @@ class _Machinery:
 
 PyQt5 = PyQt6 = False
 try:
-    import PyQt5 as pyqt  # noqa: N813
+    import PyQt5 as pyqt  # type ignore # noqa: N813
 
     PyQt5 = True
     machinery = _Machinery(
@@ -42,7 +42,7 @@ try:
         PACKAGE="PyQt5",
     )
 except ImportError:
-    import PyQt6 as pyqt  # type: ignore[import, no-redef] # noqa: N813
+    import PyQt6 as pyqt  # type: ignore[no-redef] # noqa: N813
 
     PyQt6 = True
     machinery = _Machinery(
@@ -57,42 +57,42 @@ try:
     if PyQt5:
         from PyQt5 import sip
     elif PyQt6:
-        from PyQt6 import sip  # type: ignore[no-redef]
+        from PyQt6 import sip
 except ImportError:
-    import sip  # type: ignore[import, no-redef]
+    import sip  # type: ignore[import]
 
 # pylint: disable=ungrouped-imports
 if PyQt5:
-    from PyQt5 import QtCore as core  # type: ignore[no-redef]
-    from PyQt5 import QtDBus as dbus  # type: ignore[no-redef]
-    from PyQt5 import QtGui as gui  # type: ignore[no-redef]
-    from PyQt5 import QtNetwork as network  # type: ignore[no-redef]
-    from PyQt5 import QtPrintSupport as printsupport  # type: ignore[no-redef]
-    from PyQt5 import QtQml as qml  # type: ignore[no-redef]
-    from PyQt5 import QtSql as sql  # type: ignore[no-redef]
-    from PyQt5 import QtTest as test  # type: ignore[no-redef]
-    from PyQt5 import QtWidgets as widgets  # type: ignore[no-redef]
+    from PyQt5 import QtCore as core
+    from PyQt5 import QtDBus as dbus
+    from PyQt5 import QtGui as gui
+    from PyQt5 import QtNetwork as network
+    from PyQt5 import QtPrintSupport as printsupport
+    from PyQt5 import QtQml as qml
+    from PyQt5 import QtSql as sql
+    from PyQt5 import QtTest as test
+    from PyQt5 import QtWidgets as widgets
     opengl = gui  # for QOpenGLVersionProfile
     gui.QFileSystemModel = widgets.QFileSystemModel
     del widgets.QFileSystemModel
 elif PyQt6:
-    from PyQt6 import QtCore as core  # type: ignore[no-redef]
-    from PyQt6 import QtDBus as dbus  # type: ignore[no-redef]
-    from PyQt6 import QtGui as gui  # type: ignore[no-redef]
-    from PyQt6 import QtNetwork as network  # type: ignore[no-redef]
-    from PyQt6 import QtPrintSupport as printsupport  # type: ignore[no-redef]
-    from PyQt6 import QtQml as qml  # type: ignore[no-redef]
-    from PyQt6 import QtSql as sql  # type: ignore[no-redef]
-    from PyQt6 import QtTest as test  # type: ignore[no-redef]
-    from PyQt6 import QtWidgets as widgets  # type: ignore[no-redef]
-    from PyQt6 import QtOpenGL as opengl  # type: ignore[no-redef]
+    from PyQt6 import QtCore as core
+    from PyQt6 import QtDBus as dbus
+    from PyQt6 import QtGui as gui
+    from PyQt6 import QtNetwork as network
+    from PyQt6 import QtPrintSupport as printsupport
+    from PyQt6 import QtQml as qml
+    from PyQt6 import QtSql as sql
+    from PyQt6 import QtTest as test
+    from PyQt6 import QtWidgets as widgets
+    from PyQt6 import QtOpenGL as opengl
 
 try:
     if os.environ.get("SKIP_WEBENGINE_IMPORT"):
         raise ImportError
     if PyQt5:
-        from PyQt5 import QtWebEngineCore as webenginecore  # type: ignore[no-redef]
-        from PyQt5 import QtWebEngineWidgets as webenginewidgets  # type: ignore[no-redef]
+        from PyQt5 import QtWebEngineCore as webenginecore
+        from PyQt5 import QtWebEngineWidgets as webenginewidgets
         # Some stuff moved from widgets to core in Qt6
         for attr in [
             "QWebEngineSettings",
@@ -122,21 +122,21 @@ try:
             setattr(webenginecore, attr, getattr(QtWebEngine, attr))
             delattr(QtWebEngine, attr)
     elif PyQt6:
-        from PyQt6 import QtWebEngineCore as webenginecore  # type: ignore[no-redef]
-        from PyQt6 import QtWebEngineWidgets as webenginewidgets  # type: ignore[no-redef]
+        from PyQt6 import QtWebEngineCore as webenginecore
+        from PyQt6 import QtWebEngineWidgets as webenginewidgets
 except ImportError:
-    webenginecore = None  # type: ignore[assignment]
-    webenginewidgets = None  # type: ignore[assignment]
+    webenginecore = None
+    webenginewidgets = None
 
 try:
     if os.environ.get("SKIP_WEBKIT_IMPORT"):
         raise ImportError
     if PyQt5:
-        from PyQt5 import QtWebKit as webkit  # type: ignore[no-redef]
-        from PyQt5 import QtWebKitWidgets as webkitwidgets  # type: ignore[no-redef]
+        from PyQt5 import QtWebKit as webkit
+        from PyQt5 import QtWebKitWidgets as webkitwidgets
     elif PyQt6:
-        webkit = None  # type: ignore[assignment]
-        webkitwidgets = None  # type: ignore[assignment]
+        webkit = None
+        webkitwidgets = None
 except ImportError:
-    webkit = None  # type: ignore[assignment]
-    webkitwidgets = None  # type: ignore[assignment]
+    webkit = None
+    webkitwidgets = None

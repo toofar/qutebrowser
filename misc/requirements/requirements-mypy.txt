@@ -12,7 +12,7 @@ mypy-extensions==0.4.3
 pluggy==1.0.0
 Pygments==2.12.0
 PyQt5-stubs==5.15.6.0
-PyQt6-stubs @ git+https://github.com/toofar/PyQt6-stubs.git@7e0929694eea67d5ce33908808669d8896ebaaa2
+PyQt6-stubs @ git+https://github.com/toofar/PyQt6-stubs.git@66ab8770515c9ad7ba9a083a5c1b39a52250028e
 tomli==2.0.1
 types-PyYAML==6.0.8
 typing_extensions==4.2.0

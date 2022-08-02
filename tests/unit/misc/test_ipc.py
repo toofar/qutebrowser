@@ -654,9 +654,10 @@ class TestSendOrListen:
 
     @pytest.fixture
     def qlocalserver_mock(self, mocker):
+        orig_socket_option = network.QLocalServer.SocketOption
         m = mocker.patch('qutebrowser.misc.ipc.network.QLocalServer', autospec=True)
         m().errorString.return_value = "Error string"
-        m.SocketOption = network.QLocalServer.SocketOption
+        m.SocketOption = orig_socket_option
         m().newConnection = stubs.FakeSignal()
         return m
 

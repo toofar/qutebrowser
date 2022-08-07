@@ -169,7 +169,7 @@ def easylist_easyprivacy(easylist_easyprivacy_both):
 
 @pytest.fixture
 def ad_blocker(config_stub, data_tmpdir):
-    testutils.qt_module_skip("adblock")
+    pytest.importorskip("adblock")
     return braveadblock.BraveAdBlocker(data_dir=pathlib.Path(str(data_tmpdir)))
 
 

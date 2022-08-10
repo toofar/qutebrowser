@@ -180,6 +180,10 @@ jobs:
         if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Smoke test
         run: /home/runner/work/qutebrowser/qutebrowser/.tox/py39-pyqt5152/bin/python -m qutebrowser --version
+        continue-on-error: true
+      - name: ldd
+        run: ldd /usr/lib/x86_64-linux-gnu/libQt5XcbQpa.so.5 /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/libqxcb.so /usr/lib/x86_64-linux-gnu/libQt6XcbQpa.so.5 /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqxcb.so
+        continue-on-error: true
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"

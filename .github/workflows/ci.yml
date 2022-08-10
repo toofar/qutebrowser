@@ -110,7 +110,7 @@ jobs:
           - testenv: py39-pyqt5152
             os: ubuntu-20.04
             python: "3.9"
-            args: "tests/unit"  # Only run unit tests on macOS
+            args: "tests/unit/api/test_cmdutils.py"
           ### PyQt 5.15 (Python 3.10, with coverage)
           ### PyQt 5.15 (Python 3.9, with coverage)
           # FIXME:qt6

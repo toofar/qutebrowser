@@ -101,7 +101,7 @@ jobs:
   tests:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
     timeout-minutes: 45
-    continue-on-error: "${{ matrix.experimental == true }}"
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -177,14 +177,16 @@ jobs:
       - name: "Run ${{ matrix.testenv }} without DBus"
         run: "tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
         if: "!startsWith(matrix.os, 'ubuntu-')"
+      - name: Smoke test
+        run: /home/runner/work/qutebrowser/qutebrowser/.tox/py39-pyqt5152/bin/python -m qutebrowser --version
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"
-      - name: Upload coverage
-        if: "endsWith(matrix.testenv, '-cov')"
-        uses: codecov/codecov-action@v3
-        with:
-          name: "${{ matrix.testenv }}"
+      #- name: Upload coverage
+      #  if: "endsWith(matrix.testenv, '-cov')"
+      #  uses: codecov/codecov-action@v3
+      #  with:
+      #    name: "${{ matrix.testenv }}"
 
   #codeql:
   #  if: "!contains(github.event.head_commit.message, '[ci skip]')"

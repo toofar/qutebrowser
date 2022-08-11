@@ -184,6 +184,9 @@ jobs:
       - name: ldd
         run: ldd /usr/lib/x86_64-linux-gnu/libQt5XcbQpa.so.5 /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/libqxcb.so /usr/lib/x86_64-linux-gnu/libQt6XcbQpa.so.5 /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqxcb.so
         continue-on-error: true
+      - name: what qt
+        run: dpkg --list | grep Qt
+        continue-on-error: true
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"
         if: "failure()"

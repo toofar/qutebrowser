@@ -99,8 +99,8 @@ jobs:
           - testenv: py
             image: archlinux-webengine-unstable
             args: ""
-          # - testenv: py
-          #   image: archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
+            # - testenv: py
+            #   image: archlinux-webengine-unstable-qt6  # FIXME:qt6.5 activate
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:

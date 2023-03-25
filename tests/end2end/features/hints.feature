@@ -251,12 +251,14 @@ Feature: Using hints
     ### iframes
     Scenario: Using :hint-follow inside an iframe
         When I open data/hints/iframe.html
+        And I run :jseval document.querySelectorAll('iframe').forEach(el => console.log(`state=${el.contentDocument.readyState} iframe=${el.src}`))
         And I wait for "emitting: cur_load_finished(True) (tab *)" in the log
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
+        And I run :jseval document.querySelectorAll('iframe').forEach(el => console.log(`state=${el.contentDocument.readyState} iframe=${el.src}`))
         And I wait for "emitting: cur_load_finished(True) (tab *)" in the log
         And I hint with args "all normal" and follow s
         Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged

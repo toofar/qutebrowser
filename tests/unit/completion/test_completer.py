@@ -22,10 +22,9 @@
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QObject
-from PyQt5.QtGui import QStandardItemModel
+from qutebrowser.qt.gui import QStandardItemModel
 
-from qutebrowser.completion import completer
+from qutebrowser.completion import completer, completionwidget
 from qutebrowser.commands import command
 from qutebrowser.api import cmdutils
 
@@ -48,12 +47,12 @@ class FakeCompletionModel(QStandardItemModel):
         self.info = info
 
 
-class CompletionWidgetStub(QObject):
+class CompletionWidgetStub(completionwidget.CompletionView):
 
     """Stub for the CompletionView."""
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(cmd=None, win_id=0, parent=parent)
         self.hide = unittest.mock.Mock()
         self.show = unittest.mock.Mock()
         self.set_pattern = unittest.mock.Mock()
@@ -197,7 +196,7 @@ def _set_cmd_prompt(cmd, txt):
                  marks=pytest.mark.xfail(reason='issue #74')),
     (':set -t -p |', 'section', '', []),
     (':open -- |', None, '', []),
-    (':gibberish nonesense |', None, '', []),
+    (':gibberish nonsense |', None, '', []),
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
     (':-w open |', None, '', []),

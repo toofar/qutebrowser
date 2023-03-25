@@ -37,12 +37,11 @@ class="mono">content.cookies.accept</span> setting works on QtWebEngine.</p>
 class="mono">qt.force_software_rendering</span> setting added in v1.4.0 should
 hopefully help.</p>
 
-<p><b>Missing support for notifications</b>: With qutebrowser v1.7.0, initial
-notification support was added for Qt 5.13.0.</p>
+<p><b>Missing support for notifications</b>: Supported since qutebrowser v1.7.0.</p>
 
 <p><b>Resource usage</b>: qutebrowser v1.5.0 added the <span
-class="mono">qt.process_model</span> and <span
-class="mono">qt.low_end_device_mode</span> settings which can be used to
+class="mono">qt.chromium.process_model</span> and <span
+class="mono">qt.chromium.low_end_device_mode</span> settings which can be used to
 decrease the resource usage of QtWebEngine (but come with other drawbacks).</p>
 
 <p><b>Not trusting Google</b>: Various people have checked the connections made
@@ -51,9 +50,8 @@ any other unsolicited connections at all). Arguably, having to trust Google
 also is a smaller issue than having to trust every website you visit because of
 heaps of security issues...</p>
 
-<p><b>Nouveau graphic driver</b>: You can use QtWebEngine with software
-rendering. With Qt 5.13 (~May 2019) it might be possible to run with Nouveau
-without software rendering.</p>
+<p><b>Nouveau graphic driver</b>: Should be handled properly in current versions
+of QtWebEngine.</p>
 
 <p><b>Wayland</b>: It's possible to use QtWebEngine with XWayland. With Qt
 5.11.2 or newer, qutebrowser also runs natively with Wayland.</p>
@@ -78,7 +76,7 @@ security fixes took months to arrive there). You might be better off choosing an
 method</a>.</p>
 
 <p><b>White flashing between loads with a custom stylesheet</b>: This doesn't
-seem to happen with <span class="mono">qt.process_model = single-process</span>
+seem to happen with <span class="mono">qt.chromium.process_model = single-process</span>
 set. However, note that that setting comes with decreased security and
 stability, but QtWebKit doesn't have any process isolation at all.</p>
 {% endblock %}

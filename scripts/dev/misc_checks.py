@@ -38,7 +38,7 @@ from scripts import utils
 from scripts.dev import recompile_requirements
 
 BINARY_EXTS = {'.png', '.icns', '.ico', '.bmp', '.gz', '.bin', '.pdf',
-               '.sqlite', '.woff2', '.whl'}
+               '.sqlite', '.woff2', '.whl', '.egg'}
 
 
 def _get_files(
@@ -50,7 +50,7 @@ def _get_files(
     filenames = subprocess.run(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
         stdout=subprocess.PIPE,
-        universal_newlines=True,
+        text=True,
         check=True,
     )
     all_ignored = ignored or []
@@ -64,7 +64,7 @@ def _get_files(
             continue
 
         try:
-            with tokenize.open(str(path)):
+            with tokenize.open(path):
                 pass
         except SyntaxError as e:
             # Could not find encoding
@@ -111,7 +111,7 @@ def check_changelog_urls(_args: argparse.Namespace = None) -> bool:
         utils.print_col(f"Extra changelog URLs: {req_str}", 'red')
 
     if not ok:
-        print("Hint: Changelog URLs are in scripts/dev/recompile_requirements.py")
+        print("Hint: Changelog URLs are in scripts/dev/changelog_urls.json")
 
     return ok
 
@@ -165,7 +165,7 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
              'artefact', 'an unix', 'an utf', 'an unicode', 'unparseable',
              'dependancies', 'convertable', 'chosing', 'authentification'}
 
-    # Words which look better when splitted, but might need some fine tuning.
+    # Words which look better when split, but might need some fine tuning.
     words |= {'webelements', 'mouseevent', 'keysequence', 'normalmode',
               'eventloops', 'sizehint', 'statemachine', 'metaobject',
               'logrecord'}
@@ -197,11 +197,6 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
         (
             re.compile(r'(?i)# noqa(?!: )'),
             "Don't use a blanket 'noqa', use something like 'noqa: X123' instead.",
-        ),
-        (
-            re.compile(r'# type: ignore[^\[]'),
-            ("Don't use a blanket 'type: ignore', use something like "
-             "'type: ignore[error-code]' instead."),
         ),
         (
             re.compile(r'# type: (?!ignore(\[|$))'),
@@ -271,11 +266,44 @@ def check_spelling(args: argparse.Namespace) -> Optional[bool]:
     hint_data = pathlib.Path('tests', 'end2end', 'data', 'hints')
     ignored = [
         pathlib.Path('scripts', 'dev', 'misc_checks.py'),
+        pathlib.Path('scripts', 'dev', 'enums.txt'),
         pathlib.Path('qutebrowser', '3rdparty', 'pdfjs'),
         hint_data / 'ace' / 'ace.js',
         hint_data / 'bootstrap' / 'bootstrap.css',
     ]
 
+    try:
+        ok = True
+        for path in _get_files(verbose=args.verbose, ignored=ignored):
+            with tokenize.open(path) as f:
+                if not _check_spelling_file(path, f, patterns):
+                    ok = False
+        print()
+        return ok
+    except Exception:
+        traceback.print_exc()
+        return None
+
+
+def check_pyqt_imports(args: argparse.Namespace) -> Optional[bool]:
+    """Check for direct PyQt imports."""
+    ignored = [
+        pathlib.Path("qutebrowser", "qt"),
+        # FIXME:qt6 fix those too?
+        pathlib.Path("misc", "userscripts"),
+        pathlib.Path("scripts"),
+    ]
+    patterns = [
+        (
+            re.compile(r"from PyQt.* import"),
+            "Use 'from qutebrowser.qt.MODULE import ...' instead",
+        ),
+        (
+            re.compile(r"import PyQt.*"),
+            "Use 'import qutebrowser.qt.MODULE' instead",
+        )
+    ]
+    # FIXME:qt6 unify this with check_spelling somehow?
     try:
         ok = True
         for path in _get_files(verbose=args.verbose, ignored=ignored):
@@ -297,7 +325,7 @@ def check_vcs_conflict(args: argparse.Namespace) -> Optional[bool]:
             if path.suffix in {'.rst', '.asciidoc'}:
                 # False positives
                 continue
-            with tokenize.open(str(path)) as f:
+            with tokenize.open(path) as f:
                 for line in f:
                     if any(line.startswith(c * 7) for c in '<>=|'):
                         print("Found conflict marker in {}".format(path))
@@ -342,13 +370,17 @@ def check_userscripts_descriptions(_args: argparse.Namespace = None) -> bool:
 
 
 def check_userscript_shebangs(_args: argparse.Namespace) -> bool:
-    """Check that we're using /usr/bin/env in shebangs."""
+    """Check that we're using /usr/bin/env in shebangs and scripts are executable."""
     ok = True
     folder = pathlib.Path('misc/userscripts')
 
     for sub in folder.iterdir():
         if sub.is_dir() or sub.name == 'README.md':
             continue
+
+        if not os.access(sub, os.X_OK):
+            print(f"{sub} is not marked as executable")
+            ok = False
 
         with sub.open('r', encoding='utf-8') as f:
             shebang = f.readline().rstrip('\n')
@@ -372,6 +404,7 @@ def main() -> int:
         'git': check_git,
         'vcs': check_vcs_conflict,
         'spelling': check_spelling,
+        'pyqt-imports': check_pyqt_imports,
         'userscript-descriptions': check_userscripts_descriptions,
         'userscript-shebangs': check_userscript_shebangs,
         'changelog-urls': check_changelog_urls,

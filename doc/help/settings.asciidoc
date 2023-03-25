@@ -118,6 +118,7 @@
 |<<colors.webpage.darkmode.enabled,colors.webpage.darkmode.enabled>>|Render all web contents using a dark theme.
 |<<colors.webpage.darkmode.grayscale.all,colors.webpage.darkmode.grayscale.all>>|Render all colors as grayscale.
 |<<colors.webpage.darkmode.grayscale.images,colors.webpage.darkmode.grayscale.images>>|Desaturation factor for images in dark mode.
+|<<colors.webpage.darkmode.increase_text_contrast,colors.webpage.darkmode.increase_text_contrast>>|Increase text contrast by drawing an outline of the uninverted color.
 |<<colors.webpage.darkmode.policy.images,colors.webpage.darkmode.policy.images>>|Which images to apply dark mode to.
 |<<colors.webpage.darkmode.policy.page,colors.webpage.darkmode.policy.page>>|Which pages to apply dark mode to.
 |<<colors.webpage.darkmode.threshold.background,colors.webpage.darkmode.threshold.background>>|Threshold for inverting background elements with dark mode.
@@ -167,11 +168,13 @@
 |<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
 |<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
-|<<content.javascript.can_access_clipboard,content.javascript.can_access_clipboard>>|Allow JavaScript to read from or write to the clipboard.
 |<<content.javascript.can_close_tabs,content.javascript.can_close_tabs>>|Allow JavaScript to close tabs.
 |<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Allow JavaScript to open new tabs without user interaction.
+|<<content.javascript.clipboard,content.javascript.clipboard>>|Allow JavaScript to read from or write to the clipboard.
 |<<content.javascript.enabled,content.javascript.enabled>>|Enable JavaScript.
 |<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
+|<<content.javascript.log_message.excludes,content.javascript.log_message.excludes>>|Javascript messages to *not* show in the UI, despite a corresponding `content.javascript.log_message.levels` setting.
+|<<content.javascript.log_message.levels,content.javascript.log_message.levels>>|Javascript message sources/levels to show in the qutebrowser UI.
 |<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`.
 |<<content.javascript.prompt,content.javascript.prompt>>|Show javascript prompts.
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
@@ -186,7 +189,7 @@
 |<<content.notifications.enabled,content.notifications.enabled>>|Allow websites to show notifications.
 |<<content.notifications.presenter,content.notifications.presenter>>|What notification presenter to use for web notifications.
 |<<content.notifications.show_origin,content.notifications.show_origin>>|Whether to show the origin URL for notifications.
-|<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
+|<<content.pdfjs,content.pdfjs>>|Display PDF files via PDF.js in the browser without showing a download prompt.
 |<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
 |<<content.prefers_reduced_motion,content.prefers_reduced_motion>>|Request websites to minimize non-essentials animations and motion.
@@ -213,8 +216,9 @@
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
 |<<editor.command,editor.command>>|Editor (and arguments) to use for the `edit-*` commands.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
+|<<editor.remove_file,editor.remove_file>>|Delete the temporary file upon closing the editor.
 |<<fileselect.folder.command,fileselect.folder.command>>|Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
-|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+|<<fileselect.handler,fileselect.handler>>|Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 |<<fileselect.multiple_files.command,fileselect.multiple_files.command>>|Command (and arguments) to use for selecting multiple files in forms. The command should write the selected file paths to the specified file or to stdout, separated by newlines.
 |<<fileselect.single_file.command,fileselect.single_file.command>>|Command (and arguments) to use for selecting a single file in forms. The command should write the selected file path to the specified file or stdout.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
@@ -271,6 +275,7 @@
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.match_counts,input.match_counts>>|Interpret number prefixes as counts for bindings.
 |<<input.media_keys,input.media_keys>>|Whether the underlying Chromium should handle media keys.
+|<<input.mode_override,input.mode_override>>|Mode to change to when focusing on a tab/URL changes.
 |<<input.mouse.back_forward_buttons,input.mouse.back_forward_buttons>>|Enable back and forward buttons on the mouse.
 |<<input.mouse.rocker_gestures,input.mouse.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -286,13 +291,14 @@
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
+|<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
+|<<qt.chromium.sandboxing,qt.chromium.sandboxing>>|What sandboxing mechanisms in Chromium to use.
 |<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
-|<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
-|<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
 |<<qt.workarounds.locale,qt.workarounds.locale>>|Work around locale parsing issues in QtWebEngine 5.15.3.
 |<<qt.workarounds.remove_service_workers,qt.workarounds.remove_service_workers>>|Delete the QtWebEngine Service Worker directory on every start.
 |<<scrolling.bar,scrolling.bar>>|When/how to show the scrollbar.
@@ -300,6 +306,7 @@
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
 |<<search.wrap,search.wrap>>|Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
+|<<search.wrap_messages,search.wrap_messages>>|Display messages when advancing through text matches at the top and bottom of the page, e.g. `Search hit TOP`.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
@@ -332,6 +339,7 @@
 |<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
+|<<tabs.title.elide,tabs.title.elide>>|Position of ellipsis in truncated title of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
@@ -438,9 +446,7 @@ The following modes are available:
   that single keys can't be bound in this mode.
 
 * passthrough: Similar to insert mode, but passes through all keypresses
-  except `<Escape>` to leave the mode. It might be useful to bind
-  `<Escape>` to some other key in this mode if you want to be able to send
-  an Escape key to the website as well. Note that single keys can't be
+  except `<Shift+Escape>` to leave the mode. Note that single keys can't be
   bound in this mode.
 
 * command: Entered when pressing the `:` key in order to enter a command.
@@ -523,9 +529,10 @@ Default:
 * +pass:[&lt;Ctrl-Return&gt;]+: +pass:[command-accept --rapid]+
 * +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[mode-leave]+
@@ -748,6 +755,7 @@ Default:
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
 * +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
 * +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
+* +pass:[&lt;Alt-E&gt;]+: +pass:[prompt-fileselect-external]+
 * +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
 * +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
@@ -759,8 +767,9 @@ Default:
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[rl-filename-rubout]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
-* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-rubout &quot; &quot;]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
@@ -1663,6 +1672,9 @@ Example configurations from Chromium's `chrome://flags`:
 - "With selective inversion of everything": Combines the two variants
   above.
 
+- "With increased text contrast": Set
+  `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
+
 This setting requires a restart.
 
 This setting is only available with the QtWebEngine backend.
@@ -1691,13 +1703,25 @@ If set to 0, images are left as-is. If set to 1, images are completely grayscale
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Float>>
 
 Default: +pass:[0.0]+
+
+[[colors.webpage.darkmode.increase_text_contrast]]
+=== colors.webpage.darkmode.increase_text_contrast
+Increase text contrast by drawing an outline of the uninverted color.
+
+This setting requires a restart.
+
+On QtWebEngine, this setting requires Qt 6.3 or newer.
+
+On QtWebKit, this setting is unavailable.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[colors.webpage.darkmode.policy.images]]
 === colors.webpage.darkmode.policy.images
@@ -1725,9 +1749,7 @@ The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus thi
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -1746,9 +1768,7 @@ Note: This behavior is the opposite of `colors.webpage.darkmode.threshold.text`!
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1761,9 +1781,7 @@ Text colors with brightness below this threshold will be inverted, and above it 
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Int>>
 
@@ -1777,9 +1795,7 @@ The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
@@ -2266,7 +2282,7 @@ Type: <<types,String>>
 
 Valid values:
 
- * +always+: Always send the Referer.
+ * +always+: Always send the Referer. With QtWebEngine 6.2+, this value is unavailable and will act like `same-domain`.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
  * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
@@ -2330,17 +2346,6 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.javascript.can_access_clipboard]]
-=== content.javascript.can_access_clipboard
-Allow JavaScript to read from or write to the clipboard.
-With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
-
-This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
 [[content.javascript.can_close_tabs]]
 === content.javascript.can_close_tabs
 Allow JavaScript to close tabs.
@@ -2362,6 +2367,23 @@ This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[content.javascript.clipboard]]
+=== content.javascript.clipboard
+Allow JavaScript to read from or write to the clipboard.
+With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +none+: Disable access to clipboard.
+ * +access+: Allow reading from and writing to the clipboard.
+ * +access-paste+: Allow accessing the clipboard and pasting clipboard content.
+
+Default: +pass:[none]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
@@ -2388,6 +2410,38 @@ Default:
 - +pass:[info]+: +pass:[debug]+
 - +pass:[unknown]+: +pass:[debug]+
 - +pass:[warning]+: +pass:[debug]+
+
+[[content.javascript.log_message.excludes]]
+=== content.javascript.log_message.excludes
+Javascript messages to *not* show in the UI, despite a corresponding `content.javascript.log_message.levels` setting.
+Both keys and values are glob patterns, with the key matching the location of the error, and the value matching the error message.
+By default, the https://web.dev/csp/[Content security policy] violations triggered by qutebrowser's stylesheet handling are excluded, as those errors are to be expected and can't be easily handled by the underlying code.
+
+Type: <<types,Dict>>
+
+Default: 
+
+- +pass:[userscript:_qute_stylesheet]+:
+
+* +pass:[*Refused to apply inline style because it violates the following Content Security Policy directive: *]+
+
+[[content.javascript.log_message.levels]]
+=== content.javascript.log_message.levels
+Javascript message sources/levels to show in the qutebrowser UI.
+When a JavaScript message is logged from a location matching the glob pattern given in the key, and is from one of the levels listed as value, it's surfaced as a message in the qutebrowser UI.
+By default, errors happening in qutebrowser internally are shown to the user.
+
+Type: <<types,Dict>>
+
+Default: 
+
+- +pass:[qute:*]+:
+
+* +pass:[error]+
+- +pass:[userscript:*]+:
+
+* +pass:[error]+
+- +pass:[userscript:GM-*]+: empty
 
 [[content.javascript.modal_dialog]]
 === content.javascript.modal_dialog
@@ -2533,8 +2587,6 @@ Allow websites to show notifications.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.13 or newer.
-
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -2549,8 +2601,6 @@ Default: +pass:[ask]+
 === content.notifications.presenter
 What notification presenter to use for web notifications.
 Note that not all implementations support all features of notifications:
-- With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-  `close` events, as well as the `tag` option to replace existing notifications.
 - The `qt` and `systray` options only support showing one notification at the time
   and ignore the `tag` option to replace existing notifications.
 - The `herbe` option only supports showing one notification at the time and doesn't
@@ -2558,16 +2608,14 @@ Note that not all implementations support all features of notifications:
 - The `messages` option doesn't show icons and doesn't support the `click` and
   `close` events.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,String>>
 
 Valid values:
 
  * +auto+: Tries `libnotify`, `systray` and `messages`, uses the first one available without showing error messages.
- * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser. Recommended over `systray` on PyQt 5.14.
+ * +qt+: Use Qt's native notification presenter, based on a system tray icon. Switching from or to this value requires a restart of qutebrowser.
  * +libnotify+: Shows messages via DBus in a libnotify-compatible way. If DBus isn't available, falls back to `systray` or `messages`, but shows an error message.
  * +systray+: Use a notification presenter based on a systray icon. Falls back to `libnotify` or `messages` if not systray is available. This is a reimplementation of the `qt` setting value, but with the possibility to switch to it at runtime.
  * +messages+: Show notifications as qutebrowser messages. Most notification features aren't available.
@@ -2583,9 +2631,7 @@ Note that with the `qt` presenter, origins are never shown.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -2593,8 +2639,8 @@ Default: +pass:[true]+
 
 [[content.pdfjs]]
 === content.pdfjs
-Allow pdf.js to view PDF files in the browser.
-Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+Display PDF files via PDF.js in the browser without showing a download prompt.
+Note that the files can still be downloaded by clicking the download button in the pdf.js viewer. With this set to `false`, the `:prompt-open-download --pdfjs` command (bound to `<Ctrl-p>` by default) can be used in the download prompt.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
@@ -2638,9 +2684,7 @@ On Windows, if this setting is set to False, the system-wide animation setting i
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
@@ -2735,8 +2779,7 @@ Valid values:
  * +js-whatsapp-web+
  * +js-discord+
  * +js-string-replaceall+
- * +js-globalthis+
- * +js-object-fromentries+
+ * +js-array-at+
  * +misc-krunker+
  * +misc-mathml-darkmode+
 
@@ -2941,6 +2984,14 @@ Type: <<types,Encoding>>
 
 Default: +pass:[utf-8]+
 
+[[editor.remove_file]]
+=== editor.remove_file
+Delete the temporary file upon closing the editor.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[fileselect.folder.command]]
 === fileselect.folder.command
 Command (and arguments) to use for selecting a single folder in forms. The command should write the selected folder path to the specified file or stdout.
@@ -2959,7 +3010,7 @@ Default:
 
 [[fileselect.handler]]
 === fileselect.handler
-Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command` and `fileselect.multiple_files.command` are used to select one or multiple files respectively.
+Handler for selecting file(s) in forms. If `external`, then the commands specified by `fileselect.single_file.command`, `fileselect.multiple_files.command` and `fileselect.folder.command` are used to select one file, multiple files, and folders, respectively.
 
 Type: <<types,String>>
 
@@ -3430,6 +3481,7 @@ Default:
 * +pass:[[role=&quot;menuitem&quot;\]]+
 * +pass:[[role=&quot;menuitemcheckbox&quot;\]]+
 * +pass:[[role=&quot;menuitemradio&quot;\]]+
+* +pass:[[role=&quot;treeitem&quot;\]]+
 * +pass:[[ng-click\]]+
 * +pass:[[ngClick\]]+
 * +pass:[[data-ng-click\]]+
@@ -3579,13 +3631,27 @@ On Linux, disabling this also disables Chromium's MPRIS integration.
 
 This setting requires a restart.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
-
-On QtWebKit, this setting is unavailable.
+This setting is only available with the QtWebEngine backend.
 
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[input.mode_override]]
+=== input.mode_override
+Mode to change to when focusing on a tab/URL changes.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +normal+
+ * +insert+
+ * +passthrough+
+
+Default: empty
 
 [[input.mouse.back_forward_buttons]]
 === input.mouse.back_forward_buttons
@@ -3617,7 +3683,7 @@ Default: +pass:[0]+
 [[input.spatial_navigation]]
 === input.spatial_navigation
 Enable spatial navigation.
-Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
+Spatial navigation consists in the ability to navigate between focusable elements, such as hyperlinks and form controls, on a web page by using the Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element they might be trying to reach towards the right and which element they probably want.
 
 This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
 
@@ -3755,6 +3821,73 @@ Type: <<types,List of String>>
 
 Default: empty
 
+[[qt.chromium.low_end_device_mode]]
+=== qt.chromium.low_end_device_mode
+When to use Chromium's low-end device mode.
+This improves the RAM usage of renderer processes, at the expense of performance.
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always use low-end device mode.
+ * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
+ * +never+: Never use low-end device mode.
+
+Default: +pass:[auto]+
+
+[[qt.chromium.process_model]]
+=== qt.chromium.process_model
+Which Chromium process model to use.
+Alternative process models use less resources, but decrease security and robustness.
+See the following pages for more details:
+
+  - https://www.chromium.org/developers/design-documents/process-models
+  - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
+
+This setting requires a restart.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
+ * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
+ * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
+
+Default: +pass:[process-per-site-instance]+
+
+[[qt.chromium.sandboxing]]
+=== qt.chromium.sandboxing
+What sandboxing mechanisms in Chromium to use.
+Chromium has various sandboxing layers, which should be enabled for normal browser usage. Mainly for testing and development, it's possible to disable individual sandboxing layers via this setting.
+Open `chrome://sandbox` to see the current sandbox status.
+Changing this setting is only recommended if you know what you're doing, as it **disables one of Chromium's security layers**. To avoid sandboxing being accidentally disabled persistently, this setting can only be set via `config.py`, not via `:set`.
+See the Chromium documentation for more details:
+- https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows] - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+
+This setting requires a restart.
+
+This setting can only be set in config.py.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +enable-all+: Enable all available sandboxing mechanisms.
+ * +disable-seccomp-bpf+: Disable the Seccomp BPF filter sandbox (Linux only).
+ * +disable-all+: Disable all sandboxing (**not recommended!**).
+
+Default: +pass:[enable-all]+
+
 [[qt.environ]]
 === qt.environ
 Additional environment variables to set.
@@ -3811,7 +3944,7 @@ Default: +pass:[none]+
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 
 This setting requires a restart.
@@ -3819,48 +3952,6 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
-
-[[qt.low_end_device_mode]]
-=== qt.low_end_device_mode
-When to use Chromium's low-end device mode.
-This improves the RAM usage of renderer processes, at the expense of performance.
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +always+: Always use low-end device mode.
- * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
- * +never+: Never use low-end device mode.
-
-Default: +pass:[auto]+
-
-[[qt.process_model]]
-=== qt.process_model
-Which Chromium process model to use.
-Alternative process models use less resources, but decrease security and robustness.
-See the following pages for more details:
-
-  - https://www.chromium.org/developers/design-documents/process-models
-  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
-
-This setting requires a restart.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
- * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
- * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
-
-Default: +pass:[process-per-site-instance]+
 
 [[qt.workarounds.locale]]
 === qt.workarounds.locale
@@ -3936,7 +4027,13 @@ Default: +pass:[true]+
 === search.wrap
 Wrap around at the top and bottom of the page when advancing through text matches using `:search-next` and `:search-prev`.
 
-On QtWebEngine, this setting requires Qt 5.14 or newer.
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[search.wrap_messages]]
+=== search.wrap_messages
+Display messages when advancing through text matches at the top and bottom of the page, e.g. `Search hit TOP`.
 
 Type: <<types,Bool>>
 
@@ -4068,14 +4165,17 @@ Valid values:
  * +scroll+: Percentage of the current page position like `10%`.
  * +scroll_raw+: Raw percentage of the current page position like `10`.
  * +history+: Display an arrow when possible to go back/forward in history.
+ * +search_match+: A match count when searching, e.g. `Match [2/10]`.
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
  * +text:foo+: Display the static text after the colon, `foo` in the example.
+ * +clock+: Display current time. The format can be changed by adding a format string via `clock:...`. For supported format strings, see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the Python datetime documentation].
 
 Default: 
 
 - +pass:[keypress]+
+- +pass:[search_match]+
 - +pass:[url]+
 - +pass:[scroll]+
 - +pass:[history]+
@@ -4376,6 +4476,21 @@ Valid values:
 
 Default: +pass:[left]+
 
+[[tabs.title.elide]]
+=== tabs.title.elide
+Position of ellipsis in truncated title of tabs.
+
+Type: <<types,ElidePosition>>
+
+Valid values:
+
+ * +left+
+ * +right+
+ * +middle+
+ * +none+
+
+Default: +pass:[right]+
+
 [[tabs.title.format]]
 === tabs.title.format
 Format to use for the tab title.
@@ -4388,6 +4503,7 @@ The following placeholders are defined:
 * `{index}`: Index of this tab.
 * `{aligned_index}`: Index of this tab padded with spaces to have the same
   width.
+* `{relative_index}`: Index of this tab relative to the current tab.
 * `{id}`: Internal tab ID of this tab.
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.
@@ -4656,6 +4772,7 @@ When setting from a string, `1`, `yes`, `on` and `true` count as true, while `0`
 
 When setting from a string, pass a json-like dict, e.g. `{"key", "value"}`.
 |Directory|A directory on the local filesystem.
+|ElidePosition|Position of ellipsis in truncated text.
 |Encoding|Setting for a python encoding.
 |File|A file on the local filesystem.
 |FlagList|A list of flags.
@@ -4684,7 +4801,7 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 |Proxy|A proxy URL, or `system`/`none`.
 |QssColor|A color value supporting gradients.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in https://doc.qt.io/qt-6/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#AARRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in https://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)

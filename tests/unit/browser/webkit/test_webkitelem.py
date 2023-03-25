@@ -27,8 +27,8 @@ import itertools
 import dataclasses
 
 import pytest
-from PyQt5.QtCore import QRect, QPoint, QUrl
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+from qutebrowser.qt.core import QRect, QPoint, QUrl
+QWebElement = pytest.importorskip('qutebrowser.qt.webkit').QWebElement
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
@@ -124,7 +124,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
 
     def _style_property(name, strategy):
         """Helper function to act as styleProperty method."""
-        if strategy != QWebElement.ComputedStyle:
+        if strategy != QWebElement.StyleResolveStrategy.ComputedStyle:
             raise ValueError("styleProperty called with strategy != "
                              "ComputedStyle ({})!".format(strategy))
         return style_dict[name]
@@ -195,6 +195,7 @@ class SelectionAndFilterTests:
         ('<p role="menuitem" foo="bar"/>', ['all']),
         ('<p role="menuitemcheckbox" foo="bar"/>', ['all']),
         ('<p role="menuitemradio" foo="bar"/>', ['all']),
+        ('<p role="treeitem" foo="bar"/>', ['all']),
         ('<p role="button" foo="bar"/>', ['all']),
         ('<p role="button" href="bar"/>', ['all', 'url']),
 
@@ -677,9 +678,8 @@ class TestIsVisibleIframe:
         assert not invalid_objects.elems[1]._is_visible(invalid_objects.frame)
 
 
+@pytest.mark.usefixtures('config_stub')
 class TestRectOnView:
-
-    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('js_rect', [
         None,  # real geometry via getElementRects
@@ -866,8 +866,6 @@ class TestIsEditable:
 
     @pytest.mark.parametrize('setting, tagname, attributes, editable', [
         (True, 'embed', {}, True),
-        (True, 'embed', {}, True),
-        (False, 'applet', {}, False),
         (False, 'applet', {}, False),
         (True, 'object', {'type': 'application/foo'}, True),
         (False, 'object', {'type': 'application/foo'}, False),

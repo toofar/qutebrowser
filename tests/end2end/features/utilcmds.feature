@@ -11,7 +11,7 @@ Feature: Miscellaneous utility commands exposed to the user.
     Scenario: :later before
         When I run :later 500 scroll down
         Then the page should not be scrolled
-        # wait for scroll to execture so we don't ruin our future
+        # wait for scroll to execute so we don't ruin our future
         And the page should be scrolled vertically
 
     Scenario: :later after
@@ -93,6 +93,7 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     ## :debug-cache-stats
 
+    @python>=3.9.0
     Scenario: :debug-cache-stats
         When I run :debug-cache-stats
         Then "is_valid_prefix: CacheInfo(*)" should be logged

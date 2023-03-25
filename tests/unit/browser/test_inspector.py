@@ -19,7 +19,7 @@
 
 import pytest
 
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.browser import inspector
 from qutebrowser.misc import miscwidgets
@@ -151,4 +151,5 @@ def test_detach_after_toggling(hidden_again, needs_recreate,
     else:
         with qtbot.assert_not_emitted(fake_inspector.recreate):
             fake_inspector.set_position(inspector.Position.window)
-        assert fake_inspector.isVisible() and fake_inspector.isWindow()
+        assert fake_inspector.isVisible()
+        assert fake_inspector.isWindow()

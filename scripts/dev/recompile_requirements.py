@@ -24,6 +24,7 @@ import re
 import sys
 import os.path
 import glob
+import json
 import subprocess
 import tempfile
 import argparse
@@ -39,167 +40,8 @@ REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         '..', '..')  # /scripts/dev -> /scripts -> /
 REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
-CHANGELOG_URLS = {
-    'pyparsing': 'https://github.com/pyparsing/pyparsing/blob/master/CHANGES',
-    'pylint': 'https://pylint.pycqa.org/en/latest/whatsnew/changelog.html',
-    'isort': 'https://pycqa.github.io/isort/CHANGELOG/',
-    'lazy-object-proxy': 'https://github.com/ionelmc/python-lazy-object-proxy/blob/master/CHANGELOG.rst',
-    'mccabe': 'https://github.com/PyCQA/mccabe#changes',
-    'pytest-cov': 'https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst',
-    'pytest-xdist': 'https://github.com/pytest-dev/pytest-xdist/blob/master/CHANGELOG.rst',
-    'pytest-forked': 'https://github.com/pytest-dev/pytest-forked/blob/master/CHANGELOG.rst',
-    'pytest-xvfb': 'https://github.com/The-Compiler/pytest-xvfb/blob/master/CHANGELOG.rst',
-    'EasyProcess': 'https://github.com/ponty/EasyProcess/commits/master',
-    'PyVirtualDisplay': 'https://github.com/ponty/PyVirtualDisplay/commits/master',
-    'execnet': 'https://execnet.readthedocs.io/en/latest/changelog.html',
-    'pytest-rerunfailures': 'https://github.com/pytest-dev/pytest-rerunfailures/blob/master/CHANGES.rst',
-    'pytest-repeat': 'https://github.com/pytest-dev/pytest-repeat/blob/master/CHANGES.rst',
-    'requests': 'https://github.com/psf/requests/blob/master/HISTORY.md',
-    'requests-file': 'https://github.com/dashea/requests-file/blob/master/CHANGES.rst',
-    'Werkzeug': 'https://werkzeug.palletsprojects.com/en/latest/changes/',
-    'click': 'https://click.palletsprojects.com/en/latest/changes/',
-    'itsdangerous': 'https://itsdangerous.palletsprojects.com/en/latest/changes/',
-    'parse-type': 'https://github.com/jenisys/parse_type/blob/master/CHANGES.txt',
-    'sortedcontainers': 'https://github.com/grantjenks/python-sortedcontainers/blob/master/HISTORY.rst',
-    'soupsieve': 'https://facelessuser.github.io/soupsieve/about/changelog/',
-    'Flask': 'https://flask.palletsprojects.com/en/latest/changes/',
-    'Mako': 'https://docs.makotemplates.org/en/latest/changelog.html',
-    'glob2': 'https://github.com/miracle2k/python-glob2/blob/master/CHANGES',
-    'hypothesis': 'https://hypothesis.readthedocs.io/en/latest/changes.html',
-    'mypy': 'https://mypy-lang.blogspot.com/',
-    'types-PyYAML': 'https://github.com/python/typeshed/commits/master/stubs/PyYAML',
-    'types-dataclasses': 'https://github.com/python/typeshed/commits/master/stubs/dataclasses',
-    'pytest': 'https://docs.pytest.org/en/latest/changelog.html',
-    'iniconfig': 'https://github.com/RonnyPfannschmidt/iniconfig/blob/master/CHANGELOG',
-    'tox': 'https://tox.readthedocs.io/en/latest/changelog.html',
-    'PyYAML': 'https://github.com/yaml/pyyaml/blob/master/CHANGES',
-    'pytest-bdd': 'https://github.com/pytest-dev/pytest-bdd/blob/master/CHANGES.rst',
-    'snowballstemmer': 'https://github.com/snowballstem/snowball/blob/master/NEWS',
-    'virtualenv': 'https://github.com/pypa/virtualenv/blob/main/docs/changelog.rst',
-    'packaging': 'https://packaging.pypa.io/en/latest/changelog.html',
-    'build': 'https://github.com/pypa/build/blob/main/CHANGELOG.rst',
-    'attrs': 'https://www.attrs.org/en/stable/changelog.html',
-    'Jinja2': 'https://jinja.palletsprojects.com/en/latest/changes/',
-    'MarkupSafe': 'https://markupsafe.palletsprojects.com/en/latest/changes/',
-    'flake8': 'https://github.com/PyCQA/flake8/tree/main/docs/source/release-notes',
-    'flake8-docstrings': 'https://pypi.org/project/flake8-docstrings/',
-    'flake8-debugger': 'https://github.com/JBKahn/flake8-debugger/',
-    'flake8-builtins': 'https://github.com/gforcada/flake8-builtins/blob/master/CHANGES.rst',
-    'flake8-bugbear': 'https://github.com/PyCQA/flake8-bugbear#change-log',
-    'flake8-tidy-imports': 'https://github.com/adamchainz/flake8-tidy-imports/blob/master/HISTORY.rst',
-    'flake8-tuple': 'https://github.com/ar4s/flake8_tuple/blob/master/HISTORY.rst',
-    'flake8-comprehensions': 'https://github.com/adamchainz/flake8-comprehensions/blob/master/HISTORY.rst',
-    'flake8-copyright': 'https://github.com/savoirfairelinux/flake8-copyright/blob/master/CHANGELOG.rst',
-    'flake8-deprecated': 'https://github.com/gforcada/flake8-deprecated/blob/master/CHANGES.rst',
-    'flake8-future-import': 'https://github.com/xZise/flake8-future-import#changes',
-    'flake8-mock': 'https://github.com/aleGpereira/flake8-mock#changes',
-    'flake8-polyfill': 'https://gitlab.com/pycqa/flake8-polyfill/-/blob/master/CHANGELOG.rst',
-    'flake8-string-format': 'https://github.com/xZise/flake8-string-format#changes',
-    'pep8-naming': 'https://github.com/PyCQA/pep8-naming/blob/master/CHANGELOG.rst',
-    'pycodestyle': 'https://github.com/PyCQA/pycodestyle/blob/master/CHANGES.txt',
-    'pyflakes': 'https://github.com/PyCQA/pyflakes/blob/master/NEWS.rst',
-    'cffi': 'https://github.com/python-cffi/release-doc/blob/master/doc/source/whatsnew.rst',
-    'astroid': 'https://github.com/PyCQA/astroid/blob/2.4/ChangeLog',
-    'pytest-instafail': 'https://github.com/pytest-dev/pytest-instafail/blob/master/CHANGES.rst',
-    'coverage': 'https://github.com/nedbat/coveragepy/blob/master/CHANGES.rst',
-    'colorama': 'https://github.com/tartley/colorama/blob/master/CHANGELOG.rst',
-    'hunter': 'https://github.com/ionelmc/python-hunter/blob/master/CHANGELOG.rst',
-    'uritemplate': 'https://github.com/python-hyper/uritemplate/blob/master/HISTORY.rst',
-    'more-itertools': 'https://github.com/erikrose/more-itertools/blob/master/docs/versions.rst',
-    'pydocstyle': 'https://www.pydocstyle.org/en/latest/release_notes.html',
-    'Sphinx': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'Babel': 'https://github.com/python-babel/babel/blob/master/CHANGES',
-    'alabaster': 'https://alabaster.readthedocs.io/en/latest/changelog.html',
-    'imagesize': 'https://github.com/shibukawa/imagesize_py/commits/master',
-    'pytz': 'https://mm.icann.org/pipermail/tz-announce/',
-    'sphinxcontrib-applehelp': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'sphinxcontrib-devhelp': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'sphinxcontrib-htmlhelp': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'sphinxcontrib-jsmath': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'sphinxcontrib-qthelp': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'sphinxcontrib-serializinghtml': 'https://www.sphinx-doc.org/en/master/changes.html',
-    'jaraco.functools': 'https://github.com/jaraco/jaraco.functools/blob/master/CHANGES.rst',
-    'parse': 'https://github.com/r1chardj0n3s/parse#potential-gotchas',
-    'py': 'https://py.readthedocs.io/en/latest/changelog.html#changelog',
-    'Pympler': 'https://github.com/pympler/pympler/blob/master/CHANGELOG.md',
-    'pytest-mock': 'https://github.com/pytest-dev/pytest-mock/blob/master/CHANGELOG.rst',
-    'pytest-qt': 'https://github.com/pytest-dev/pytest-qt/blob/master/CHANGELOG.rst',
-    'pyinstaller': 'https://pyinstaller.readthedocs.io/en/stable/CHANGES.html',
-    'pyinstaller-hooks-contrib': 'https://github.com/pyinstaller/pyinstaller-hooks-contrib/blob/master/CHANGELOG.rst',
-    'pytest-benchmark': 'https://pytest-benchmark.readthedocs.io/en/stable/changelog.html',
-    'typed-ast': 'https://github.com/python/typed_ast/commits/master',
-    'docutils': 'https://docutils.sourceforge.io/RELEASE-NOTES.html',
-    'bump2version': 'https://github.com/c4urself/bump2version/blob/master/CHANGELOG.md',
-    'six': 'https://github.com/benjaminp/six/blob/master/CHANGES',
-    'altgraph': 'https://github.com/ronaldoussoren/altgraph/blob/master/doc/changelog.rst',
-    'urllib3': 'https://github.com/urllib3/urllib3/blob/master/CHANGES.rst',
-    'lxml': 'https://github.com/lxml/lxml/blob/master/CHANGES.txt',
-    'jwcrypto': 'https://github.com/latchset/jwcrypto/commits/master',
-    'wrapt': 'https://github.com/GrahamDumpleton/wrapt/blob/develop/docs/changes.rst',
-    'pep517': 'https://github.com/pypa/pep517/blob/master/doc/changelog.rst',
-    'cryptography': 'https://cryptography.io/en/latest/changelog.html',
-    'toml': 'https://github.com/uiri/toml/releases',
-    'tomli': 'https://github.com/hukkin/tomli/blob/master/CHANGELOG.md',
-    'PyQt5': 'https://www.riverbankcomputing.com/news',
-    'PyQt5-Qt5': 'https://www.riverbankcomputing.com/news',
-    'PyQtWebEngine': 'https://www.riverbankcomputing.com/news',
-    'PyQtWebEngine-Qt5': 'https://www.riverbankcomputing.com/news',
-    'PyQt-builder': 'https://www.riverbankcomputing.com/news',
-    'PyQt5-sip': 'https://www.riverbankcomputing.com/news',
-    'PyQt5-stubs': 'https://github.com/stlehmann/PyQt5-stubs/blob/master/CHANGELOG.md',
-    'sip': 'https://www.riverbankcomputing.com/news',
-    'Pygments': 'https://pygments.org/docs/changelog/',
-    'vulture': 'https://github.com/jendrikseipp/vulture/blob/master/CHANGELOG.md',
-    'distlib': 'https://github.com/pypa/distlib/blob/master/CHANGES.rst',
-    'py-cpuinfo': 'https://github.com/workhorsy/py-cpuinfo/blob/master/ChangeLog',
-    'cheroot': 'https://cheroot.cherrypy.org/en/latest/history.html',
-    'certifi': 'https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport',
-    'chardet': 'https://github.com/chardet/chardet/releases',
-    'charset-normalizer': 'https://github.com/Ousret/charset_normalizer/blob/master/CHANGELOG.md',
-    'idna': 'https://github.com/kjd/idna/blob/master/HISTORY.rst',
-    'tldextract': 'https://github.com/john-kurkowski/tldextract/blob/master/CHANGELOG.md',
-    'backports.entry-points-selectable': 'https://github.com/jaraco/backports.entry_points_selectable/blob/main/CHANGES.rst',
-    'typing_extensions': 'https://github.com/python/typing/blob/master/typing_extensions/CHANGELOG',
-    'diff-cover': 'https://github.com/Bachmann1234/diff_cover/blob/master/CHANGELOG',
-    'pytest-icdiff': 'https://github.com/hjwp/pytest-icdiff/blob/master/HISTORY.rst',
-    'icdiff': 'https://github.com/jeffkaufman/icdiff/blob/master/ChangeLog',
-    'pprintpp': 'https://github.com/wolever/pprintpp/blob/master/CHANGELOG.txt',
-    'beautifulsoup4': 'https://bazaar.launchpad.net/~leonardr/beautifulsoup/bs4/view/head:/CHANGELOG',
-    'check-manifest': 'https://github.com/mgedmin/check-manifest/blob/master/CHANGES.rst',
-    'yamllint': 'https://github.com/adrienverge/yamllint/blob/master/CHANGELOG.rst',
-    'pathspec': 'https://github.com/cpburnz/python-path-specification/blob/master/CHANGES.rst',
-    'filelock': 'https://github.com/tox-dev/py-filelock/blob/main/docs/changelog.rst',
-    'github3.py': 'https://github3py.readthedocs.io/en/master/release-notes/index.html',
-    'manhole': 'https://github.com/ionelmc/python-manhole/blob/master/CHANGELOG.rst',
-    'pycparser': 'https://github.com/eliben/pycparser/blob/master/CHANGES',
-    'python-dateutil': 'https://dateutil.readthedocs.io/en/stable/changelog.html',
-    'platformdirs': 'https://github.com/platformdirs/platformdirs/blob/main/CHANGES.rst',
-    'pluggy': 'https://github.com/pytest-dev/pluggy/blob/master/CHANGELOG.rst',
-    'mypy-extensions': 'https://github.com/python/mypy_extensions/commits/master',
-    'pyroma': 'https://github.com/regebro/pyroma/blob/master/HISTORY.txt',
-    'adblock': 'https://github.com/ArniDagur/python-adblock/blob/master/CHANGELOG.md',
-    'importlib-resources': 'https://importlib-resources.readthedocs.io/en/latest/history.html',
-    'importlib-metadata': 'https://github.com/python/importlib_metadata/blob/main/CHANGES.rst',
-    'zipp': 'https://github.com/jaraco/zipp/blob/main/CHANGES.rst',
-    'dataclasses': 'https://github.com/ericvsmith/dataclasses#release-history',
-    'pip': 'https://pip.pypa.io/en/stable/news/',
-    'wheel': 'https://wheel.readthedocs.io/en/stable/news.html',
-    'setuptools': 'https://setuptools.readthedocs.io/en/latest/history.html',
-    'future': 'https://python-future.org/whatsnew.html',
-    'pefile': 'https://github.com/erocarrera/pefile/commits/master',
-    'Deprecated': 'https://github.com/tantale/deprecated/blob/master/CHANGELOG.rst',
-    'SecretStorage': 'https://github.com/mitya57/secretstorage/blob/master/changelog',
-    'bleach': 'https://github.com/mozilla/bleach/blob/main/CHANGES',
-    'jeepney': 'https://gitlab.com/takluyver/jeepney/-/blob/master/docs/release-notes.rst',
-    'keyring': 'https://github.com/jaraco/keyring/blob/main/CHANGES.rst',
-    'pkginfo': 'https://bazaar.launchpad.net/~tseaver/pkginfo/trunk/view/head:/CHANGES.txt',
-    'readme-renderer': 'https://github.com/pypa/readme_renderer/blob/main/CHANGES.rst',
-    'requests-toolbelt': 'https://github.com/requests/toolbelt/blob/master/HISTORY.rst',
-    'rfc3986': 'https://rfc3986.readthedocs.io/en/latest/release-notes/index.html',
-    'tqdm': 'https://tqdm.github.io/releases/',
-    'twine': 'https://twine.readthedocs.io/en/stable/changelog.html',
-    'webencodings': 'https://github.com/gsnedders/python-webencodings/commits/master',
-}
+CHANGELOG_URLS_PATH = pathlib.Path(__file__).parent / "changelog_urls.json"
+CHANGELOG_URLS = json.loads(CHANGELOG_URLS_PATH.read_text())
 
 
 def convert_line(line, comments):
@@ -346,10 +188,11 @@ class Change:
 
     """A single requirements change from a git diff output."""
 
-    def __init__(self, name):
+    def __init__(self, name: str, base_path: pathlib.Path) -> None:
         self.name = name
         self.old = None
         self.new = None
+        self.base = extract_requirement_name(base_path)
         if CHANGELOG_URLS.get(name):
             self.url = CHANGELOG_URLS[name]
             self.link = '[{}]({})'.format(self.name, self.url)
@@ -357,24 +200,27 @@ class Change:
             self.url = '(no changelog)'
             self.link = self.name
 
+    def __lt__(self, other):
+        return (self.base, self.name.lower()) < (other.base, other.name.lower())
+
     def __str__(self):
+        prefix = f"- [{self.base}] {self.name}"
+        suffix = f"   {self.url}"
         if self.old is None:
-            return '- {} new: {}    {}'.format(self.name, self.new, self.url)
+            return f"{prefix} new: {self.new} {suffix}"
         elif self.new is None:
-            return '- {} removed: {}    {}'.format(self.name, self.old,
-                                                   self.url)
+            return f"{prefix} removed: {self.old} {suffix}"
         else:
-            return '- {} {} -> {}    {}'.format(self.name, self.old, self.new,
-                                                self.url)
+            return f"{prefix} {self.old} -> {self.new} {suffix}"
 
     def table_str(self):
         """Generate a markdown table."""
         if self.old is None:
-            return '| {} | -- | {} |'.format(self.link, self.new)
+            return f'| {self.base} | {self.link} | -- | {self.new} |'
         elif self.new is None:
-            return '| {} | {} | -- |'.format(self.link, self.old)
+            return f'| {self.base} | {self.link} | {self.old} | -- |'
         else:
-            return '| {} | {} | {} |'.format(self.link, self.old, self.new)
+            return f'| {self.base} | {self.link} | {self.old} | {self.new} |'
 
 
 def _get_changed_files():
@@ -382,12 +228,24 @@ def _get_changed_files():
     changed_files = set()
     filenames = git_diff('--name-only')
     for filename in filenames:
-        filename = filename.strip()
-        filename = filename.replace('misc/requirements/requirements-', '')
-        filename = filename.replace('.txt', '')
-        changed_files.add(filename)
+        requirement_name = extract_requirement_name(pathlib.Path(filename))
+        changed_files.add(requirement_name)
 
     return sorted(changed_files)
+
+
+def extract_requirement_name(path: pathlib.Path) -> str:
+    """Get a requirement name from a file path.
+
+    e.g. "pylint" from "misc/requirements/requirements-pylint.txt"
+    """
+    if path == pathlib.Path("requirements.txt"):
+        return "qutebrowser"
+
+    prefix = "requirements-"
+    assert path.suffix == ".txt", path
+    assert path.stem.startswith(prefix), path
+    return path.stem[len(prefix):]
 
 
 def parse_versioned_line(line):
@@ -423,10 +281,19 @@ def parse_versioned_line(line):
 def _get_changes(diff):
     """Get a list of changed versions from git."""
     changes_dict = {}
+    current_path = None
+
     for line in diff:
         if not line.startswith('-') and not line.startswith('+'):
             continue
-        elif line.startswith('+++ ') or line.startswith('--- '):
+        elif line.startswith('--- '):
+            prefix = '--- a/'
+            current_path = pathlib.Path(line[len(prefix):])
+            continue
+        elif line.startswith('+++ '):
+            prefix = '+++ b/'
+            new_path = pathlib.Path(line[len(prefix):])
+            assert current_path == new_path, (current_path, new_path)
             continue
         elif not line.strip():
             # Could be newline changes on Windows
@@ -438,14 +305,14 @@ def _get_changes(diff):
         name, version = parse_versioned_line(line[1:])
 
         if name not in changes_dict:
-            changes_dict[name] = Change(name)
+            changes_dict[name] = Change(name, base_path=current_path)
 
         if line.startswith('-'):
             changes_dict[name].old = version
         elif line.startswith('+'):
             changes_dict[name].new = version
 
-    return [change for _name, change in sorted(changes_dict.items())]
+    return sorted(changes_dict.values())
 
 
 def print_changed_files():
@@ -472,8 +339,8 @@ def print_changed_files():
         print('::set-output name=changed::' +
               files_text.replace('\n', '%0A'))
         table_header = [
-            '| Requirement | old | new |',
-            '|-------------|-----|-----|',
+            '| File | Requirement | old | new |',
+            '|------|-------------|-----|-----|',
         ]
         diff_table = '%0A'.join(table_header +
                                 [change.table_str() for change in changes])
@@ -555,7 +422,7 @@ def test_tox():
         list_proc = subprocess.run([venv_python, '-m', 'tox', '--listenvs'],
                                    check=True,
                                    stdout=subprocess.PIPE,
-                                   universal_newlines=True)
+                                   text=True)
         environments = list_proc.stdout.strip().split('\n')
         for env in environments:
             with utils.gha_group('tox for {}'.format(env)):

@@ -176,13 +176,15 @@ def _get_setting_quickref():
 
 def _get_configtypes():
     """Get configtypes classes to document."""
-    predicate = lambda e: (
-        inspect.isclass(e) and
-        # pylint: disable=protected-access
-        e not in [configtypes.BaseType, configtypes.MappingType,
-                  configtypes._Numeric, configtypes.FontBase] and
-        # pylint: enable=protected-access
-        issubclass(e, configtypes.BaseType))
+    def predicate(e):
+        return (
+            inspect.isclass(e) and
+            # pylint: disable=protected-access
+            e not in [configtypes.BaseType, configtypes.MappingType,
+                      configtypes._Numeric, configtypes.FontBase] and
+            # pylint: enable=protected-access
+            issubclass(e, configtypes.BaseType)
+        )
     yield from inspect.getmembers(configtypes, predicate)
 
 
@@ -497,6 +499,7 @@ def _format_block(filename, what, data):
         what: What to change (authors, options, etc.)
         data; A list of strings which is the new data.
     """
+    # pylint: disable=broad-exception-raised
     what = what.upper()
     oshandle, tmpname = tempfile.mkstemp()
     try:
@@ -523,9 +526,8 @@ def _format_block(filename, what, data):
     except:
         os.remove(tmpname)
         raise
-    else:
-        os.remove(filename)
-        shutil.move(tmpname, filename)
+    os.remove(filename)
+    shutil.move(tmpname, filename)
 
 
 def regenerate_manpage(filename):
@@ -536,7 +538,9 @@ def regenerate_manpage(filename):
     # pylint: disable=protected-access
     for group in parser._action_groups:
         groupdata = []
-        groupdata.append('=== {}'.format(group.title))
+        # https://bugs.python.org/issue9694 backport
+        title = "options" if group.title == "optional arguments" else group.title
+        groupdata.append('=== {}'.format(title))
         if group.description is not None:
             groupdata.append(group.description)
         for action in group._group_actions:

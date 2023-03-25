@@ -31,9 +31,9 @@ from unittest import mock
 import hypothesis
 import hypothesis.strategies as hst
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime, QProcess
+from qutebrowser.qt.core import QUrl, QDateTime, QProcess
 try:
-    from PyQt5.QtWebEngineWidgets import (
+    from qutebrowser.qt.webenginecore import (
         QWebEngineHistory, QWebEngineHistoryItem
     )
 except ImportError:
@@ -76,7 +76,7 @@ def _check_completions(model, expected):
     assert sum(model.column_widths) == 100
 
 
-@pytest.fixture()
+@pytest.fixture
 def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
     return monkeypatch.setattr(objects, 'commands', {
@@ -93,7 +93,7 @@ def cmdutils_stub(monkeypatch, stubs):
     })
 
 
-@pytest.fixture()
+@pytest.fixture
 def configdata_stub(config_stub, monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
     monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
@@ -867,6 +867,34 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
                       QUrl('https://duckduckgo.com')]
 
 
+def test_tab_focus_completion_delete(qtmodeltester, fake_web_tab, win_registry,
+                              tabbed_browser_stubs, info):
+    """Verify closing a tab by deleting it from the completion widget."""
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    model = miscmodels.tab_focus(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Tabs"
+    assert model.data(idx) == '2'
+
+    model.delete_cur_item(idx)
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
+    assert actual == [QUrl('https://github.com'),
+                      QUrl('https://duckduckgo.com')]
+
+
 def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
                                    tabbed_browser_stubs):
     """Ensure that the completion row order is the same as tab index order.
@@ -1320,7 +1348,7 @@ def test_url_completion_benchmark(benchmark, info,
 @pytest.fixture
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
-    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    pytest.importorskip('qutebrowser.qt.webenginewidgets')
     tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(
@@ -1462,7 +1490,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p1.cmd = 'cmd1'
     p1.args = []
     p1.outcome.running = False
-    p1.outcome.status = QProcess.NormalExit
+    p1.outcome.status = QProcess.ExitStatus.NormalExit
     p1.outcome.code = 0
 
     p2.pid = 1002
@@ -1474,7 +1502,7 @@ def test_process_completion(monkeypatch, stubs, info):
     p3.cmd = 'cmd3'
     p3.args = []
     p3.outcome.running = False
-    p3.outcome.status = QProcess.NormalExit
+    p3.outcome.status = QProcess.ExitStatus.NormalExit
     p3.outcome.code = 1
 
     monkeypatch.setattr(guiprocess, 'all_processes', {

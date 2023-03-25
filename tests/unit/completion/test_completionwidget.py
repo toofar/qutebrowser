@@ -22,7 +22,7 @@
 from unittest import mock
 
 import pytest
-from PyQt5.QtCore import QRect
+from qutebrowser.qt.core import QRect
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
@@ -37,13 +37,13 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
     mocker.patch(
         'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
-        new=lambda *_: None)
+        return_value=None)
     view = completionwidget.CompletionView(cmd=status_command_stub, win_id=0)
     qtbot.add_widget(view)
     return view
 
 
-@pytest.fixture()
+@pytest.fixture
 def model():
     return completionmodel.CompletionModel()
 

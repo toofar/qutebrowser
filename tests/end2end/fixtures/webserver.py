@@ -28,7 +28,7 @@ import dataclasses
 from http import HTTPStatus
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
+from qutebrowser.qt.core import pyqtSignal, QUrl
 
 from end2end.fixtures import testprocess
 
@@ -77,6 +77,7 @@ class Request(testprocess.Line):
             '/redirect-to': [HTTPStatus.FOUND],
             '/relative-redirect': [HTTPStatus.FOUND],
             '/absolute-redirect': [HTTPStatus.FOUND],
+            '/redirect-http/data/downloads/download.bin': [HTTPStatus.FOUND],
 
             '/cookies/set': [HTTPStatus.FOUND],
             '/cookies/set-custom': [HTTPStatus.FOUND],
@@ -84,7 +85,7 @@ class Request(testprocess.Line):
             '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
             '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
         }
-        for i in range(15):
+        for i in range(25):
             path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = ('/basic-auth/user{suffix}/password{suffix}'
@@ -149,11 +150,9 @@ class WebserverProcess(testprocess.Process):
 
     def _random_port(self) -> int:
         """Get a random free port."""
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('localhost', 0))
-        port = sock.getsockname()[1]
-        sock.close()
-        return port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(('localhost', 0))
+            return sock.getsockname()[1]
 
     def get_requests(self):
         """Get the requests to the server during this test."""
@@ -162,7 +161,7 @@ class WebserverProcess(testprocess.Process):
 
     def _parse_line(self, line):
         self._log(line)
-        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/ '
+        started_re = re.compile(r' \* Running on https?://127\.0\.0\.1:{}/? '
                                 r'\(Press CTRL\+C to quit\)'.format(self.port))
         if started_re.fullmatch(line):
             self.ready.emit()

@@ -24,10 +24,10 @@ import json
 import getpass
 import hashlib
 
-from PyQt5.QtNetwork import QLocalSocket
 
 import qutebrowser
-from qutebrowser.utils import log, error, standarddir, utils
+from qutebrowser.utils import log, error, standarddir, utils, debug
+from qutebrowser.qt.network import QLocalSocket
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
@@ -99,12 +99,12 @@ class SocketError(Error):
         """
         super().__init__()
         self.action = action
-        self.code = socket.error()
-        self.message = socket.errorString()
+        self.code: QLocalSocket.LocalSocketError = socket.error()
+        self.message: str = socket.errorString()
 
     def __str__(self):
-        return "Error while {}: {} (error {})".format(
-            self.action, self.message, self.code)
+        return "Error while {}: {} ({})".format(
+            self.action, self.message, debug.qenum_key(QLocalSocket, self.code))
 
 
 def send_to_running_instance(socketname, command, target_arg, *, socket=None):
@@ -144,18 +144,18 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
         log.ipc.debug("Writing: {!r}".format(data))
         socket.writeData(data)
         socket.waitForBytesWritten(WRITE_TIMEOUT)
-        if socket.error() != QLocalSocket.UnknownSocketError:
+        if socket.error() != QLocalSocket.LocalSocketError.UnknownSocketError:
             raise SocketError("writing to running instance", socket)
         socket.disconnectFromServer()
-        if socket.state() != QLocalSocket.UnconnectedState:
+        if socket.state() != QLocalSocket.LocalSocketState.UnconnectedState:
             socket.waitForDisconnected(CONNECT_TIMEOUT)
         return True
     else:
-        if socket.error() not in [QLocalSocket.ConnectionRefusedError,
-                                  QLocalSocket.ServerNotFoundError]:
+        if socket.error() not in [QLocalSocket.LocalSocketError.ConnectionRefusedError,
+                                  QLocalSocket.LocalSocketError.ServerNotFoundError]:
             raise SocketError("connecting to running instance", socket)
-        log.ipc.debug("No existing instance present (error {})".format(
-            socket.error()))
+        log.ipc.debug("No existing instance present ({})".format(
+            debug.qenum_key(QLocalSocket, socket.error())))
         return False
 
 

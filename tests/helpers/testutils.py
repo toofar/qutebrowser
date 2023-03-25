@@ -21,6 +21,7 @@
 
 import io
 import re
+import enum
 import gzip
 import pprint
 import os.path
@@ -31,21 +32,11 @@ import importlib.machinery
 
 import pytest
 
-from PyQt5.QtCore import qVersion
-from PyQt5.QtGui import QColor
-try:
-    from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION_STR
-except ImportError:
-    PYQT_WEBENGINE_VERSION_STR = None
+from qutebrowser.qt.gui import QColor
 
-from qutebrowser.utils import qtutils, log, utils
+from qutebrowser.utils import log, utils, version
 
 ON_CI = 'CI' in os.environ
-
-qt513 = pytest.mark.skipif(
-    not qtutils.version_check('5.13'), reason="Needs Qt 5.13 or newer")
-qt514 = pytest.mark.skipif(
-    not qtutils.version_check('5.14'), reason="Needs Qt 5.14 or newer")
 
 
 class Color(QColor):
@@ -229,11 +220,11 @@ def nop_contextmanager():
 def change_cwd(path):
     """Use a path as current working directory."""
     old_cwd = pathlib.Path.cwd()
-    os.chdir(str(path))
+    os.chdir(path)
     try:
         yield
     finally:
-        os.chdir(str(old_cwd))
+        os.chdir(old_cwd)
 
 
 @contextlib.contextmanager
@@ -267,35 +258,24 @@ def easyprivacy_txt():
     return _decompress_gzip_datafile("easyprivacy.txt.gz")
 
 
-def seccomp_args(qt_flag):
-    """Get necessary flags to disable the seccomp BPF sandbox.
+DISABLE_SECCOMP_BPF_FLAG = "--disable-seccomp-filter-sandbox"
+DISABLE_SECCOMP_BPF_ARGS = ["-s", "qt.chromium.sandboxing", "disable-seccomp-bpf"]
+
+
+def disable_seccomp_bpf_sandbox():
+    """Check whether we need to disable the seccomp BPF sandbox.
 
     This is needed for some QtWebEngine setups, with older Qt versions but
     newer kernels.
-
-    Args:
-        qt_flag: Add a '--qt-flag' argument.
     """
-    affected_versions = set()
-    for base, patch_range in [
-            # 5.12.0 to 5.12.7 (inclusive)
-            ('5.12', range(0, 8)),
-            # 5.13.0 to 5.13.2 (inclusive)
-            ('5.13', range(0, 3)),
-            # 5.14.0
-            ('5.14', [0]),
-    ]:
-        for patch in patch_range:
-            affected_versions.add('{}.{}'.format(base, patch))
+    try:
+        from qutebrowser.qt import webenginecore   # pylint: disable=unused-import
+    except ImportError:
+        # no QtWebEngine available
+        return False
 
-    version = (PYQT_WEBENGINE_VERSION_STR
-               if PYQT_WEBENGINE_VERSION_STR is not None
-               else qVersion())
-    if version in affected_versions:
-        disable_arg = 'disable-seccomp-filter-sandbox'
-        return ['--qt-flag', disable_arg] if qt_flag else ['--' + disable_arg]
-
-    return []
+    versions = version.qtwebengine_versions(avoid_init=True)
+    return versions.webengine == utils.VersionNumber(5, 15, 2)
 
 
 def import_userscript(name):
@@ -313,3 +293,17 @@ def import_userscript(name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def enum_members(base, enumtype):
+    """Get all members of a Qt enum."""
+    if issubclass(enumtype, enum.Enum):
+        # PyQt 6
+        return {m.name: m for m in enumtype}
+    else:
+        # PyQt 5
+        return {
+            name: value
+            for name, value in vars(base).items()
+            if isinstance(value, enumtype)
+        }

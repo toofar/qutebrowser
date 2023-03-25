@@ -65,12 +65,16 @@ search.incremental:
 search.wrap:
   type: Bool
   default: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: true
   desc: >-
     Wrap around at the top and bottom of the page when advancing through text
     matches using `:search-next` and `:search-prev`.
+
+search.wrap_messages:
+  type: Bool
+  default: true
+  desc: >-
+    Display messages when advancing through text matches at the top and bottom
+    of the page, e.g. `Search hit TOP`.
 
 new_instance_open_target:
   type:
@@ -239,6 +243,9 @@ qt.force_platformtheme:
     based on the desktop environment.
 
 qt.process_model:
+  renamed: qt.chromium.process_model
+
+qt.chromium.process_model:
   type:
     name: String
     valid_values:
@@ -265,9 +272,12 @@ qt.process_model:
     See the following pages for more details:
 
       - https://www.chromium.org/developers/design-documents/process-models
-      - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+      - https://doc.qt.io/qt-6/qtwebengine-features.html#process-models
 
 qt.low_end_device_mode:
+  renamed: qt.chromium.low_end_device_mode
+
+qt.chromium.low_end_device_mode:
   type:
     name: String
     valid_values:
@@ -284,6 +294,39 @@ qt.low_end_device_mode:
     This improves the RAM usage of renderer processes, at the expense of
     performance.
 
+qt.chromium.sandboxing:
+  type:
+    name: String
+    valid_values:
+      - enable-all: Enable all available sandboxing mechanisms.
+      - disable-seccomp-bpf: Disable the Seccomp BPF filter sandbox (Linux only).
+      - disable-all: Disable all sandboxing (**not recommended!**).
+  default: enable-all
+  backend: QtWebEngine
+  restart: true
+  no_autoconfig: true  # due to it being dangerous
+  # yamllint disable rule:line-length
+  desc: >-
+    What sandboxing mechanisms in Chromium to use.
+
+    Chromium has various sandboxing layers, which should be enabled for normal
+    browser usage. Mainly for testing and development, it's possible to disable
+    individual sandboxing layers via this setting.
+
+    Open `chrome://sandbox` to see the current sandbox status.
+
+    Changing this setting is only recommended if you know what you're doing, as
+    it **disables one of Chromium's security layers**. To avoid sandboxing being
+    accidentally disabled persistently, this setting can only be set via
+    `config.py`, not via `:set`.
+
+    See the Chromium documentation for more details:
+
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/linux/sandboxing.md[Linux]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox.md[Windows]
+    - https://chromium.googlesource.com/chromium/src/\+/HEAD/docs/design/sandbox_faq.md[FAQ (Windows-centric)]
+  # yamllint enable rule:line-length
+
 qt.highdpi:
   type: Bool
   default: false
@@ -291,8 +334,8 @@ qt.highdpi:
   desc: >-
     Turn on Qt HighDPI scaling.
 
-    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or
-    QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
+    This is equivalent to setting QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in
+    the environment.
 
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
@@ -531,9 +574,7 @@ content.frame_flattening:
 content.prefers_reduced_motion:
   default: false
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Request websites to minimize non-essentials animations and motion.
@@ -565,8 +606,7 @@ content.site_specific_quirks.skip:
       - js-whatsapp-web
       - js-discord
       - js-string-replaceall
-      - js-globalthis
-      - js-object-fromentries
+      - js-array-at
       - misc-krunker
       - misc-mathml-darkmode
     none_ok: true
@@ -616,6 +656,7 @@ content.headers.custom:
     valtype:
       name: String
       encoding: ascii
+      none_ok: true
     none_ok: true
   supports_pattern: true
   desc: Custom headers for qutebrowser HTTP requests.
@@ -637,7 +678,8 @@ content.headers.referer:
   type:
     name: String
     valid_values:
-      - always: "Always send the Referer."
+      - always: "Always send the Referer. With QtWebEngine 6.2+, this value is
+          unavailable and will act like `same-domain`."
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
       - same-domain: "Only send the Referer for the same domain. This will
@@ -679,14 +721,14 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 Win10
+          like Gecko) Chrome/110.0.0.0 Safari/537.36"
+        - Chrome 110 Win10
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 macOS
+          (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+        - Chrome 110 macOS
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/92.0.4515.131 Safari/537.36"
-        - Chrome 92 Linux
+          Gecko) Chrome/110.0.0.0 Safari/537.36"
+        - Chrome 110 Linux
   supports_pattern: true
   desc: |
     User agent to send.
@@ -829,9 +871,14 @@ content.javascript.alert:
   type: Bool
   desc: Show javascript alerts.
 
-content.javascript.can_access_clipboard:
-  default: false
-  type: Bool
+content.javascript.clipboard:
+  default: none
+  type:
+    name: String
+    valid_values:
+      - none: Disable access to clipboard.
+      - access: Allow reading from and writing to the clipboard.
+      - access-paste: Allow accessing the clipboard and pasting clipboard content.
   supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
@@ -887,6 +934,58 @@ content.javascript.log:
 
     The following levels are valid: `none`, `debug`, `info`, `warning`,
     `error`.
+
+content.javascript.log_message:
+  renamed: content.javascript.log_message.levels
+
+content.javascript.log_message.levels:
+  type:
+    name: Dict
+    none_ok: true
+    keytype: String
+    valtype:
+      name: FlagList
+      none_ok: true
+      valid_values:
+        - info: Show JS info as messages.
+        - warning: Show JS warnings as messages.
+        - error: Show JS errors as messages.
+  default:
+    "qute:*": ["error"]
+    "userscript:GM-*": []
+    "userscript:*": ["error"]
+  desc: >-
+    Javascript message sources/levels to show in the qutebrowser UI.
+
+    When a JavaScript message is logged from a location matching the glob
+    pattern given in the key, and is from one of the levels listed as value,
+    it's surfaced as a message in the qutebrowser UI.
+
+    By default, errors happening in qutebrowser internally are shown to the
+    user.
+
+content.javascript.log_message.excludes:
+  type:
+    name: Dict
+    keytype: String
+    none_ok: true
+    valtype:
+      name: List
+      valtype: String
+  default:
+    "userscript:_qute_stylesheet":
+      - "*Refused to apply inline style because it violates the following Content
+        Security Policy directive: *"
+  desc: >-
+    Javascript messages to *not* show in the UI, despite a corresponding
+    `content.javascript.log_message.levels` setting.
+
+    Both keys and values are glob patterns, with the key matching the location
+    of the error, and the value matching the error message.
+
+    By default, the https://web.dev/csp/[Content security policy] violations
+    triggered by qutebrowser's stylesheet handling are excluded, as those errors
+    are to be expected and can't be easily handled by the underlying code.
 
 content.javascript.modal_dialog:
   type: Bool
@@ -954,9 +1053,6 @@ content.notifications.enabled:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.13
-    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.notifications.presenter:
@@ -968,7 +1064,6 @@ content.notifications.presenter:
             without showing error messages.
       - qt: Use Qt's native notification presenter, based on a system tray icon.
             Switching from or to this value requires a restart of qutebrowser.
-            Recommended over `systray` on PyQt 5.14.
       - libnotify: Shows messages via DBus in a libnotify-compatible way. If DBus isn't
             available, falls back to `systray` or `messages`, but shows an error
             message.
@@ -980,16 +1075,12 @@ content.notifications.presenter:
             aren't available.
       - herbe: (experimental!) Show notifications using herbe (github.com/dudik/herbe).
             Most notification features aren't available.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     What notification presenter to use for web notifications.
 
     Note that not all implementations support all features of notifications:
 
-    - With PyQt 5.14, any setting other than `qt` does not support  the `click` and
-      `close` events, as well as the `tag` option to replace existing notifications.
     - The `qt` and `systray` options only support showing one notification at the time
       and ignore the `tag` option to replace existing notifications.
     - The `herbe` option only supports showing one notification at the time and doesn't
@@ -1001,9 +1092,7 @@ content.notifications.show_origin:
   default: true
   type: Bool
   supports_pattern: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   desc: >-
     Whether to show the origin URL for notifications.
 
@@ -1017,10 +1106,12 @@ content.pdfjs:
   type: Bool
   supports_pattern: true
   desc: >-
-    Allow pdf.js to view PDF files in the browser.
+    Display PDF files via PDF.js in the browser without showing a download prompt.
 
     Note that the files can still be downloaded by clicking the download button
-    in the pdf.js viewer.
+    in the pdf.js viewer. With this set to `false`, the `:prompt-open-download
+    --pdfjs` command (bound to `<Ctrl-p>` by default) can be used in the
+    download prompt.
 
 content.persistent_storage:
   default: ask
@@ -1395,11 +1486,15 @@ editor.command:
     * `{line0}`: Same as `{line}`, but starting from index 0.
     * `{column0}`: Same as `{column}`, but starting from index 0.
 
-
 editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
+
+editor.remove_file:
+  default: true
+  type: Bool
+  desc: Delete the temporary file upon closing the editor.
 
 ## fileselect
 
@@ -1411,11 +1506,10 @@ fileselect.handler:
       - default: "Use the default file selector."
       - external: "Use an external command."
   desc: >-
-      Handler for selecting file(s) in forms.
-      If `external`, then the commands specified by
-      `fileselect.single_file.command` and
-      `fileselect.multiple_files.command` are used to select one or
-      multiple files respectively.
+      Handler for selecting file(s) in forms. If `external`, then the commands
+      specified by `fileselect.single_file.command`,
+      `fileselect.multiple_files.command` and `fileselect.folder.command` are
+      used to select one file, multiple files, and folders, respectively.
 
 fileselect.single_file.command:
   type:
@@ -1634,6 +1728,7 @@ hints.selectors:
       - '[role="menuitem"]'
       - '[role="menuitemcheckbox"]'
       - '[role="menuitemradio"]'
+      - '[role="treeitem"]'
       - '[ng-click]'
       - '[ngClick]'
       - '[data-ng-click]'
@@ -1782,17 +1877,15 @@ input.spatial_navigation:
     Enable spatial navigation.
 
     Spatial navigation consists in the ability to navigate between focusable
-    elements in a Web page, such as hyperlinks and form controls, by using
-    Left, Right, Up and Down arrow keys. For example, if the user presses the
-    Right key, heuristics determine whether there is an element he might be
-    trying to reach towards the right and which element he probably wants.
+    elements, such as hyperlinks and form controls, on a web page by using the
+    Left, Right, Up and Down arrow keys. For example, if a user presses the
+    Right key, heuristics determine whether there is an element they might be
+    trying to reach towards the right and which element they probably want.
 
 input.media_keys:
   default: true
   type: Bool
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
   desc: >-
     Whether the underlying Chromium should handle media keys.
@@ -1809,6 +1902,18 @@ input.match_counts:
     indicate a count.
     Disabling it allows for emacs-like bindings where number keys are passed
     through (according to `input.forward_unbound_keys`) instead.
+
+input.mode_override:
+  default: null
+  type:
+    name: String
+    none_ok: true
+    valid_values:
+      - normal
+      - insert
+      - passthrough
+  supports_pattern: true
+  desc: Mode to change to when focusing on a tab/URL changes.
 
 ## keyhint
 
@@ -1994,12 +2099,17 @@ statusbar.widgets:
         - scroll_raw: "Raw percentage of the current page position like `10`."
         - history: "Display an arrow when possible to go back/forward in
           history."
+        - search_match: "A match count when searching, e.g. `Match [2/10]`."
         - tabs: "Current active tab, e.g. `2`."
         - keypress: "Display pressed keys when composing a vi command."
         - progress: "Progress bar for the current page loading."
         - 'text:foo': "Display the static text after the colon, `foo` in the example."
+        - clock: "Display current time. The format can be changed by adding a
+         format string via `clock:...`. For supported format strings, see
+         https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
+         Python datetime documentation]."
     none_ok: true
-  default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
+  default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
 
 ## tabs
@@ -2160,6 +2270,11 @@ tabs.title.alignment:
   type: TextAlignment
   desc: Alignment of the text inside of tabs.
 
+tabs.title.elide:
+  default: right
+  type: ElidePosition
+  desc: Position of ellipsis in truncated title of tabs.
+
 tabs.title.format:
   default: '{audio}{index}: {current_title}'
   type:
@@ -2171,6 +2286,7 @@ tabs.title.format:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
@@ -2190,6 +2306,7 @@ tabs.title.format:
     * `{index}`: Index of this tab.
     * `{aligned_index}`: Index of this tab padded with spaces to have the same
       width.
+    * `{relative_index}`: Index of this tab relative to the current tab.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -2210,6 +2327,7 @@ tabs.title.format_pinned:
       - title_sep
       - index
       - aligned_index
+      - relative_index
       - id
       - scroll_pos
       - host
@@ -3061,9 +3179,7 @@ colors.webpage.preferred_color_scheme:
 
     The "auto" value is broken on QtWebEngine 5.15.2 due to a Qt bug. There, it will
     fall back to "light" unconditionally.
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
   restart: true
 
 ## dark mode
@@ -3089,6 +3205,9 @@ colors.webpage.darkmode.enabled:
 
     - "With selective inversion of everything": Combines the two variants
       above.
+
+    - "With increased text contrast": Set
+      `colors.webpage.darkmode.increase_text_contrast` (QtWebEngine 6.3+)
   restart: true
   backend: QtWebEngine
 
@@ -3160,9 +3279,7 @@ colors.webpage.darkmode.policy.page:
     The underlying Chromium setting has been removed in QtWebEngine 5.15.3, thus this
     setting is ignored there. Instead, every element is now classified individually.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.text:
   default: 256
@@ -3177,9 +3294,7 @@ colors.webpage.darkmode.threshold.text:
       above it will be left as in the original, non-dark-mode page. Set to 256
       to always invert text color or to 0 to never invert text color.
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.threshold.background:
   default: 0
@@ -3197,9 +3312,7 @@ colors.webpage.darkmode.threshold.background:
       Note: This behavior is the opposite of
       `colors.webpage.darkmode.threshold.text`!
   restart: true
-  backend:
-    QtWebEngine: Qt 5.14
-    QtWebKit: false
+  backend: QtWebEngine
 
 colors.webpage.darkmode.grayscale.all:
   default: false
@@ -3224,8 +3337,16 @@ colors.webpage.darkmode.grayscale.images:
     If set to 0, images are left as-is. If set to 1, images are completely
     grayscale. Values between 0 and 1 desaturate the colors accordingly.
   restart: true
+  backend: QtWebEngine
+
+colors.webpage.darkmode.increase_text_contrast:
+  default: false
+  type: Bool
+  desc: >-
+    Increase text contrast by drawing an outline of the uninverted color.
+  restart: true
   backend:
-    QtWebEngine: Qt 5.14
+    QtWebEngine: Qt 6.3
     QtWebKit: false
 
 # emacs: '
@@ -3705,7 +3826,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
@@ -3721,6 +3843,7 @@ bindings.default:
       <Down>: prompt-item-focus next
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
+      <Alt-E>: prompt-fileselect-external
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word
@@ -3730,7 +3853,8 @@ bindings.default:
       <Ctrl-U>: rl-unix-line-discard
       <Ctrl-K>: rl-kill-line
       <Alt-D>: rl-kill-word
-      <Ctrl-W>: rl-unix-word-rubout
+      <Ctrl-W>: rl-rubout " "
+      <Ctrl-Shift-W>: rl-filename-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
@@ -3867,9 +3991,7 @@ bindings.commands:
       that single keys can't be bound in this mode.
 
     * passthrough: Similar to insert mode, but passes through all keypresses
-      except `<Escape>` to leave the mode. It might be useful to bind
-      `<Escape>` to some other key in this mode if you want to be able to send
-      an Escape key to the website as well. Note that single keys can't be
+      except `<Shift+Escape>` to leave the mode. Note that single keys can't be
       bound in this mode.
 
     * command: Entered when pressing the `:` key in order to enter a command.

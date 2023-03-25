@@ -19,7 +19,7 @@
 
 """Completion category for filesystem paths.
 
-NOTE: This module deliberatly uses os.path rather than pathlib, because of how
+NOTE: This module deliberately uses os.path rather than pathlib, because of how
 it interacts with the completion, which operates on strings. For example, we
 need to be able to tell the difference between "~/input" and "~/input/". Also,
 if we get "~/input", we want to glob "~/input*" rather than "~/input/*" which
@@ -31,7 +31,7 @@ import os
 import os.path
 from typing import List, Optional, Iterable
 
-from PyQt5.QtCore import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
+from qutebrowser.qt.core import QAbstractListModel, QModelIndex, QObject, Qt, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import log
@@ -65,7 +65,7 @@ class FilePathCategory(QAbstractListModel):
         try:
             return glob.glob(glob.escape(val) + '*')
         except ValueError as e:  # pragma: no cover
-            # e.g. "embedded null byte" with \x00 on Python 3.6 and 3.7
+            # e.g. "embedded null byte" with \x00 on Python 3.7
             log.completion.debug(f"Failed to glob: {e}")
             return []
 
@@ -100,9 +100,9 @@ class FilePathCategory(QAbstractListModel):
             paths = self._glob(expanded)
             self._paths = sorted(self._contract_user(val, path) for path in paths)
 
-    def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Optional[str]:
+    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Optional[str]:
         """Implement abstract method in QAbstractListModel."""
-        if role == Qt.DisplayRole and index.column() == 0:
+        if role == Qt.ItemDataRole.DisplayRole and index.column() == 0:
             return self._paths[index.row()]
         return None
 

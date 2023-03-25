@@ -21,8 +21,8 @@
 
 from typing import cast
 
-from PyQt5.QtCore import pyqtSlot, QObject, QEvent
-from PyQt5.QtGui import QKeyEvent, QWindow
+from qutebrowser.qt.core import pyqtSlot, QObject, QEvent
+from qutebrowser.qt.gui import QKeyEvent, QWindow
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import quitter, objects
@@ -35,7 +35,7 @@ class EventFilter(QObject):
 
     Attributes:
         _activated: Whether the EventFilter is currently active.
-        _handlers; A {QEvent.Type: callable} dict with the handlers for an
+        _handlers: A {QEvent.Type: callable} dict with the handlers for an
                    event.
     """
 
@@ -43,9 +43,9 @@ class EventFilter(QObject):
         super().__init__(parent)
         self._activated = True
         self._handlers = {
-            QEvent.KeyPress: self._handle_key_event,
-            QEvent.KeyRelease: self._handle_key_event,
-            QEvent.ShortcutOverride: self._handle_key_event,
+            QEvent.Type.KeyPress: self._handle_key_event,
+            QEvent.Type.KeyRelease: self._handle_key_event,
+            QEvent.Type.ShortcutOverride: self._handle_key_event,
         }
 
     def install(self) -> None:

@@ -23,6 +23,7 @@ The following userscripts are included in the current directory.
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 - [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
 - [qute-bitwarden](./qute-bitwarden): Similar to qute-pass, for Bitwarden.
+- [qute-1pass](./qute-1pass): Insert login information using onepassword and rofi.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
   opens the summary as new tab.
@@ -74,10 +75,12 @@ The following userscripts can be found on their own repositories.
    and retrieve they when you want.
 - [doi](https://github.com/cadadr/configuration/blob/master/qutebrowser/userscripts/doi):
   Opens DOIs on Sci-Hub.
+- [qute-1password](https://github.com/fmartingr/qute-1password):
+  Qutebrowser userscript to fill 1password credentials
 - [1password](https://github.com/tomoakley/dotfiles/blob/master/qutebrowser/userscripts/1password):
   Integration with 1password on macOS.
 - [localhost](https://github.com/SidharthArya/.qutebrowser/blob/master/userscripts/localhost):
-  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://sidhartharya.me/a-quicker-way-to-reach-localhost-with-qutebrowser/)
+  Quickly navigate to localhost:port. For reference: [A quicker way to reach localhost with qutebrowser](https://blog.sidhartharya.com/a-quicker-way-to-reach-localhost-with-qutebrowser/)
 - [untrack-url](https://github.com/qutebrowser/qutebrowser/discussions/6555),
   convert various URLs (YouTube/Reddit/Twitter/Instagram/Google Maps) to other
   services (Invidious, Teddit, Nitter, Bibliogram, OpenStreetMap).
@@ -85,6 +88,24 @@ The following userscripts can be found on their own repositories.
   various small userscripts written in Raku.
 - [bitwarden-rofi](https://github.com/haztecaso/bitwarden-rofi), rofi wrapper for bitwarden cli
   interface using gpg instead of keyctl.
+- [yomichad](https://github.com/potamides/yomichad): Japanese pop-up dictionary
+  for looking up readings and definitions of currently selected words, kanji
+  and names
+- [~palb91/qutescripts](https://git.sr.ht/~palb91/qutescripts): A list of
+  personal userscripts for qutebrowser (`domcycle`: settings per domain,
+  `gitclone`, `jsdownload`: smart download, and `substiqute`: bash-like url
+  substitution)
+- [pseudo per domain stylesheets](https://github.com/bschnitz/qute): Userscript
+  for generating url restricted greasemonkey scripts to apply user styles.
+- [qute-containers](https://github.com/s-praveen-kumar/qute-containers): 
+  A simple interface to manage browser containers by manipulating the basedir
+  parameter.
+- [qutebrowser-metascript](https://codeberg.org/mister_monster/qutebrowser-metascript):
+  A user configurable arbitrary sequential command running userscript for qutebrowser
+- [tab-manager](https://codeberg.org/mister_monster/tab-manager):
+  More powerfully manage single window sessions
+- [qutebrowser-url-mutator](https://codeberg.org/mister_monster/qutebrowser-url-mutator):
+  automatically mutates input URLs based on configurable rules
   
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

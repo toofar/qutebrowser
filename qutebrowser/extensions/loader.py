@@ -27,7 +27,7 @@ import argparse
 import dataclasses
 from typing import Callable, Iterator, List, Optional, Tuple
 
-from PyQt5.QtCore import pyqtSlot
+from qutebrowser.qt.core import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config
@@ -83,7 +83,7 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
         module.__qute_module_info = ModuleInfo()  # type: ignore[attr-defined]
-    return module.__qute_module_info  # type: ignore[attr-defined]
+    return module.__qute_module_info
 
 
 def load_components(*, skip_hooks: bool = False) -> None:

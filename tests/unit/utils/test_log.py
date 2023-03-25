@@ -27,8 +27,8 @@ import warnings
 import dataclasses
 
 import pytest
-import _pytest.logging
-from PyQt5 import QtCore
+import _pytest.logging  # pylint: disable=import-private-name
+from qutebrowser.qt import core as qtcore
 
 from qutebrowser import qutebrowser
 from qutebrowser.utils import log
@@ -243,7 +243,7 @@ class TestInitLog:
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker):
-        mocker.patch('qutebrowser.utils.log.QtCore.qInstallMessageHandler',
+        mocker.patch('qutebrowser.utils.log.qtcore.qInstallMessageHandler',
                      autospec=True)
         yield
         # Make sure logging is in a sensible default state
@@ -348,7 +348,7 @@ class TestHideQtWarning:
 
     """Tests for hide_qt_warning/QtWarningFilter."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def qt_logger(self):
         return logging.getLogger('qt-tests')
 
@@ -429,5 +429,5 @@ class TestQtMessageHandler:
 
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""
-        log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
+        log.qt_message_handler(qtcore.QtMsgType.QtDebugMsg, self.Context(), "")
         assert caplog.messages == ["Logged empty message!"]

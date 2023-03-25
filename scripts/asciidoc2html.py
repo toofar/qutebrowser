@@ -20,7 +20,7 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
-from typing import List, Optional
+from typing import Optional
 import re
 import os
 import sys
@@ -43,15 +43,12 @@ class AsciiDoc:
 
     """Abstraction of an asciidoc subprocess."""
 
-    FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
+    FILES = [
+        'faq', 'changelog', 'contributing', 'quickstart', 'userscripts',
+        'install', 'stacktrace'
+    ]
 
-    def __init__(self,
-                 asciidoc: Optional[str],
-                 asciidoc_python: Optional[str],
-                 website: Optional[str]) -> None:
-        self._cmd: Optional[List[str]] = None
-        self._asciidoc = asciidoc
-        self._asciidoc_python = asciidoc_python
+    def __init__(self, website: Optional[str]) -> None:
         self._website = website
         self._homedir: Optional[pathlib.Path] = None
         self._themedir: Optional[pathlib.Path] = None
@@ -60,7 +57,6 @@ class AsciiDoc:
 
     def prepare(self) -> None:
         """Get the asciidoc command and create the homedir to use."""
-        self._cmd = self._get_asciidoc_cmd()
         self._homedir = pathlib.Path(tempfile.mkdtemp())
         self._themedir = self._homedir / '.asciidoc' / 'themes' / 'qute'
         self._tempdir = self._homedir / 'tmp'
@@ -70,7 +66,7 @@ class AsciiDoc:
     def cleanup(self) -> None:
         """Clean up the temporary home directory for asciidoc."""
         if self._homedir is not None and not self._failed:
-            shutil.rmtree(str(self._homedir))
+            shutil.rmtree(self._homedir)
 
     def build(self) -> None:
         """Build either the website or the docs."""
@@ -88,12 +84,15 @@ class AsciiDoc:
             dst = DOC_DIR / (src.stem + ".html")
             files.append((src, dst))
 
-        # patch image links to use local copy
         replacements = [
+            # patch image links to use local copy
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
             ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
-             "qute://help/img/cheatsheet-small.png")
+             "qute://help/img/cheatsheet-small.png"),
+
+            # patch relative links to work with qute://help flat structure
+            ("link:../", "link:"),
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
@@ -116,7 +115,7 @@ class AsciiDoc:
         for filename in ['cheatsheet-big.png', 'cheatsheet-small.png']:
             src = REPO_ROOT / 'doc' / 'img' / filename
             dst = dst_path / filename
-            shutil.copy(str(src), str(dst))
+            shutil.copy(src, dst)
 
     def _build_website_file(self, root: pathlib.Path, filename: str) -> None:
         """Build a single website file."""
@@ -128,7 +127,7 @@ class AsciiDoc:
 
         assert self._tempdir is not None    # for mypy
         modified_src = self._tempdir / src.name
-        shutil.copy(str(REPO_ROOT / 'www' / 'header.asciidoc'), modified_src)
+        shutil.copy(REPO_ROOT / 'www' / 'header.asciidoc', modified_src)
 
         outfp = io.StringIO()
 
@@ -196,7 +195,11 @@ class AsciiDoc:
                 continue
             self._build_website_file(item_path.parent, item_path.name)
 
-        copy = {'icons': 'icons', 'doc/img': 'doc/img', 'www/media': 'media/'}
+        copy = {
+            'qutebrowser/icons': 'icons',
+            'doc/img': 'doc/img',
+            'www/media': 'media/',
+        }
 
         for src, dest in copy.items():
             full_src = REPO_ROOT / src
@@ -217,26 +220,6 @@ class AsciiDoc:
             except FileExistsError:
                 pass
 
-    def _get_asciidoc_cmd(self) -> List[str]:
-        """Try to find out what commandline to use to invoke asciidoc."""
-        if self._asciidoc is not None:
-            python = (sys.executable if self._asciidoc_python is None
-                      else self._asciidoc_python)
-            return [python, self._asciidoc]
-
-        for executable in ['asciidoc', 'asciidoc.py']:
-            try:
-                subprocess.run([executable, '--version'],
-                               stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL,
-                               check=True)
-            except OSError:
-                pass
-            else:
-                return [executable]
-
-        raise FileNotFoundError
-
     def call(self, src: pathlib.Path, dst: pathlib.Path, *args):
         """Call asciidoc for the given files.
 
@@ -246,8 +229,7 @@ class AsciiDoc:
             *args: Additional arguments passed to asciidoc.
         """
         print("Calling asciidoc for {}...".format(src.name))
-        assert self._cmd is not None    # for mypy
-        cmdline = self._cmd[:]
+        cmdline = [sys.executable, "-m", "asciidoc"]
         if dst is not None:
             cmdline += ['--out-file', str(dst)]
         cmdline += args
@@ -274,12 +256,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--website', help="Build website into a given "
                         "directory.")
-    parser.add_argument('--asciidoc', help="Full path to asciidoc.py. "
-                        "If not given, it's searched in PATH.",
-                        nargs='?')
-    parser.add_argument('--asciidoc-python', help="Python to use for asciidoc."
-                        "If not given, the current Python interpreter is used.",
-                        nargs='?')
     return parser.parse_args()
 
 
@@ -291,9 +267,8 @@ def run(**kwargs) -> None:
     try:
         asciidoc.prepare()
     except FileNotFoundError:
-        utils.print_error("Could not find asciidoc! Please install it, or use "
-                          "the --asciidoc argument to point this script to "
-                          "the correct asciidoc.py location!")
+        utils.print_error("Could not find asciidoc! Please install it, e.g. via "
+                          "pip install -r misc/requirements/requirements-docs.txt")
         sys.exit(1)
 
     try:
@@ -307,8 +282,7 @@ def main(colors: bool = False) -> None:
     utils.change_cwd()
     utils.use_color = colors
     args = parse_args()
-    run(asciidoc=args.asciidoc, asciidoc_python=args.asciidoc_python,
-        website=args.website)
+    run(website=args.website)
 
 
 if __name__ == '__main__':

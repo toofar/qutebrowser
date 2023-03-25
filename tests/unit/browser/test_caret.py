@@ -22,7 +22,7 @@
 import textwrap
 
 import pytest
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.utils import usertypes
 from qutebrowser.browser import browsertab
@@ -70,7 +70,7 @@ class Selection:
 
             self._qtbot.wait(50)
 
-        assert False, 'Failed to get selection!'
+        pytest.fail('Failed to get selection!')
 
     def check_multiline(self, expected, *, strip=False):
         self.check(textwrap.dedent(expected).strip(), strip=strip)
@@ -345,8 +345,8 @@ class TestSearch:
         callback.assert_called_with(True)
 
         with qtbot.wait_callback() as callback:
-            web_tab.search.next_result(result_cb=callback)
-        callback.assert_called_with(True)
+            web_tab.search.next_result(callback=callback)
+        callback.assert_called_with(browsertab.SearchNavigationResult.found)
 
         mode_manager.enter(usertypes.KeyMode.caret)
 

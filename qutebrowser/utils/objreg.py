@@ -25,9 +25,9 @@ import functools
 from typing import (TYPE_CHECKING, Any, Callable, MutableMapping, MutableSequence,
                     Optional, Sequence, Union)
 
-from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QWidget
+from qutebrowser.qt.core import QObject, QTimer
+from qutebrowser.qt.widgets import QApplication
+from qutebrowser.qt.widgets import QWidget
 
 from qutebrowser.utils import log, usertypes, utils
 if TYPE_CHECKING:
@@ -205,7 +205,7 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise RegistryUnavailableError('window')
 
     try:
-        return win.registry
+        return win.registry  # type: ignore[attr-defined]
     except AttributeError:
         raise RegistryUnavailableError('window')
 

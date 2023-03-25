@@ -27,7 +27,7 @@ import contextlib
 import subprocess
 from typing import Optional, IO, Iterator
 
-from PyQt5.QtCore import QUrl
+from qutebrowser.qt.core import QUrl
 
 from qutebrowser.api import (
     hook,
@@ -109,6 +109,7 @@ _RESOURCE_TYPE_STRINGS = {
     ResourceType.plugin_resource: "other",
     ResourceType.preload_main_frame: "other",
     ResourceType.preload_sub_frame: "other",
+    ResourceType.websocket: "websocket",
     ResourceType.unknown: "other",
     None: "",
 }
@@ -175,11 +176,12 @@ class BraveAdBlocker:
                     hasattr(adblock, "__file__")):
                 proc = subprocess.run(
                     ['pacman', '-Qo', adblock.__file__],
-                    stdout=subprocess.PIPE,
-                    universal_newlines=True,
+                    capture_output=True,
+                    text=True,
                     check=False,
                 )
                 logger.debug(proc.stdout)
+                logger.debug(proc.stderr)
             raise
 
     def _is_blocked(
@@ -266,6 +268,8 @@ class BraveAdBlocker:
             except DeserializationError:
                 message.error("Reading adblock filter data failed (corrupted data?). "
                               "Please run :adblock-update.")
+            except OSError as e:
+                message.error(f"Reading adblock filter data failed: {e}")
         elif (
             config.val.content.blocking.adblock.lists
             and not self._has_basedir

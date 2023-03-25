@@ -25,8 +25,8 @@ import functools
 import dataclasses
 from typing import Any, Callable, Dict, Optional, Union
 
-from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
-from PyQt5.QtGui import QFont
+from qutebrowser.qt.core import QUrl, pyqtSlot, qVersion
+from qutebrowser.qt.gui import QFont
 
 import qutebrowser
 from qutebrowser.config import config
@@ -164,13 +164,10 @@ class AbstractSettings:
         assert encoding is not usertypes.UNSET  # unclear how to reset
         self._settings.setDefaultTextEncoding(encoding)
 
-    def _update_setting(self, setting: str, value: Any) -> bool:
+    def _update_setting(self, setting: str, value: Any) -> None:
         """Update the given setting/value.
 
         Unknown settings are ignored.
-
-        Return:
-            True if there was a change, False otherwise.
         """
         if setting in self._ATTRIBUTES:
             self.set_attribute(setting, value)
@@ -180,7 +177,7 @@ class AbstractSettings:
             self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
             self.set_default_text_encoding(value)
-        return False
+        # NOTE: When adding something here, also add it to init_settings()!
 
     def update_setting(self, setting: str) -> None:
         """Update the given setting."""
@@ -202,6 +199,7 @@ class AbstractSettings:
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
                         list(self._FONT_FAMILIES)):
             self.update_setting(setting)
+        self.update_setting('content.default_encoding')
 
 
 @debugcachestats.register(name='user agent cache')

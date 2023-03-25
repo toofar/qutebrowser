@@ -17,12 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <https://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import
-
 """Things needed for end2end testing."""
 
 import re
-import os
 import pathlib
 import sys
 import shutil
@@ -30,17 +27,18 @@ import pstats
 import operator
 
 import pytest
-from PyQt5.QtCore import PYQT_VERSION, QCoreApplication
+from qutebrowser.qt.core import PYQT_VERSION, QCoreApplication
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
+# pylint: disable=unused-import
 from end2end.fixtures.notificationserver import notification_server
 from end2end.fixtures.webserver import server, server_per_test, server2, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
+# pylint: enable=unused-import
 from qutebrowser.utils import qtutils, utils
-from qutebrowser.browser.webengine import spell
 
 
 def pytest_configure(config):
@@ -57,11 +55,11 @@ def pytest_unconfigure(config):
     if config.getoption('--qute-profile-subprocs'):
         stats = pstats.Stats()
         for fn in pathlib.Path('prof').iterdir():
-            stats.add((pathlib.Path('prof') / fn))
-        stats.dump_stats((pathlib.Path('prof') / 'combined.pstats'))
+            stats.add(pathlib.Path('prof') / fn)
+        stats.dump_stats(pathlib.Path('prof') / 'combined.pstats')
 
 
-def _check_hex_version(op_str, running_version, version):
+def _check_version(op_str, running_version, version_str, as_hex=False):
     operators = {
         '==': operator.eq,
         '!=': operator.ne,
@@ -71,9 +69,12 @@ def _check_hex_version(op_str, running_version, version):
         '<': operator.lt,
     }
     op = operators[op_str]
-    major, minor, patch = [int(e) for e in version.split('.')]
-    hex_version = (major << 16) | (minor << 8) | patch
-    return op(running_version, hex_version)
+    major, minor, patch = [int(e) for e in version_str.split('.')]
+    if as_hex:
+        version = (major << 16) | (minor << 8) | patch
+    else:
+        version = (major, minor, patch)
+    return op(running_version, version)
 
 
 def _get_version_tag(tag):
@@ -84,7 +85,7 @@ def _get_version_tag(tag):
     casesinto an appropriate @pytest.mark.skip marker, and falls back to
     """
     version_re = re.compile(r"""
-        (?P<package>qt|pyqt|pyqtwebengine)
+        (?P<package>qt|pyqt|pyqtwebengine|python)
         (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
@@ -108,25 +109,38 @@ def _get_version_tag(tag):
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
         return pytest.mark.skipif(
-            not _check_hex_version(
+            not _check_version(
                 op_str=match.group('operator'),
                 running_version=PYQT_VERSION,
-                version=version
+                version_str=version,
+                as_hex=True,
             ),
             reason='Needs ' + tag,
         )
     elif package == 'pyqtwebengine':
         try:
-            from PyQt5.QtWebEngine import PYQT_WEBENGINE_VERSION
+            from qutebrowser.qt.webenginecore import PYQT_WEBENGINE_VERSION
         except ImportError:
+            # QtWebKit
             running_version = PYQT_VERSION
         else:
             running_version = PYQT_WEBENGINE_VERSION
         return pytest.mark.skipif(
-            not _check_hex_version(
+            not _check_version(
                 op_str=match.group('operator'),
                 running_version=running_version,
-                version=version
+                version_str=version,
+                as_hex=True,
+            ),
+            reason='Needs ' + tag,
+        )
+    elif package == 'python':
+        running_version = sys.version_info
+        return pytest.mark.skipif(
+            not _check_version(
+                op_str=match.group('operator'),
+                running_version=running_version,
+                version_str=version,
             ),
             reason='Needs ' + tag,
         )
@@ -139,7 +153,6 @@ def _get_backend_tag(tag):
     pytest_marks = {
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-        'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -166,10 +179,6 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers."""
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-75884
-    # (note this isn't actually fixed properly before Qt 5.15)
-    header_bug_fixed = qtutils.version_check('5.15', compiled=False)
-
     lib_path = pathlib.Path(QCoreApplication.libraryPaths()[0])
     qpdf_image_plugin = lib_path / 'imageformats' / 'libqpdf.so'
 
@@ -178,19 +187,12 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
-        ('qtwebengine_notifications',
-         'Skipped unless QtWebEngine >= 5.13',
-         pytest.mark.skipif,
-         not (config.webengine and qtutils.version_check('5.13'))),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and utils.is_mac),
-        ('js_headers', 'Sets headers dynamically via JS',
-         pytest.mark.skipif,
-         config.webengine and not header_bug_fixed),
         ('qtwebkit_pdf_imageformat_skip',
          'Skipped with QtWebKit if PDF image plugin is available',
          pytest.mark.skipif,

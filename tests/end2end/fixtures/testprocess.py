@@ -34,6 +34,16 @@ from helpers import testutils
 
 from qutebrowser.utils import utils as quteutils
 
+regex_type = type(re.compile(''))
+from collections import Counter
+
+nomatches = Counter()
+keys = Counter()
+lines = 0
+
+def newline():
+    global lines
+    lines += 1
 
 class InvalidLine(Exception):
 
@@ -153,6 +163,15 @@ class Process(QObject):
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.ProcessChannel.StandardError)
         self.exit_expected = None  # Not started at all yet
+
+    def __del__(self):
+        global lines
+        print(nomatches.most_common(20))
+        nomatches.clear()
+        print(keys.most_common(20))
+        keys.clear()
+        print(lines)
+        lines = 0
 
     def _log(self, line):
         """Add the given line to the captured log output."""
@@ -327,7 +346,7 @@ class Process(QObject):
         """Check if the process is currently running."""
         return self.proc.state() == QProcess.ProcessState.Running
 
-    def _match_data(self, value, expected):
+    def _match_data(self, value, expected, key=None):
         """Helper for wait_for to match a given value.
 
         The behavior of this method is slightly different depending on the
@@ -343,15 +362,19 @@ class Process(QObject):
         Return:
             A bool
         """
-        regex_type = type(re.compile(''))
         if expected is None:
             return True
         elif isinstance(expected, regex_type):
-            return expected.search(value)
-        elif isinstance(value, (bytes, str)):
-            return testutils.pattern_match(pattern=expected, value=value)
-        else:
+            ret = expected.search(value)
+        elif key != 'message':
             return value == expected
+        elif isinstance(value, (bytes, str)):
+            ret = testutils.pattern_match(pattern=expected, value=value)
+        else:
+            ret = value == expected
+        if not ret:
+            nomatches.update((value,))
+        return ret
 
     def _wait_for_existing(self, override_waited_for, after, **kwargs):
         """Check if there are any line in the history for wait_for.
@@ -361,19 +384,24 @@ class Process(QObject):
         for line in self._data:
             matches = []
 
-            for key, expected in kwargs.items():
-                value = getattr(line, key)
-                matches.append(self._match_data(value, expected))
+            if line.waited_for and not override_waited_for:
+                continue
 
             if after is None:
                 too_early = False
             else:
                 too_early = ((line.timestamp, line.msecs) <
                              (after.timestamp, after.msecs))
+            if too_early:
+                continue
 
-            if (all(matches) and
-                    (not line.waited_for or override_waited_for) and
-                    not too_early):
+            keys.update(kwargs.keys())
+            newline()
+            for key, expected in kwargs.items():
+                value = getattr(line, key)
+                if not self._match_data(value, expected, key=key):
+                    break
+            else:
                 # If we waited for this line, chances are we don't mean the
                 # same thing the next time we use wait_for and it matches
                 # this line again.
@@ -424,13 +452,13 @@ class Process(QObject):
             assert len(args) == 1
             line = args[0]
 
-            matches = []
-
+            keys.update(kwargs.keys())
+            newline()
             for key, expected in kwargs.items():
                 value = getattr(line, key)
-                matches.append(self._match_data(value, expected))
-
-            if all(matches):
+                if not self._match_data(value, expected, key=key):
+                    break
+            else:
                 # If we waited for this line, chances are we don't mean the
                 # same thing the next time we use wait_for and it matches
                 # this line again.

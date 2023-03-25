@@ -195,14 +195,26 @@ def partial_compare(val1, val2, *, indent=0):
     return outcome
 
 
+from functools import lru_cache
+
+@lru_cache
+def wildcard_to_re(pattern):
+    return re.compile(
+        '.*'.join(re.escape(part) for part in pattern.split("*")),
+        flags=re.DOTALL,
+    )
+
 def pattern_match(*, pattern, value):
     """Do fnmatch.fnmatchcase like matching, but only with * active.
 
     Return:
         True on a match, False otherwise.
     """
-    re_pattern = '.*'.join(re.escape(part) for part in pattern.split('*'))
-    return re.fullmatch(re_pattern, value, flags=re.DOTALL) is not None
+    parts = pattern.split("*")
+    if parts[0] not in value:
+        return False
+    re_pattern = wildcard_to_re(pattern)
+    return re.fullmatch(re_pattern, value) is not None
 
 
 def abs_datapath():

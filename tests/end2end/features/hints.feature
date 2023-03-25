@@ -257,6 +257,7 @@ Feature: Using hints
 
     Scenario: Using :hint-follow inside an iframe button
         When I open data/hints/iframe_button.html
+        And I wait for "emitting: cur_load_finished(True) (tab *)" in the log
         And I hint with args "all normal" and follow s
         Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
 

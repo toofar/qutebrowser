@@ -23,12 +23,12 @@ jobs:
           - testenv: py311-pyqt515
             os: ubuntu-20.04
             python: "3.11"
-            args: tests/end2end/features/test_hints_bdd.py -k test_using_hintfollow_inside_an_iframe
+            args: tests/end2end/features/test_hints_bdd.py
           ### Windows: PyQt 5.15 (Python 3.9 to match PyInstaller env)
           - testenv: py39-pyqt515
             os: windows-2019
             python: "3.9"
-            args: tests/end2end/features/test_hints_bdd.py -k test_using_hintfollow_inside_an_iframe
+            args: tests/end2end/features/test_hints_bdd.py
     runs-on: "${{ matrix.os }}"
     steps:
       - uses: actions/checkout@v3

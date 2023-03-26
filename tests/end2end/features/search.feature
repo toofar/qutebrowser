@@ -367,7 +367,6 @@ Feature: Searching on a page
     Scenario: Follow a searched link in an iframe
         When I open data/iframe_search.html
         And I wait for "* search loaded" in the log
-        And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log
         And I run :selection-follow
@@ -377,7 +376,6 @@ Feature: Searching on a page
     Scenario: Follow a tabbed searched link in an iframe
         When I open data/iframe_search.html
         And I wait for "* search loaded" in the log
-        And I run :tab-only
         And I run :search follow
         And I wait for "search found follow" in the log
         And I run :selection-follow -t

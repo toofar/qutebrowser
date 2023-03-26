@@ -364,6 +364,7 @@ Feature: Searching on a page
             - data/hello.txt (active)
 
     @qtwebkit_skip: Not supported in qtwebkit
+    @qt>=6.2
     Scenario: Follow a searched link in an iframe
         When I open data/iframe_search.html
         And I wait for "* search loaded" in the log
@@ -373,6 +374,7 @@ Feature: Searching on a page
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
 
     @qtwebkit_skip: Not supported in qtwebkit
+    @qt>=6.2
     Scenario: Follow a tabbed searched link in an iframe
         When I open data/iframe_search.html
         And I wait for "* search loaded" in the log

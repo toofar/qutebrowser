@@ -312,6 +312,7 @@ class QuteProc(testprocess.Process):
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
         self._screenshot_counters = collections.defaultdict(itertools.count)
+        self._ready = False
 
     def _process_line(self, log_line):
         """Check if the line matches any initial lines we're interested in."""
@@ -319,15 +320,15 @@ class QuteProc(testprocess.Process):
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
 
-        if (log_line.category == 'ipc' and
+        if (not self._ipc_socket and log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
             self._ipc_socket = log_line.message.split(' ', maxsplit=2)[2]
-        elif (log_line.category == 'webview' and
+        elif (not self._ready and log_line.category == 'webview' and
               testutils.pattern_match(pattern=start_okay_message,
                                       value=log_line.message)):
             log_line.waited_for = True
             self.ready.emit()
-        elif (log_line.category == 'init' and
+        elif (not self.basedir and log_line.category == 'init' and
               log_line.module == 'standarddir' and
               log_line.function == 'init' and
               log_line.message.startswith('Base directory:')):
@@ -378,6 +379,12 @@ class QuteProc(testprocess.Process):
             else:
                 args = ['-bb', '-m', 'qutebrowser']
         return executable, args
+        #return "py-spy", ["record", "--", "python3"] + args
+
+    def terminate(self):
+        self.send_cmd(':wq')
+        self.proc.waitForFinished(5000)
+        super().terminate()
 
     def _default_args(self):
         backend = 'webengine' if self.request.config.webengine else 'webkit'

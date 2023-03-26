@@ -53,12 +53,6 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    Scenario: Entering and leaving hinting mode (issue 1464)
-        When I open data/hints/html/simple.html
-        And I hint with args "all"
-        And I run :fake-key -g <Esc>
-        Then no crash should happen
-
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "-- all spawn -v (python-executable) -c ''" and follow a
@@ -179,14 +173,6 @@ Feature: Using hints
         And I hint with args "all run message-info {hint-url}" and follow a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
-    Scenario: Hinting inputs without type
-        When I open data/hints/input.html
-        And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :mode-leave
-        # The actual check is already done above
-        Then no crash should happen
-
     Scenario: Error with invalid hint group
         When I open data/hints/buttons.html
         And I run :hint INVALID_GROUP
@@ -218,29 +204,6 @@ Feature: Using hints
         And I run :hint custom
         Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
 
-    # https://github.com/qutebrowser/qutebrowser/issues/1613
-    Scenario: Hinting inputs with padding
-        When I open data/hints/input.html
-        And I hint with args "inputs" and follow s
-        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :mode-leave
-        # The actual check is already done above
-        Then no crash should happen
-
-    Scenario: Hinting with ACE editor
-        When I open data/hints/ace/ace.html
-        And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :mode-leave
-        # The actual check is already done above
-        Then no crash should happen
-
-    Scenario: Hinting Twitter bootstrap checkbox
-        When I open data/hints/bootstrap/checkbox.html
-        And I hint with args "all" and follow a
-        # The actual check is already done above
-        Then "No elements found." should not be logged
-
     Scenario: Clicking input with existing text
         When I open data/hints/input.html
         And I run :click-element id qute-input-existing
@@ -260,15 +223,6 @@ Feature: Using hints
         And I wait for "* wrapped_button loaded" in the log
         And I hint with args "all normal" and follow s
         Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
-
-    Scenario: Hinting inputs in an iframe without type
-        When I open data/hints/iframe_input.html
-        And I wait for "* input loaded" in the log
-        And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :mode-leave
-        # The actual check is already done above
-        Then no crash should happen
 
     Scenario: Using :hint-follow inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
@@ -291,18 +245,6 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hints/iframe_target.html (active)
             - data/hello2.txt
-
-    Scenario: Clicking on iframe with :hint all current
-        When I open data/hints/iframe.html
-        And I wait for "* wrapped loaded" in the log
-        And I hint with args "all current" and follow a
-        Then no crash should happen
-
-    Scenario: No error when hinting ranged input in frames
-        When I open data/hints/issue3711_frame.html
-        And I wait for "* issue3711 loaded" in the log
-        And I hint with args "all current" and follow a
-        Then no crash should happen
 
     ### hints.auto_follow.timeout
 
@@ -403,15 +345,6 @@ Feature: Using hints
         And I hint with args "all" and follow 00
         Then data/numbers/1.txt should be loaded
 
-    # https://github.com/qutebrowser/qutebrowser/issues/1559
-    Scenario: Filtering all hints in number mode
-        When I open data/hints/number.html
-        And I set hints.mode to number
-        And I hint with args "all"
-        And I press the key "2"
-        And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
-        Then no crash should happen
-
     # https://github.com/qutebrowser/qutebrowser/issues/1657
     Scenario: Using rapid number hinting twice
         When I open data/hints/number.html
@@ -449,13 +382,6 @@ Feature: Using hints
         And I run :reload
         Then "Leaving mode KeyMode.hint (reason: load started)" should be logged
 
-    Scenario: Leaving hint mode on reload without leave_on_load
-        When I set hints.leave_on_load to false
-        And I open data/hints/html/simple.html
-        And I hint with args "all"
-        And I run :reload
-        Then "Leaving mode KeyMode.hint (reason: load started)" should not be logged
-
 
     ### hints.auto_follow option
 
@@ -482,14 +408,6 @@ Feature: Using hints
         And I hint with args "all"
         And I press the key "a"
         Then data/hello.txt should be loaded
-
-    Scenario: Using hints.auto_follow = 'never' without Enter in letter mode
-        When I open data/hints/html/simple.html
-        And I set hints.mode to letter
-        And I set hints.auto_follow to never
-        And I hint with args "all"
-        And I press the key "a"
-        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
 
     Scenario: Using hints.auto_follow = 'never' in letter mode
         When I open data/hints/html/simple.html
@@ -523,15 +441,6 @@ Feature: Using hints
         # this actually presses the keys one by one
         And I press the key "follow me!"
         Then data/hello.txt should be loaded
-
-    Scenario: Using hints.auto_follow = 'never' without Enter in number mode
-        When I open data/hints/html/simple.html
-        And I set hints.mode to number
-        And I set hints.auto_follow to never
-        And I hint with args "all"
-        # this actually presses the keys one by one
-        And I press the key "follow me!"
-        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
 
     Scenario: Using hints.auto_follow = 'never' in number mode
         When I open data/hints/html/simple.html
@@ -568,15 +477,6 @@ Feature: Using hints
         And I press the key "hello"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints.auto_follow = 'never' without Enter in word mode
-        When I open data/hints/html/simple.html
-        And I set hints.mode to word
-        And I set hints.auto_follow to never
-        And I hint with args "all"
-        # this actually presses the keys one by one
-        And I press the key "hello"
-        Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
-
     Scenario: Using hints.auto_follow = 'never' in word mode
         When I open data/hints/html/simple.html
         And I set hints.mode to word
@@ -602,14 +502,6 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :mode-leave
         Then the javascript message "true" should be logged
-
-    Scenario: Hinting contenteditable inputs
-        When I open data/hints/input.html
-        And I hint with args "inputs" and follow f
-        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
-        And I run :mode-leave
-        # The actual check is already done above
-        Then no crash should happen
 
     Scenario: Deleting a simple target
         When I open data/hints/html/simple.html

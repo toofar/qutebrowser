@@ -29,6 +29,7 @@ import pytestqt.wait_signal
 from qutebrowser.qt.core import (pyqtSlot, pyqtSignal, QProcess, QObject,
                           QElapsedTimer, QProcessEnvironment)
 from qutebrowser.qt.test import QSignalSpy
+from qutebrowser.qt.widgets import QApplication
 
 from helpers import testutils
 
@@ -39,6 +40,7 @@ from collections import Counter
 
 nomatches = Counter()
 keys = Counter()
+waittimes = []
 lines = 0
 
 def newline():
@@ -170,6 +172,8 @@ class Process(QObject):
         nomatches.clear()
         print(keys.most_common(20))
         keys.clear()
+        print(list(reversed(sorted(waittimes)))[:20])
+        waittimes.clear()
         print(lines)
         lines = 0
 
@@ -285,6 +289,7 @@ class Process(QObject):
 
         self.proc.readyRead.connect(self.read_log)
         self.proc.setProcessEnvironment(procenv)
+        print(executable, exec_args + args)
         self.proc.start(executable, exec_args + args)
         ok = self.proc.waitForStarted()
         assert ok
@@ -426,10 +431,14 @@ class Process(QObject):
         elapsed_timer = QElapsedTimer()
         elapsed_timer.start()
 
+        import time
         while True:
             # Skip if there are pending messages causing a skip
             self._maybe_skip()
+            start = time.time()
             got_signal = spy.wait(timeout)
+            waited_for = time.time() - start
+            waittimes.append(waited_for)
             if not got_signal or elapsed_timer.hasExpired(timeout):
                 msg = "Timed out after {}ms waiting for {!r}.".format(
                     timeout, kwargs)

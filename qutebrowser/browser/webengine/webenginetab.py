@@ -1660,6 +1660,61 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
+    def _on_desktop_media_requested(self, request):
+        from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest
+        if not type(request) == QWebEngineDesktopMediaRequest:
+            # Need to fix my PyQt hacks
+            request = sip.cast(request, QWebEngineDesktopMediaRequest)
+        #import pdbr
+        #pdbr.set_trace()
+
+        # Why aren't these filled? They should be filled when the controller is
+        # created? Maybe because I applied the patch to 6.5.1?
+        request.windowsModel().rowCount()  # == 0
+        request.screensModel().rowCount()  # == 0
+
+        # PyQt additions made to sip/QtWebEngineCore/qwebenginepage.sip
+        #    void desktopMediaRequested(QWebEngineDesktopMediaRequest *request);
+        #};
+        #
+        #class QWebEngineMediaSourceModel : QObject /NoDefaultCtors/
+        #{
+        #%TypeHeaderCode
+        ##include <qwebenginedesktopmediarequest.h>
+        #%End
+        #
+        #public:
+        #    enum Roles
+        #    {
+        #        NameRole,
+        #    };
+        #
+        #    virtual ~QWebEngineMediaSourceModel();
+        #    int rowCount(QModelIndex parent) const;
+        #    QVariant data(QModelIndex index, int role) const;
+        #    QHash<int, QByteArray> roleNames() const;
+        #};
+        #
+        #class QWebEngineDesktopMediaRequest : QObject /NoDefaultCtors/
+        #{
+        #%TypeHeaderCode
+        ##include <qwebenginedesktopmediarequest.h>
+        #%End
+        #
+        #public:
+        #
+        #    virtual ~QWebEngineDesktopMediaRequest();
+        #    QWebEngineMediaSourceModel *screensModel() const;
+        #    QWebEngineMediaSourceModel *windowsModel() const;
+        #    void selectPrimaryScreen() const;
+        #    void accept();
+        #    void reject();
+        #    void selectScreen(const QModelIndex &index);
+        #    void selectWindow(const QModelIndex &index);
+        #};
+
+        request.selectPrimaryScreen()
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1677,6 +1732,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
+        if hasattr(page, 'desktopMediaRequested'):
+            page.desktopMediaRequested.connect(self._on_desktop_media_requested)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)

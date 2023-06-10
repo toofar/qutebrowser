@@ -1661,15 +1661,16 @@ class WebEngineTab(browsertab.AbstractTab):
             selection.selectNone()
 
     def _on_desktop_media_requested(self, request):
-        from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest
-        if not type(request) == QWebEngineDesktopMediaRequest:
-            # Need to fix my PyQt hacks
-            request = sip.cast(request, QWebEngineDesktopMediaRequest)
+        from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest, QWebEngineMediaSourceModel
         #import pdbr
         #pdbr.set_trace()
 
+        # Probably wouldn't need to do this if I had the method signatures
+        # correct around the defaults
+        from qutebrowser.qt.core import QModelIndex
+
         # Why aren't these filled? They should be filled when the controller is
-        # created? Maybe because I applied the patch to 6.5.1?
+        # created? Maybe because I applied the patch to 6.5.x?
         request.windowsModel().rowCount()  # == 0
         request.screensModel().rowCount()  # == 0
 
@@ -1677,7 +1678,7 @@ class WebEngineTab(browsertab.AbstractTab):
         #    void desktopMediaRequested(QWebEngineDesktopMediaRequest *request);
         #};
         #
-        #class QWebEngineMediaSourceModel : QObject /NoDefaultCtors/
+        #class QWebEngineMediaSourceModel : QAbstractListModel /NoDefaultCtors/
         #{
         #%TypeHeaderCode
         ##include <qwebenginedesktopmediarequest.h>
@@ -1690,12 +1691,13 @@ class WebEngineTab(browsertab.AbstractTab):
         #    };
         #
         #    virtual ~QWebEngineMediaSourceModel();
+        #    // TODO: rowCount and data should have default arguments, or optional?
         #    int rowCount(QModelIndex parent) const;
         #    QVariant data(QModelIndex index, int role) const;
         #    QHash<int, QByteArray> roleNames() const;
         #};
         #
-        #class QWebEngineDesktopMediaRequest : QObject /NoDefaultCtors/
+        #class QWebEngineDesktopMediaRequest /NoDefaultCtors/
         #{
         #%TypeHeaderCode
         ##include <qwebenginedesktopmediarequest.h>
@@ -1706,14 +1708,15 @@ class WebEngineTab(browsertab.AbstractTab):
         #    virtual ~QWebEngineDesktopMediaRequest();
         #    QWebEngineMediaSourceModel *screensModel() const;
         #    QWebEngineMediaSourceModel *windowsModel() const;
-        #    void selectPrimaryScreen() const;
-        #    void accept();
-        #    void reject();
+        #    void cancel();
         #    void selectScreen(const QModelIndex &index);
         #    void selectWindow(const QModelIndex &index);
         #};
 
-        request.selectPrimaryScreen()
+        # This is the default fallback implementation (in the request
+        # destructor) but it (silently) does nothing here as the index isn't
+        # valid.
+        #request.selectScreen(request.screensModel().index(0))
 
     def _connect_signals(self):
         view = self._widget
@@ -1732,6 +1735,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
+        # This check isn't good enough if you are running against a PyQt that
+        # doesn't know about this stuff. It still throws this on the hasttr
+        # line: TypeError: C++ type 'QWebEngineDesktopMediaRequest' is not supported as a signal argument type
         if hasattr(page, 'desktopMediaRequested'):
             page.desktopMediaRequested.connect(self._on_desktop_media_requested)
 

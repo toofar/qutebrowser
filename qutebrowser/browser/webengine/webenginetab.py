@@ -1662,20 +1662,38 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _on_desktop_media_requested(self, request):
         from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest, QWebEngineMediaSourceModel
-        #import pdbr
-        #pdbr.set_trace()
 
         # Probably wouldn't need to do this if I had the method signatures
         # correct around the defaults
         from qutebrowser.qt.core import QModelIndex
 
-        # Why aren't these filled? They should be filled when the controller is
-        # created? Maybe because I applied the patch to 6.5.x?
-        request.windowsModel().rowCount()  # == 0
-        request.screensModel().rowCount()  # == 0
+        wm = request.windowsModel()
+        sm = request.screensModel()
+
+        #import pdbr
+        #pdbr.set_trace()
+
+        # We only get names for model items, that's all. Underneath Qt has
+        # DesktopMediaList::Source structs from
+        # `chrome/browser/media/webrtc/desktop_media_list.h` and these have
+        # id, name, thumbnail and preview. Currently DesktopMediaListQt only
+        # surfaces the name attribute (eg the window title or "Screen 1"),
+        # presumably to keep the diffstat of the initial PR smaller.
+        # The thumbnail and preview could be useful, although just the name
+        # would fit with our textual completion models fine. And that's all
+        # OBS gives you (and I find that really hard to navigate).
+        # I would like to be able to filter windows by screen, or even get the
+        # geometry and location of windows to be able to display them like an
+        # alt-tab window switcher. I have no idea what the `id` of the Source
+        # struct from Chrome maps to though, maybe nothing! That'll require
+        # recompiling QtWebEngine to see, a job for another day.
+        for i in range(wm.rowCount(wm.index(0))):
+            print(f"{i}: {wm.data(wm.index(i, 0), 0)}")
+
+        #request.selectWindow(wm.index(3))
 
         # PyQt additions made to sip/QtWebEngineCore/qwebenginepage.sip
-        #    void desktopMediaRequested(QWebEngineDesktopMediaRequest *request);
+        #    void desktopMediaRequested(QWebEngineDesktopMediaRequest request);
         #};
         #
         #class QWebEngineMediaSourceModel : QAbstractListModel /NoDefaultCtors/

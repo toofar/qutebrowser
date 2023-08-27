@@ -1210,6 +1210,7 @@ class FontBase(BaseType):
             families = configutils.FontFamilies(default_family)
         else:
             families = configutils.FontFamilies.from_system_default()
+        print(families)
 
         cls.default_family = families.to_str(quote=True)
         cls.default_size = default_size

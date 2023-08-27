@@ -494,3 +494,19 @@ class CompletionView(QTreeView):
             sel = False
 
         utils.set_clipboard(text, selection=sel)
+
+    def paintEvent(self, event):
+        with debug.log_time(log.completion, f'paint tree {event=}', threshold=0.001):
+            return super().paintEvent(event)
+
+    def drawTree(self, painter, region):
+        with debug.log_time(log.completion, f'draw tree {region=}', threshold=0.001):
+            return super().drawTree(painter, region)
+
+    # paintEvent
+    # drawTree
+    # drawRow
+    #  item.paint()
+    def drawRow(self, painter, option, index):
+        with debug.log_time(log.completion, f'draw row {index.row()=} {index.column()=}', threshold=0.01):
+            return super().drawRow(painter, option, index)

@@ -306,7 +306,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     """
 
     def __init__(self, logger: Union[logging.Logger, str],
-                 action: str = 'operation') -> None:
+                 action: str = 'operation', threshold: int = 0) -> None:
         """Constructor.
 
         Args:
@@ -319,6 +319,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
             self._logger = logger
         self._started: Optional[datetime.datetime] = None
         self._action = action
+        self._threshold = threshold
 
     def __enter__(self) -> None:
         self._started = datetime.datetime.now()
@@ -330,8 +331,9 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
         assert self._started is not None
         finished = datetime.datetime.now()
         delta = (finished - self._started).total_seconds()
-        self._logger.debug("{} took {} seconds.".format(
-            self._action.capitalize(), delta))
+        if delta > self._threshold:
+            self._logger.debug("{} took {} seconds.".format(
+                self._action.capitalize(), delta))
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)

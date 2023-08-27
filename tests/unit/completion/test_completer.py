@@ -208,6 +208,22 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
         assert model.info.keyconf == key_config_stub
         completion_widget_stub.set_pattern.assert_called_once_with(pattern)
 
+def test_benchmark_completion(status_command_stub, stubs,
+                           completer_obj, completion_widget_stub, config_stub,
+                           key_config_stub, monkeypatch):
+    """Test setting the completion widget's model based on command text."""
+    # TODO: need to set real model
+    txt = ":open iiii|"
+
+    monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
+    config_stub.val.completion.show = 'auto'
+    completer_obj = completer.Completer(cmd=status_command_stub, win_id=0,
+                               parent=completionwidget.CompletionView(cmd=status_command_stub,
+                                                                     win_id=0))
+    # this test uses | as a placeholder for the current cursor position
+    _set_cmd_prompt(status_command_stub, txt)
+    completer_obj.schedule_completion_update()
+
 
 @pytest.mark.parametrize('txt1, txt2, regen', [
     (':config-cycle |', ':config-cycle a|', False),

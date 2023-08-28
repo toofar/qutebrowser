@@ -18,6 +18,7 @@ from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import completionmodel
 from qutebrowser.utils import utils, usertypes, debug, log, qtutils
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import throttle
 if TYPE_CHECKING:
     from qutebrowser.mainwindow.statusbar import command
 
@@ -130,6 +131,9 @@ class CompletionView(QTreeView):
         self.hide()
         # FIXME set elidemode
         # https://github.com/qutebrowser/qutebrowser/issues/118
+        self._maybe_update_geometry = throttle.Throttle(self._maybe_update_geometry_slow, 250, self)
+        self._maybe_show = throttle.Throttle(self._maybe_show_slow, 250, self)
+
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -398,14 +402,14 @@ class CompletionView(QTreeView):
             self._maybe_update_geometry()
             self._maybe_show()
 
-    def _maybe_show(self):
+    def _maybe_show_slow(self):
         if (config.val.completion.show == 'always' and
                 self._model().count() > 0):
             self.show()
         else:
             self.hide()
 
-    def _maybe_update_geometry(self):
+    def _maybe_update_geometry_slow(self):
         """Emit the update_geometry signal if the config says so."""
         if config.val.completion.shrink:
             self.update_geometry.emit()
@@ -494,19 +498,3 @@ class CompletionView(QTreeView):
             sel = False
 
         utils.set_clipboard(text, selection=sel)
-
-    def paintEvent(self, event):
-        with debug.log_time(log.completion, f'paint tree {event=}', threshold=0.001):
-            return super().paintEvent(event)
-
-    def drawTree(self, painter, region):
-        with debug.log_time(log.completion, f'draw tree {region=}', threshold=0.001):
-            return super().drawTree(painter, region)
-
-    # paintEvent
-    # drawTree
-    # drawRow
-    #  item.paint()
-    def drawRow(self, painter, option, index):
-        with debug.log_time(log.completion, f'draw row {index.row()=} {index.column()=}', threshold=0.01):
-            return super().drawRow(painter, option, index)

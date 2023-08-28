@@ -39,8 +39,6 @@ class _Highlighter(QSyntaxHighlighter):
         if pattern in pat_cache:
             self._expression = pat_cache[pattern]
             return
-        print(pattern)
-        print(color)
         words = pattern.split()
         words.sort(key=len, reverse=True)
         pat = "|".join(re.escape(word) for word in words)
@@ -129,7 +127,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
             index: The QModelIndex of the item to draw.
         """
         if not self._opt.text:
-            print(f'no {index.row()=} {index.column()=}')
             return
 
         # TODO:
@@ -139,49 +136,45 @@ class CompletionItemDelegate(QStyledItemDelegate):
         #       change?
         #     * set cache on paintEvent() enter -- on parent...
         #     * just memoize?
-        with debug.log_time(log.completion, f'draw_text misc {index.row()=} {index.column()=}', threshold=0.0001):
-            text_rect_ = self._style.subElementRect(
-                QStyle.SubElement.SE_ItemViewItemText, self._opt, self._opt.widget)
-            qtutils.ensure_valid(text_rect_)
-            margin = self._style.pixelMetric(QStyle.PixelMetric.PM_FocusFrameHMargin,
-                                             self._opt, self._opt.widget) + 1
-            # remove width padding
-            text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
-            qtutils.ensure_valid(text_rect)
-            # move text upwards a bit
-            if index.parent().isValid():
-                text_rect.adjust(0, -1, 0, -1)
-            else:
-                text_rect.adjust(0, -2, 0, -2)
-            self._painter.save()
-            state = self._opt.state
-            if state & QStyle.StateFlag.State_Enabled and state & QStyle.StateFlag.State_Active:
-                cg = QPalette.ColorGroup.Normal
-            elif state & QStyle.StateFlag.State_Enabled:
-                cg = QPalette.ColorGroup.Inactive
-            else:
-                cg = QPalette.ColorGroup.Disabled
+        text_rect_ = self._style.subElementRect(
+            QStyle.SubElement.SE_ItemViewItemText, self._opt, self._opt.widget)
+        qtutils.ensure_valid(text_rect_)
+        margin = self._style.pixelMetric(QStyle.PixelMetric.PM_FocusFrameHMargin,
+                                         self._opt, self._opt.widget) + 1
+        # remove width padding
+        text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
+        qtutils.ensure_valid(text_rect)
+        # move text upwards a bit
+        if index.parent().isValid():
+            text_rect.adjust(0, -1, 0, -1)
+        else:
+            text_rect.adjust(0, -2, 0, -2)
+        self._painter.save()
+        state = self._opt.state
+        if state & QStyle.StateFlag.State_Enabled and state & QStyle.StateFlag.State_Active:
+            cg = QPalette.ColorGroup.Normal
+        elif state & QStyle.StateFlag.State_Enabled:
+            cg = QPalette.ColorGroup.Inactive
+        else:
+            cg = QPalette.ColorGroup.Disabled
 
-            if state & QStyle.StateFlag.State_Selected:
-                self._painter.setPen(self._opt.palette.color(
-                    cg, QPalette.ColorRole.HighlightedText))
-                # This is a dirty fix for the text jumping by one pixel for
-                # whatever reason.
-                text_rect.adjust(0, -1, 0, 0)
-            else:
-                self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
+        if state & QStyle.StateFlag.State_Selected:
+            self._painter.setPen(self._opt.palette.color(
+                cg, QPalette.ColorRole.HighlightedText))
+            # This is a dirty fix for the text jumping by one pixel for
+            # whatever reason.
+            text_rect.adjust(0, -1, 0, 0)
+        else:
+            self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
 
-            if state & QStyle.StateFlag.State_Editing:
-                self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
-                self._painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
+        if state & QStyle.StateFlag.State_Editing:
+            self._painter.setPen(self._opt.palette.color(cg, QPalette.ColorRole.Text))
+            self._painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
-            self._painter.translate(text_rect.left(), text_rect.top())
-        with debug.log_time(log.completion, f'get_textdoc {index.row()=} {index.column()=}', threshold=0.0001):
-            self._get_textdoc(index)
-        with debug.log_time(log.completion, f'draw_textdoc {index.row()=} {index.column()=}', threshold=0.0001):
-            self._draw_textdoc(text_rect, index.column())
-        with debug.log_time(log.completion, f'paint restore {index.row()=} {index.column()=}', threshold=0.0001):
-            self._painter.restore()
+        self._painter.translate(text_rect.left(), text_rect.top())
+        self._get_textdoc(index)
+        self._draw_textdoc(text_rect, index.column())
+        self._painter.restore()
 
     def _draw_textdoc(self, rect, col):
         """Draw the QTextDocument of an item.
@@ -194,30 +187,28 @@ class CompletionItemDelegate(QStyledItemDelegate):
         assert self._doc is not None
         assert self._opt is not None
 
-        with debug.log_time(log.completion, f'draw text first {col=}', threshold=0.0001):
-            # We can't use drawContents because then the color would be ignored.
-            clip = QRectF(0, 0, rect.width(), rect.height())
-            self._painter.save()
+        # We can't use drawContents because then the color would be ignored.
+        clip = QRectF(0, 0, rect.width(), rect.height())
+        self._painter.save()
 
-            if self._opt.state & QStyle.StateFlag.State_Selected:
-                color = config.cache['colors.completion.item.selected.fg']
-            elif not self._opt.state & QStyle.StateFlag.State_Enabled:
-                color = config.cache['colors.completion.category.fg']
-            else:
-                colors = config.cache['colors.completion.fg']
-                # if multiple colors are set, use different colors per column
-                color = colors[col % len(colors)]
-            self._painter.setPen(color)
+        if self._opt.state & QStyle.StateFlag.State_Selected:
+            color = config.cache['colors.completion.item.selected.fg']
+        elif not self._opt.state & QStyle.StateFlag.State_Enabled:
+            color = config.cache['colors.completion.category.fg']
+        else:
+            colors = config.cache['colors.completion.fg']
+            # if multiple colors are set, use different colors per column
+            color = colors[col % len(colors)]
+        self._painter.setPen(color)
 
-            if not ctx_cache:
-                ctx_cache = QAbstractTextDocumentLayout.PaintContext()
-            ctx = ctx_cache
-            ctx.palette.setColor(QPalette.ColorRole.Text, self._painter.pen().color())
-            if clip.isValid():
-                self._painter.setClipRect(clip)
-                ctx.clip = clip
-        with debug.log_time(log.completion, f'draw text second {col=}', threshold=0.0001):
-            self._doc.documentLayout().draw(self._painter, ctx)
+        if not ctx_cache:
+            ctx_cache = QAbstractTextDocumentLayout.PaintContext()
+        ctx = ctx_cache
+        ctx.palette.setColor(QPalette.ColorRole.Text, self._painter.pen().color())
+        if clip.isValid():
+            self._painter.setClipRect(clip)
+            ctx.clip = clip
+        self._doc.documentLayout().draw(self._painter, ctx)
         self._painter.restore()
 
     def _get_textdoc(self, index):
@@ -340,16 +331,13 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """
         self._painter = painter
         self._painter.save()
-        with debug.log_time(log.completion, f'delegate paint misc {index.row()=} {index.column()=}', threshold=0.001):
-            self._opt = QStyleOptionViewItem(option)
-            self.initStyleOption(self._opt, index)
-            self._style = self._opt.widget.style()
+        self._opt = QStyleOptionViewItem(option)
+        self.initStyleOption(self._opt, index)
+        self._style = self._opt.widget.style()
 
-            self._draw_background()
-            self._draw_icon()
-        with debug.log_time(log.completion, f'paint index {index.row()=} {index.column()=}', threshold=0.0001):
-            self._draw_text(index)
-        with debug.log_time(log.completion, f'delegate focus_rect {index.row()=} {index.column()=}', threshold=0.001):
-            self._draw_focus_rect()
+        self._draw_background()
+        #self._draw_icon()
+        self._draw_text(index)
+        self._draw_focus_rect()
 
         self._painter.restore()

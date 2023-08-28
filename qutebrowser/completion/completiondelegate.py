@@ -9,6 +9,7 @@ We use this to be able to highlight parts of the text.
 
 import re
 import html
+import functools
 
 from qutebrowser.qt.widgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from qutebrowser.qt.core import QRectF, QRegularExpression, QSize, Qt
@@ -20,11 +21,29 @@ from qutebrowser.config import config
 from qutebrowser.utils import qtutils, debug, log
 from qutebrowser.completion import completionwidget
 
-pat_cache = dict()
 format_ = None
 ctx_cache = None
 size_cache = dict()
 columns_cache = None
+
+
+@functools.lru_cache(maxsize=2)
+def _pattern_to_regex(pattern):
+    """Turn completion text patterns into regexs for the Highlighter.
+
+    lru_cache is arbitrarily sized. The main point is to cache calls within
+    one tree render, in which case a cache of 1 would be good enough. Having
+    two lets us avoid recomputing on a backspace.
+    """
+    words = pattern.split()
+    words.sort(key=len, reverse=True)
+    pat = "|".join(re.escape(word) for word in words)
+    expression = QRegularExpression(
+        pat, QRegularExpression.PatternOption.CaseInsensitiveOption
+    )
+    qtutils.ensure_valid(expression)
+    return expression
+
 
 class _Highlighter(QSyntaxHighlighter):
 
@@ -36,17 +55,7 @@ class _Highlighter(QSyntaxHighlighter):
             self._format.setForeground(color)
             format_ = self._format
         self._format = format_
-        if pattern in pat_cache:
-            self._expression = pat_cache[pattern]
-            return
-        words = pattern.split()
-        words.sort(key=len, reverse=True)
-        pat = "|".join(re.escape(word) for word in words)
-        self._expression = QRegularExpression(
-            pat, QRegularExpression.PatternOption.CaseInsensitiveOption
-        )
-        pat_cache[pattern] = self._expression
-        qtutils.ensure_valid(self._expression)
+        self._expression = _pattern_to_regex(pattern)
 
     def highlightBlock(self, text):
         """Override highlightBlock for custom highlighting."""

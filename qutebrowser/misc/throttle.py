@@ -86,3 +86,4 @@ class Throttle(QObject):
     def cancel(self) -> None:
         """Cancel any pending instance of this timer."""
         self._timer.stop()
+        self._pending_call = None

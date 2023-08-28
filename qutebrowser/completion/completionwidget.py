@@ -375,6 +375,7 @@ class CompletionView(QTreeView):
         if model is None:
             self._active = False
             self.hide()
+            self._maybe_show.cancel()
             return
 
         model.setParent(self)

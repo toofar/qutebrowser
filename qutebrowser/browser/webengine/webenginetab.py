@@ -1235,11 +1235,11 @@ class _WebEngineScripts(QObject):
 
     def _init_webchannel(self):
         wc_script = QWebEngineScript()
-        wc_script.setInjectionPoint(QWebEngineScript.DocumentCreation)
-        wc_script.setWorldId(QWebEngineScript.MainWorld)
+        wc_script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentCreation)
+        wc_script.setWorldId(QWebEngineScript.ScriptWorldId.MainWorld)
         qwebchannel_js = QFile(":/qtwebchannel/qwebchannel.js")
         #qwebchannel_js = QFile("/tmp/qwebchannel.js")
-        if qwebchannel_js.open(QIODevice.ReadOnly):
+        if qwebchannel_js.open(QIODevice.OpenModeFlag.ReadOnly):
             js_src = bytes(qwebchannel_js.readAll()).decode('utf-8')
             ## XXX: Sometimes get Uncaught ReferenceError: qt is not defined
             #INFO: [:441] Attaching to qt.webChannelTransport

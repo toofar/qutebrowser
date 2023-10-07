@@ -56,7 +56,7 @@
 
     let qute_gm_reqs_ind = 1;
     let qute_gm_reqs = {};
-    // connect to requestFinished signal and hadle GM_xhr responses
+    // connect to requestFinished signal and handle GM_xhr responses
     if (window.qute) {
         window.qute.requestFinished.connect(function(ret) {
             if (ret['_qute_gm_request_index'] == null) {
@@ -106,6 +106,10 @@
             qute_gm_reqs_ind++;
             return window.qute.GM_xmlhttpRequest(details);
         } else {
+            // Apart from lifecycle bugs in Qt, this also happens for scripts
+            // that run at document-start which seems to be before
+            // QtWebChannel is ready. Since these are async anyway we could
+            // queue them up and run any queued ones on loadFinished.
             alert('no window.qute :(');
         }
         details.method = details.method ? details.method.toUpperCase() : "GET";

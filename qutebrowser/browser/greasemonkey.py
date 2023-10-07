@@ -519,7 +519,12 @@ class CookieJarWrapper(QNetworkCookieJar):
         return
 
     def onCookieRemoved(self, cookie):
-        self.cookies.remove(cookie)
+        try:
+            self.cookies.remove(cookie)
+        except ValueError:
+            # Started seeing 'ValueError: list.remove(x): x not in list' on
+            # 6.3. Not sure what it means.
+            log.greasemonkey.exception(f"couldn't remove cookie: {cookie}")
         return
 
     @pyqtSlot(QUrl)
@@ -553,18 +558,32 @@ class GreasemonkeyBridge(QObject):
         self.cookiejar = CookieJarWrapper(self, self.profile.cookieStore())
         self.nam.setCookieJar(self.cookiejar)
 
+    def check_bridge_access_allowed(self):
+        # TODO (security):
+        # * change how we register channels so we can keep a reference to the
+        #   tab a channel is for
+        # * prompt the user if a site/tab is allowed to access the bridge
+        # * also have a per-site setting I suppose, to get ahead of the
+        #   prompts
+        # * also maybe only inject the bridge into allowed sites. It's more
+        #   work because we would have to re/de-register channels on page
+        #   loads. But having the window.qute object visible in the main world
+        #   allows for browser detection (kind of a done-deal in my view but
+        #   some people would be concerned).
+        pass
+
     def handle_xhr_reply(self, reply, index):
         ret = {}
         ret['_qute_gm_request_index'] = index;
-        ret['status'] = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-        ret['statusText'] = reply.attribute(QNetworkRequest.HttpReasonPhraseAttribute)
+        ret['status'] = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
+        ret['statusText'] = reply.attribute(QNetworkRequest.Attribute.HttpReasonPhraseAttribute)
         ret['responseText'] = reply.readAll()
         # list of QByteArray tuples
         heads = reply.rawHeaderPairs()
         pyheads = [(str(h[0], encoding='ascii'), str(h[1], encoding='ascii'))
                    for h in heads]
-        for k, v in pyheads:
-            print("{}: {}".format(k,v))
+        #for k, v in pyheads:
+        #    print("{}: {}".format(k,v))
         ret['responseHeaders'] = dict(pyheads)
         ret['finalUrl'] = reply.url()
         self.requestFinished.emit(ret)
@@ -592,6 +611,8 @@ class GreasemonkeyBridge(QObject):
         print("GM_xmlhttpRequest")
         print(details)
 
+        self.check_bridge_access_allowed()
+
         if not 'url' in details:
             return
 
@@ -613,14 +634,14 @@ class GreasemonkeyBridge(QObject):
         request = QNetworkRequest(request_url)
         request.setOriginatingObject(self)
         # The C++ docs say the default is to not follow any redirects.
-        request.setAttribute(QNetworkRequest.RedirectionTargetAttribute,
-                             QNetworkRequest.NoLessSafeRedirectPolicy)
+        request.setAttribute(QNetworkRequest.Attribute.RedirectionTargetAttribute,
+                             QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
         # TODO: Ensure these headers are encoded to spec if containing eg
         # unicodes
         if 'headers' in details:
             for k, v in details['headers'].items():
                 # With this script: https://raw.githubusercontent.com/evazion/translate-pixiv-tags/master/translate-pixiv-tags.user.js
-                # One of the headers it 'X-Twitter-Polling': True, which was
+                # One of the headers is 'X-Twitter-Polling': True, which was
                 # causing the below to error out because v is a bool. Not sure
                 # where that is coming from or what value twitter expects.
                 # That script is patching jquery so try with unpatched jquery
@@ -628,8 +649,8 @@ class GreasemonkeyBridge(QObject):
                 request.setRawHeader(k.encode('ascii'), str(v).encode('ascii'))
 
         # TODO: Should we allow xhr to set user-agent?
-        if not request.header(QNetworkRequest.UserAgentHeader):
-            request.setHeader(QNetworkRequest.UserAgentHeader,
+        if not request.header(QNetworkRequest.KnownHeaders.UserAgentHeader):
+            request.setHeader(QNetworkRequest.KnownHeaders.UserAgentHeader,
                               self.profile.httpUserAgent())
 
         payload = details.get('data', None)

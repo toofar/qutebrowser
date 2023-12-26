@@ -643,12 +643,17 @@ def load_default(name):
     Args:
         name: The name of the session to load, or None to read state file.
     """
-    if name is None and session_manager.exists('_autosave'):
-        name = '_autosave'
-    elif name is None:
-        try:
-            name = configfiles.state['general']['session']
-        except KeyError:
+    try:
+        last_session = configfiles.state['general']['session']
+    except KeyError:
+        last_session = None
+
+    if name is None:
+        if session_manager.exists('_autosave'):
+            name = '_autosave'
+        elif last_session is not None:
+            name = last_session
+        else:
             # No session given as argument and none in the session file ->
             # start without loading a session
             return
@@ -659,6 +664,22 @@ def load_default(name):
         message.error("Session {} not found!".format(name))
     except SessionError as e:
         message.error("Failed to load session {}: {}".format(name, e))
+
+        if name == "_autosave":
+            # TODO: I think if loading autosave fails we are left with an
+            # invisible window with an invalid tab in it which breaks saving
+            # sessions going forward.
+            message.error(
+                "Attempting to save backup of autosave and trying main session"
+            )
+            path = session_manager._get_session_path("_autosave")
+            try:
+                shutil.copyfile(path, path + '.bak')
+            except OSError as err:
+                message.error(f"backing up autosave failed: {err}")
+                pass
+            session_manager.delete_autosave()
+            return load_default(None)
     try:
         del configfiles.state['general']['session']
     except KeyError:

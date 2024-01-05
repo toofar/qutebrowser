@@ -23,6 +23,7 @@ import itertools
 import urllib
 import shutil
 import pathlib
+import contextlib
 from typing import Any, Iterable, MutableMapping, MutableSequence, Optional, Union, cast
 
 from qutebrowser.qt.core import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
@@ -717,6 +718,23 @@ def session_delete(name: str, *, force: bool = False) -> None:
     log.sessions.debug("Deleted session {}.".format(name))
 
 
+@contextlib.contextmanager
+def collect_new_windows() -> Iterable[mainwindow.MainWindow]:
+    """Context manager to yield any new windows created within it."""
+
+    new_windows = []
+    app = objects.qapp
+
+    def got_new_window(window: mainwindow.MainWindow):
+        new_windows.append(window)
+    app.new_window.connect(got_new_window)
+
+    try:
+        yield new_windows
+    finally:
+        app.new_window.disconnect(got_new_window)
+
+
 def load_default(name):
     """Load the default session.
 
@@ -739,19 +757,23 @@ def load_default(name):
             return
 
     try:
-        session_manager.load(name)
+        with collect_new_windows() as new_windows:
+            session_manager.load(name)
     except SessionNotFoundError:
         message.error("Session {} not found!".format(name))
     except SessionError as e:
         message.error("Failed to load session {}: {}".format(name, e))
-
         if name == "_autosave":
-            # TODO: I think if loading autosave fails we are left with an
-            # invisible window with an invalid tab in it which breaks saving
-            # sessions going forward.
             message.error(
                 "Attempting to save backup of autosave and trying main session"
             )
+            # Clean up any windows that got opened during that failed load,
+            # they might be invisible depending on where the error occurred.
+            # Should we be doing this for failed loads of sessions other than
+            # _autosave too?
+            for win in new_windows:
+                win.close()
+
             path = session_manager._get_session_path("_autosave")
             try:
                 shutil.copyfile(path, path + '.bak')

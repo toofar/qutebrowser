@@ -1696,25 +1696,6 @@ class WebEngineTab(browsertab.AbstractTab):
         #    void desktopMediaRequested(QWebEngineDesktopMediaRequest request);
         #};
         #
-        #class QWebEngineMediaSourceModel : QAbstractListModel /NoDefaultCtors/
-        #{
-        #%TypeHeaderCode
-        ##include <qwebenginedesktopmediarequest.h>
-        #%End
-        #
-        #public:
-        #    enum Roles
-        #    {
-        #        NameRole,
-        #    };
-        #
-        #    virtual ~QWebEngineMediaSourceModel();
-        #    // TODO: rowCount and data should have default arguments, or optional?
-        #    int rowCount(QModelIndex parent) const;
-        #    QVariant data(QModelIndex index, int role) const;
-        #    QHash<int, QByteArray> roleNames() const;
-        #};
-        #
         #class QWebEngineDesktopMediaRequest /NoDefaultCtors/
         #{
         #%TypeHeaderCode
@@ -1724,8 +1705,8 @@ class WebEngineTab(browsertab.AbstractTab):
         #public:
         #
         #    virtual ~QWebEngineDesktopMediaRequest();
-        #    QWebEngineMediaSourceModel *screensModel() const;
-        #    QWebEngineMediaSourceModel *windowsModel() const;
+        #    QAbstractListModel *screensModel() const;
+        #    QAbstractListModel *windowsModel() const;
         #    void cancel();
         #    void selectScreen(const QModelIndex &index);
         #    void selectWindow(const QModelIndex &index);

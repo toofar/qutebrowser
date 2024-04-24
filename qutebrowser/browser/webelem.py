@@ -412,15 +412,15 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             return
 
         if click_target == usertypes.ClickTarget.normal:
-            if True: #self.is_link() and not self._requires_user_interaction():
-                log.webelem.debug("Clicking via JS click()")
-                self._click_js(click_target)
-            elif self.is_editable(strict=True):
+            if self.is_editable(strict=True):
                 log.webelem.debug("Clicking via JS focus()")
                 self._click_editable(click_target)
                 if config.val.input.insert_mode.auto_enter:
                     modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
                                   'clicking input')
+            elif True: #self.is_link() and not self._requires_user_interaction():
+                log.webelem.debug("Clicking via JS click()")
+                self._click_js(click_target)
             else:
                 self._click_fake_event(click_target)
         elif click_target in [usertypes.ClickTarget.tab,

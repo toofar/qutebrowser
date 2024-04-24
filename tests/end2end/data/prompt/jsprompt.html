@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <script type="text/javascript">
             function prompter(defaultval) {
+				        console.log("about to show prompt")
                 var reply = prompt("js prompt", defaultval);
                 console.log("Prompt reply: " + reply);
             }
@@ -12,5 +13,13 @@
     <body>
         <input type="button" onclick="prompter('')" value="Show prompt" id="button">
         <input type="button" onclick="prompter('default')" value="Show prompt with default value" id="button-default">
+      <script>
+        console.log(`file="${window.location.href}" event="body_loaded" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+        window.setTimeout(
+          () => {
+            console.log(`file="${window.location.href}" event="open_for_one_second" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+          }, 1000
+        )
+      </script>
     </body>
 </html>

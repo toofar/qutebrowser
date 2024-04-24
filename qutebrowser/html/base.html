@@ -23,5 +23,13 @@ vim: ft=html fileencoding=utf-8 sts=4 sw=4 et:
     <body>
         {% block content %}
         {% endblock %}
+    <script>
+      console.log(`file="${window.location.href}" event="body_loaded" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+      window.setTimeout(
+        () => {
+          console.log(`file="${window.location.href}" event="open_for_one_second" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+        }, 1000
+      )
+    </script>
     </body>
 </html>

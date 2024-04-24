@@ -4,6 +4,7 @@
         <meta charset="utf-8">
 		<script type="text/javascript">
 			function do_alert() {
+				console.log("about to show alert")
 				alert("js alert");
 				console.log("Alert done");
 			}
@@ -11,5 +12,13 @@
     </head>
     <body>
         <input type="button" onclick="do_alert()" value="Show alert" id="button">
+      <script>
+        console.log(`file="${window.location.href}" event="body_loaded" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+        window.setTimeout(
+          () => {
+            console.log(`file="${window.location.href}" event="open_for_one_second" visibility="${document.visibilityState}" hidden="${document.hidden}"`)
+          }, 1000
+        )
+      </script>
     </body>
 </html>

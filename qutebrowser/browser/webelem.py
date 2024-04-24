@@ -412,7 +412,7 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             return
 
         if click_target == usertypes.ClickTarget.normal:
-            if self.is_link() and not self._requires_user_interaction():
+            if True: #self.is_link() and not self._requires_user_interaction():
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):

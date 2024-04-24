@@ -1119,7 +1119,20 @@ class AbstractTab(QWidget):
             log.webview.warning("Unable to find event target!")
             return
 
+        #import ipdb
+        #ipdb.set_trace()
+        log.webview.debug(f'Sending event event="{evt}" target="{recipient}" visible={recipient.isVisible()}')
+        QTimer.singleShot(
+            100,
+            lambda: not self.is_deleted() and log.webview.debug(f'Post sending event event="{evt}" target="{self.private_api.event_target()}" visible={recipient.isVisible()}')
+
+        )
+
         evt.posted = True  # type: ignore[attr-defined]
+        #QTimer.singleShot(
+        #    100,
+        #    lambda: QApplication.postEvent(recipient, evt),
+        #)
         QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:

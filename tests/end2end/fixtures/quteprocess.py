@@ -402,6 +402,7 @@ class QuteProc(testprocess.Process):
             else:
                 args = ['-bb', '-m', 'qutebrowser']
         return executable, args
+        #return "gdb", "-q -x handleMouseEvent-breakpoint -args".split() + [executable] + args
 
     def _default_args(self):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
@@ -687,6 +688,8 @@ class QuteProc(testprocess.Process):
                if opt) > 1:
             raise ValueError("Conflicting options given!")
 
+        also_wait_for = None
+
         if as_url:
             self.send_cmd(url, invalid=True)
             line = None
@@ -700,9 +703,12 @@ class QuteProc(testprocess.Process):
             line = self.send_cmd(':open -p ' + url)
         else:
             line = self.send_cmd(':open ' + url)
+            #also_wait_for = "<qutebrowser.browser.webengine.webview.WebEngineView object at [^>]+> got new child <PyQt6.QtWidgets.QWidget object at [^>]+, className='QQuickWidget'>, installing filter"
 
         if wait:
             self.wait_for_load_finished_url(url, after=line)
+            if also_wait_for:
+                self.wait_for(message=also_wait_for, timeout=2000, after=line)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""

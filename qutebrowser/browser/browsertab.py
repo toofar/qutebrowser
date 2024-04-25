@@ -1119,21 +1119,19 @@ class AbstractTab(QWidget):
             log.webview.warning("Unable to find event target!")
             return
 
-        #import ipdb
-        #ipdb.set_trace()
-        log.webview.debug(f'Sending event event="{evt}" target="{recipient}" visible={recipient.isVisible()}')
+        log.webview.debug(f'Sending event event="{evt}" target="{recipient}" visible={recipient.isVisible()} focus={recipient.hasFocus()} children="{self._widget.children()}')
         QTimer.singleShot(
-            100,
-            lambda: not self.is_deleted() and log.webview.debug(f'Post sending event event="{evt}" target="{self.private_api.event_target()}" visible={recipient.isVisible()}')
+            1000,
+            lambda: not self.is_deleted() and log.webview.debug(f'Post sending event event="{evt}" target="{self.private_api.event_target()}" visible={recipient.isVisible()} focus={recipient.hasFocus()}')
 
         )
 
         evt.posted = True  # type: ignore[attr-defined]
-        #QTimer.singleShot(
-        #    100,
-        #    lambda: QApplication.postEvent(recipient, evt),
-        #)
-        QApplication.postEvent(recipient, evt)
+        QTimer.singleShot(
+            10,
+            lambda: QApplication.postEvent(recipient, evt),
+        )
+        #QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:
         """Test if navigation is allowed on the current tab."""

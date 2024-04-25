@@ -7,8 +7,8 @@
 import mimetypes
 from typing import List, Iterable, Optional
 
-from qutebrowser.qt import machinery
-from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl
+from qutebrowser.qt import machinery, sip
+from qutebrowser.qt.core import pyqtSignal, pyqtSlot, QUrl, QObject, QEvent
 from qutebrowser.qt.gui import QPalette
 from qutebrowser.qt.webenginewidgets import QWebEngineView
 from qutebrowser.qt.webenginecore import (
@@ -36,6 +36,23 @@ _QB_FILESELECTION_MODES = {
 }
 
 
+class FocusProxyTracker(QObject):
+    child_events = (QEvent.Type.ChildAdded, QEvent.Type.ChildRemoved,)
+
+    def __init__(self, view: "WebEngineView"):
+        super().__init__(view)
+        self.view = view
+
+    def eventFilter(self, _obj: Optional[QObject], event: Optional[QEvent]) -> bool:
+        if sip.isdeleted(self.view):
+            return False
+
+        if event is None or event.type() not in self.child_events:
+            return False
+
+        log.webview.debug(f'Webview child event type={QEvent.Type(event.type())} class_name="{event.child().metaObject().className()}" child="{event.child()}" focus_proxy="{self.view.render_widget()}"')
+        return False
+
 class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
@@ -57,10 +74,19 @@ class WebEngineView(QWebEngineView):
         page = WebEnginePage(theme_color=theme_color, profile=profile,
                              parent=self)
         self.setPage(page)
+        self.render_widget()
+        self.installEventFilter(FocusProxyTracker(self))
+
+    def on_focus_proxy_destroyed(self):
+        log.webview.debug(f"View focus proxy destroyed view={self}")
 
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view."""
-        return self.focusProxy()
+        obj = self.focusProxy()
+        log.webview.debug(f"View focus proxy view={self} focus_proxy={obj}")
+        if obj:
+            obj.destroyed.connect(self.on_focus_proxy_destroyed)
+        return obj
 
     def shutdown(self):
         """Shut down the underlying page."""

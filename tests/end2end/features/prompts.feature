@@ -4,7 +4,7 @@ Feature: Prompts
     # Javascript
 
     Scenario: Javascript alert
-        When I open data/prompt/jsalert.html in a new tab
+        When I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept
@@ -12,33 +12,33 @@ Feature: Prompts
 
     Scenario: Using content.javascript.alert
         When I set content.javascript.alert to false
-        And I open data/prompt/jsalert.html in a new tab
+        And I open data/prompt/jsalert.html
         And I run :click-element id button
         Then the javascript message "Alert done" should be logged
 
     Scenario: Javascript confirm - yes
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept yes
         Then the javascript message "confirm reply: true" should be logged
 
     Scenario: Javascript confirm - no
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept no
         Then the javascript message "confirm reply: false" should be logged
 
     Scenario: Javascript confirm - aborted
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :mode-leave
         Then the javascript message "confirm reply: false" should be logged
 
     Scenario: Javascript prompt
-        When I open data/prompt/jsprompt.html in a new tab
+        When I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
@@ -46,14 +46,14 @@ Feature: Prompts
         Then the javascript message "Prompt reply: prompt test" should be logged
 
     Scenario: Javascript prompt with default
-        When I open data/prompt/jsprompt.html in a new tab
+        When I open data/prompt/jsprompt.html
         And I run :click-element id button-default
         And I wait for a prompt
         And I run :prompt-accept
         Then the javascript message "Prompt reply: default" should be logged
 
     Scenario: Rejected javascript prompt
-        When I open data/prompt/jsprompt.html in a new tab
+        When I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
@@ -135,7 +135,7 @@ Feature: Prompts
     Scenario: Pasting via shift-insert in prompt mode
         When selection is supported
         And I put "insert test" into the primary selection
-        And I open data/prompt/jsprompt.html in a new tab
+        And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "<Shift-Insert>"
@@ -146,7 +146,7 @@ Feature: Prompts
         When selection is not supported
         And I put "insert test" into the primary selection
         And I put "clipboard test" into the clipboard
-        And I open data/prompt/jsprompt.html in a new tab
+        And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "<Shift-Insert>"
@@ -155,7 +155,7 @@ Feature: Prompts
 
     Scenario: Using content.javascript.prompt
         When I set content.javascript.prompt to false
-        And I open data/prompt/jsprompt.html in a new tab
+        And I open data/prompt/jsprompt.html
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
@@ -423,7 +423,7 @@ Feature: Prompts
 
     Scenario: Javascript alert with value
         When I set content.javascript.alert to true
-        And I open data/prompt/jsalert.html in a new tab
+        And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept foobar
@@ -433,7 +433,7 @@ Feature: Prompts
 
     Scenario: Javascript prompt with value
         When I set content.javascript.prompt to true
-        And I open data/prompt/jsprompt.html in a new tab
+        And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "prompt test"
@@ -441,7 +441,7 @@ Feature: Prompts
         Then the javascript message "Prompt reply: overridden value" should be logged
 
     Scenario: Javascript confirm with invalid value
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept nope
@@ -450,7 +450,7 @@ Feature: Prompts
         And the error "Invalid value nope - expected yes/no!" should be shown
 
     Scenario: Javascript confirm with default value
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-accept
@@ -462,7 +462,7 @@ Feature: Prompts
 
     @qtwebengine_skip
     Scenario: Shutting down with a question
-        When I open data/prompt/jsconfirm.html in a new tab
+        When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
         And I run :quit

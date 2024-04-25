@@ -1127,11 +1127,11 @@ class AbstractTab(QWidget):
         )
 
         evt.posted = True  # type: ignore[attr-defined]
-        QTimer.singleShot(
-            10,
-            lambda: QApplication.postEvent(recipient, evt),
-        )
-        #QApplication.postEvent(recipient, evt)
+        #QTimer.singleShot(
+        #    10,
+        #    lambda: QApplication.postEvent(recipient, evt),
+        #)
+        QApplication.postEvent(recipient, evt)
 
     def navigation_blocked(self) -> bool:
         """Test if navigation is allowed on the current tab."""

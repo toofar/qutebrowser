@@ -355,10 +355,13 @@ class AbstractWebElement(collections.abc.MutableMapping):  # type: ignore[type-a
             QMouseEvent(QEvent.Type.MouseButtonRelease, pos, button, Qt.MouseButton.NoButton, modifiers),
         ]
 
-        for evt in events:
-            self._tab.send_event(evt)
+        def _send_events_after_delay() -> None:
+            for evt in events:
+                self._tab.send_event(evt)
 
-        QTimer.singleShot(0, self._move_text_cursor)
+            QTimer.singleShot(0, self._move_text_cursor)
+
+        QTimer.singleShot(10, _send_events_after_delay)
 
     def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an editable input field."""

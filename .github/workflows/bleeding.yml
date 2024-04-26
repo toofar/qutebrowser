@@ -38,7 +38,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
       - name: Run tox
-        run: dbus-run-session tox -e ${{ matrix.testenv }} -- tests/end2end/features/test_downloads_bdd.py tests/end2end/features/test_editor_bdd.py tests/end2end/features/test_hints_bdd.py
+        run: dbus-run-session tox -e ${{ matrix.testenv }}
       - name: Gather info
         id: info
         run: |

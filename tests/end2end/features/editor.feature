@@ -2,6 +2,9 @@ Feature: Opening external editors
 
     ## :edit-url
 
+    Background:
+        Given I run :clear-messages
+
     Scenario: Editing a URL
         When I open data/numbers/1.txt
         And I setup a fake editor replacing "1.txt" by "2.txt"

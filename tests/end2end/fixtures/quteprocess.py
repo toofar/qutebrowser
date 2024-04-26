@@ -901,6 +901,9 @@ class QuteProc(testprocess.Process):
         # See also, pyvirtualdisplay smartdisplay which includes some cropping
         # logic https://github.com/ponty/PyVirtualDisplay/blob/master/pyvirtualdisplay/smartdisplay.py
         xvfb = self.request.getfixturevalue('xvfb')
+        if not xvfb:
+            # Likely we are being run with --no-xvfb
+            return
         # For using IMGrab we must set `xvfb_colordepth = 24` in pytest.ini to override the
         # default of `16` in pytest-xvfb. Pillow only supports 24bit
         # https://github.com/python-pillow/Pillow/blob/1138ea5370cbda5eb328ec9498c314d376c81265/src/display.c#L898

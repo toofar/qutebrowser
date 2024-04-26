@@ -5,8 +5,10 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import pathlib
+import os
 import re
 import sys
+import shutil
 import time
 import datetime
 import logging
@@ -18,6 +20,7 @@ import json
 
 import yaml
 import pytest
+from PIL.ImageGrab import grab
 from qutebrowser.qt.core import pyqtSignal, QUrl, QPoint
 from qutebrowser.qt.gui import QImage, QColor
 
@@ -542,6 +545,8 @@ class QuteProc(testprocess.Process):
         except AttributeError:
             pass
         else:
+            if call.failed:
+                self._take_x11_screenshot_of_failed_test()
             if call.failed or hasattr(call, 'wasxfail') or call.skipped:
                 super().after_test()
                 return
@@ -873,6 +878,47 @@ class QuteProc(testprocess.Process):
         if no_scroll_filtering:
             self.send_cmd(cmd.format('no-scroll-filtering'))
         self.send_cmd(cmd.format('log-scroll-pos'))
+
+    def _get_x11_screenshot_directory(self):
+        screenshot_path = self.request.session.stash.get("screenshot_path", None)
+        if screenshot_path:
+            return screenshot_path
+
+        screenshot_path = os.path.join(
+            os.environ.get("RUNNER_TEMP", tempfile.gettempdir()),
+            "pytest-screenshots",
+        )
+        if os.path.exists(screenshot_path):
+            shutil.rmtree(screenshot_path)
+        os.mkdir(screenshot_path)
+
+        self.request.session.stash["screenshot_path"] = screenshot_path
+        return screenshot_path
+
+    def _take_x11_screenshot_of_failed_test(self):
+        # See also, pyvirtualdisplay smartdisplay which includes some cropping
+        # logic https://github.com/ponty/PyVirtualDisplay/blob/master/pyvirtualdisplay/smartdisplay.py
+        xvfb = self.request.getfixturevalue('xvfb')
+        # For using IMGrab we must set `xvfb_colordepth = 24` in pytest.ini to override the
+        # default of `16` in pytest-xvfb. Pillow only supports 24bit
+        # https://github.com/python-pillow/Pillow/blob/1138ea5370cbda5eb328ec9498c314d376c81265/src/display.c#L898
+        img = grab(xdisplay=f":{xvfb.display}")
+        current_test = self.request.node.nodeid
+
+        fname = f"{datetime.datetime.now().isoformat()}-{current_test.replace('/', '_')}.png"
+        # upload-artifacts says it doesn't allow these characters if it sees
+        # one of them.
+        bad_chars = '":<>|*?\r\n'
+        for char in bad_chars:
+            fname = fname.replace(char, "_")
+
+        # TODO:
+        # 1. Keep old directories around?
+        # 2. Will different runs in parallel in CI clobber the folder? Might
+        #    have to put them in subdirs with the process ID if so.
+        # 4. Log a "screenshot saved to ..." message?
+        fpath = os.path.join(self._get_x11_screenshot_directory(), fname)
+        img.save(fpath)
 
 
 class YamlLoader(yaml.SafeLoader):

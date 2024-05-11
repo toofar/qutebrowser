@@ -444,7 +444,7 @@ class Timer(QTimer):
 
     def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
-        self._start_time = None
+        self._start_time: Optional[float] = None
         self.timeout.connect(self._validity_check_handler)
         if name is None:
             self._name = "unnamed"
@@ -457,8 +457,8 @@ class Timer(QTimer):
 
     @pyqtSlot()
     def _validity_check_handler(self) -> None:
-        elapsed = time.monotonic() - self._start_time
-        if not self.check_timeout_validity():
+        if not self.check_timeout_validity() and self._start_time is not None:
+            elapsed = time.monotonic() - self._start_time
             log.misc.warning(
                 f"Timer {self._name} (id {self.timerId()}) triggered too early: "
                 f"interval {self.interval()} but only {elapsed:.3f}s passed"

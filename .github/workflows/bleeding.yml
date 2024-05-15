@@ -37,6 +37,8 @@ jobs:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py py3 ${{ runner.temp }}"
+      - name: Upgrade 3rd party assets
+        run: "python scripts/dev/update_3rdparty.py"
       - name: Run tox
         run: dbus-run-session tox -e ${{ matrix.testenv }}
   irc:

@@ -546,6 +546,29 @@ def qute_pdfjs(url: QUrl) -> _HandlerRet:
     try:
         data = pdfjs.get_pdfjs_res(url.path())
     except pdfjs.PDFJSNotFound as e:
+        debian_missing_assets = [
+            "web/images/toolbarButton-viewThumbnail.svg",
+            "web/images/toolbarButton-viewOutline.svg",
+            "web/images/toolbarButton-viewAttachments.svg",
+            "web/images/toolbarButton-viewLayers.svg",
+            "web/images/toolbarButton-sidebarToggle.svg",
+            "web/images/toolbarButton-search.svg",
+            "web/images/toolbarButton-pageUp.svg",
+            "web/images/toolbarButton-pageDown.svg",
+            "web/images/toolbarButton-presentationMode.svg",
+            "web/images/toolbarButton-openFile.svg",
+            "web/images/toolbarButton-print.svg",
+            "web/images/toolbarButton-download.svg",
+            "web/images/toolbarButton-bookmark.svg",
+            "web/images/toolbarButton-secondaryToolbarToggle.svg",
+            "web/images/toolbarButton-zoomOut.svg",
+            "web/images/toolbarButton-zoomIn.svg",
+            "web/images/toolbarButton-menuArrow.svg",
+            "web/locale/en-US/viewer.properties",
+            "web/images/loading-icon.gif",
+        ]
+        if e.path in debian_missing_assets:
+            return "text/plain", b""
         # Logging as the error might get lost otherwise since we're not showing
         # the error page if a single asset is missing. This way we don't lose
         # information, as the failed pdfjs requests are still in the log.

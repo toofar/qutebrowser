@@ -78,6 +78,7 @@ def is_ignored_lowlevel_message(message):
         # Webkit on arch with a newer mesa
         'MESA: error: ZINK: failed to load libvulkan.so.1',
         '*pdfjs resource requested but not found: *',
+        "*NotFoundError while handling qute://* URL: Can't find pdfjs resource '*",
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)

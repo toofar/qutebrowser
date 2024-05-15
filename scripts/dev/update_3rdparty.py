@@ -78,8 +78,8 @@ def get_latest_pdfjs_url(gh_token, legacy):
         # Without token will work as well, but has a strict rate limit, so we need to
         # use the token on CI.
         request.add_header('Authorization', f'token {gh_token}')
-    elif 'CI' in os.environ:
-        raise Exception("No GitHub token given on CI")
+    #elif 'CI' in os.environ:
+    #    raise Exception("No GitHub token given on CI")
 
     with urllib.request.urlopen(request) as fp:
         data = json.loads(fp.read().decode('utf-8'))

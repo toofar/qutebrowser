@@ -230,10 +230,10 @@ jobs:
             python -m pip install -U pip
             python -m pip install -U -r misc/requirements/requirements-tox.txt
       - name: "Run ${{ matrix.testenv }}"
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: "Run ${{ matrix.testenv }} without DBus"
-        run: "tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"

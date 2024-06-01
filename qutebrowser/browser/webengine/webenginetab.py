@@ -27,6 +27,11 @@ from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                resources, message, jinja, debug, version, urlutils)
 from qutebrowser.qt import sip, machinery
 from qutebrowser.misc import objects, miscwidgets
+try:
+    from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest
+except ImportError:
+    # Qt<6.7
+    QWebEngineDesktopMediaRequest = None  # type: ignore[assignment,misc]
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -1660,18 +1665,15 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             selection.selectNone()
 
-    def _on_desktop_media_requested(self, request):
-        from qutebrowser.qt.webenginecore import QWebEngineDesktopMediaRequest, QWebEngineMediaSourceModel
-
-        # Probably wouldn't need to do this if I had the method signatures
-        # correct around the defaults
-        from qutebrowser.qt.core import QModelIndex
-
-        wm = request.windowsModel()
-        sm = request.screensModel()
-
-        #import pdbr
-        #pdbr.set_trace()
+    def _on_desktop_media_requested(self, request: QWebEngineDesktopMediaRequest) -> None:
+        windows = request.windowsModel()
+        screens = request.screensModel()
+        if windows is None or screens is None:
+            log.webview.error(
+                "Cannot pick screen to share, got a null model: "
+                "windows={}, screens={}".format(windows, screens)
+            )
+            return
 
         # We only get names for model items, that's all. Underneath Qt has
         # DesktopMediaList::Source structs from
@@ -1679,43 +1681,16 @@ class WebEngineTab(browsertab.AbstractTab):
         # id, name, thumbnail and preview. Currently DesktopMediaListQt only
         # surfaces the name attribute (eg the window title or "Screen 1"),
         # presumably to keep the diffstat of the initial PR smaller.
-        # The thumbnail and preview could be useful, although just the name
-        # would fit with our textual completion models fine. And that's all
-        # OBS gives you (and I find that really hard to navigate).
-        # I would like to be able to filter windows by screen, or even get the
-        # geometry and location of windows to be able to display them like an
-        # alt-tab window switcher. I have no idea what the `id` of the Source
-        # struct from Chrome maps to though, maybe nothing! That'll require
-        # recompiling QtWebEngine to see, a job for another day.
-        for i in range(wm.rowCount(wm.index(0))):
-            print(f"{i}: {wm.data(wm.index(i, 0), 0)}")
 
-        #request.selectWindow(wm.index(3))
+        print("--- screens ---")
+        for i in range(screens.rowCount()):
+            print(f"{i}: {screens.data(screens.index(i))}")
+        print("--- windows ---")
+        for i in range(windows.rowCount()):
+            print(f"{i}: {windows.data(windows.index(i))}")
 
-        # PyQt additions made to sip/QtWebEngineCore/qwebenginepage.sip
-        #    void desktopMediaRequested(QWebEngineDesktopMediaRequest request);
-        #};
-        #
-        #class QWebEngineDesktopMediaRequest /NoDefaultCtors/
-        #{
-        #%TypeHeaderCode
-        ##include <qwebenginedesktopmediarequest.h>
-        #%End
-        #
-        #public:
-        #
-        #    virtual ~QWebEngineDesktopMediaRequest();
-        #    QAbstractListModel *screensModel() const;
-        #    QAbstractListModel *windowsModel() const;
-        #    void cancel();
-        #    void selectScreen(const QModelIndex &index);
-        #    void selectWindow(const QModelIndex &index);
-        #};
-
-        # This is the default fallback implementation (in the request
-        # destructor) but it (silently) does nothing here as the index isn't
-        # valid.
-        #request.selectScreen(request.screensModel().index(0))
+        # This is the default upstream behavior.
+        #request.selectScreen(screens.index(0))
 
     def _connect_signals(self):
         view = self._widget
@@ -1734,10 +1709,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.printRequested.connect(self._on_print_requested)
         page.selectClientCertificate.connect(self._on_select_client_certificate)
-        # This check isn't good enough if you are running against a PyQt that
-        # doesn't know about this stuff. It still throws this on the hasttr
-        # line: TypeError: C++ type 'QWebEngineDesktopMediaRequest' is not supported as a signal argument type
-        if hasattr(page, 'desktopMediaRequested'):
+        if version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 7):
             page.desktopMediaRequested.connect(self._on_desktop_media_requested)
 
         view.titleChanged.connect(self.title_changed)

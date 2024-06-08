@@ -28,13 +28,13 @@ jobs:
             args: --debug
             toxenv: build-release-qt5
             name: qt5-windows-debug
-          - os: macos-11
+          - os: macos-14
             toxenv: build-release
             name: macos
           - os: windows-2019
             toxenv: build-release
             name: windows
-          - os: macos-11
+          - os: macos-14
             args: --debug
             toxenv: build-release
             name: macos-debug

@@ -1,4 +1,6 @@
 name: CI
+on:
+  pull_request:
 env:
   FORCE_COLOR: "1"
   PY_COLORS: "1"

@@ -1,10 +1,4 @@
 name: CI
-on:
-  push:
-    branches-ignore:
-      - 'update-dependencies'
-      - 'dependabot/*'
-  pull_request:
 env:
   FORCE_COLOR: "1"
   PY_COLORS: "1"

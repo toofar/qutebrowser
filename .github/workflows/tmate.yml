@@ -25,7 +25,7 @@ jobs:
         run: |
             brew install qutebrowser
             # Smoke test copied from scripts/dev/build_release.py
-            executable --no-err-windows --nowindow --temp-basedir about:blank :cmd-later 500 quit
+            qutebrowser --no-err-windows --nowindow --temp-basedir about:blank :cmd-later 500 quit
         shell: bash
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3

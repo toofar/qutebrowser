@@ -18,6 +18,9 @@ jobs:
     runs-on: "${{ matrix.os }}"
     timeout-minutes: 45
     steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
       - name: Install release
         run: |
             "brew install qutebrowser"

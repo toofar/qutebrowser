@@ -1,0 +1,30 @@
+name: Tmate debug
+# Get a shell into a runner environment so we can debug stuff in environments
+# we do not have access to locally.
+# TODO:
+# * rdp/vnc for graphics?
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            name: macos
+    runs-on: "${{ matrix.os }}"
+    timeout-minutes: 45
+    steps:
+      - name: Install release
+        run: |
+            "brew install qutebrowser"
+            # Smoke test copied from scripts/dev/build_release.py
+            "executable --no-err-windows --nowindow --temp-basedir about:blank :cmd-later 500 quit"
+        shell: bash
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true

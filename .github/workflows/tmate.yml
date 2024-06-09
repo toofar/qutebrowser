@@ -1,7 +1,17 @@
 name: Tmate debug
 # Get a shell into a runner environment so we can debug stuff in environments
 # we do not have access to locally.
+#
+# Uses tmate currently because that was the one that's easiest to set up and
+# had an action ready to go.
+#
+# * VNC via ngrok, windows only but some links to related projects: https://github.com/marketplace/actions/debugging-using-reverse-rdp-with-ngrok
+# * like tmate but with end-to-end encryption: https://github.com/TimeToogo/tunshell#readme
 # TODO:
+# * VNC via ngrok for mac, likely out of date, but see the network graph for a
+#   bunch of forks that people have updated, nothing well maintained though: https://github.com/dikeckaan/MacOS-Workflow-VNC
+# * terminal only with cloudflare tunnel instead of ngrok: https://github.com/valeriangalliat/action-sshd-cloudflared
+# * like tmate but not a hack on tmux and less github stars: https://github.com/lhotari/action-upterm
 # * rdp/vnc for graphics?
 
 on:
@@ -23,6 +33,8 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
       - name: Install release
         run: |
+            # Install rosetta
+            #softwareupdate --install-rosetta --agree-to-license
             # Install latest qutebrowser
             brew install qutebrowser
             # Smoke test copied from scripts/dev/build_release.py
@@ -36,4 +48,6 @@ jobs:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         with:
+          # Require connections to use an ssh key that matches one of the ones
+          # on the invoker's GitHub profile.
           limit-access-to-actor: true

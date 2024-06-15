@@ -38,9 +38,9 @@ jobs:
             # Install latest qutebrowser
             brew install qutebrowser
             # Smoke test copied from scripts/dev/build_release.py
-            echo basic smoke test
-            qutebrowser --no-err-windows --nowindow --temp-basedir --debug https://www.youtube.com/watch?v=RYsTlfhDSDY ":cmd-later 3000 quit"
-            echo single process smoke test
+            #echo basic smoke test
+            #qutebrowser --no-err-windows --nowindow --temp-basedir --debug https://www.youtube.com/watch?v=RYsTlfhDSDY ":cmd-later 3000 quit"
+            #echo single process smoke test
             qutebrowser --no-err-windows --nowindow --temp-basedir --debug --qt-flag single-process https://www.youtube.com/watch?v=RYsTlfhDSDY ":cmd-later 3000 quit"
             echo graphics smoke test?
             qutebrowser --no-err-windows --temp-basedir --debug --qt-flag single-process https://www.youtube.com/watch?v=RYsTlfhDSDY ":cmd-later 3000 quit"

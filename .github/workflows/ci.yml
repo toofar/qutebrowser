@@ -5,6 +5,9 @@ on:
       - 'update-dependencies'
       - 'dependabot/*'
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
 env:
   FORCE_COLOR: "1"
   PY_COLORS: "1"
@@ -119,7 +122,7 @@ jobs:
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
       - name: Run tox
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- -n 2"
       - name: Gather info
         id: info
         run: |
@@ -241,10 +244,10 @@ jobs:
       - name: "Set TMPDIR for pytest"
         run: 'echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"'
       - name: "Run ${{ matrix.testenv }}"
-        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "dbus-run-session -- tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "startsWith(matrix.os, 'ubuntu-')"
       - name: "Run ${{ matrix.testenv }} without DBus"
-        run: "tox -e ${{ matrix.testenv }} -- ${{ matrix.args }}"
+        run: "tox -e ${{ matrix.testenv }} -- -n 2 ${{ matrix.args }}"
         if: "!startsWith(matrix.os, 'ubuntu-')"
       - name: Analyze backtraces
         run: "bash scripts/dev/ci/backtrace.sh ${{ matrix.testenv }}"

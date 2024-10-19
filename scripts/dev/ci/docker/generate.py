@@ -13,12 +13,23 @@ import argparse
 import jinja2
 
 
+BASE = {
+    'webengine': False,
+    'unstable': False,
+    'qt6': False,
+    'patch': False,
+}
 CONFIGS = {
-    'archlinux-webkit': {'webengine': False, 'unstable': False, 'qt6': False},
-    'archlinux-webengine': {'webengine': True, 'unstable': False, 'qt6': False},
-    'archlinux-webengine-qt6': {'webengine': True, 'unstable': False, 'qt6': True},
-    'archlinux-webengine-unstable': {'webengine': True, 'unstable': True, 'qt6': False},
-    'archlinux-webengine-unstable-qt6': {'webengine': True, 'unstable': True, 'qt6': True},
+    'archlinux-webkit': BASE,
+    'archlinux-webengine': BASE | {'webengine': True},
+    'archlinux-webengine-qt6': BASE | {'webengine': True, 'qt6': True},
+    'archlinux-webengine-unstable': BASE | {'webengine': True, 'unstable': True},
+    'archlinux-webengine-unstable-qt6': BASE | {
+        'webengine': True, 'unstable': True, 'qt6': True
+    },
+    'archlinux-webengine-unstable-qt6-patched': BASE | {
+        'webengine': True, 'unstable': True, 'qt6': True, 'patch': True
+    },
 }
 
 

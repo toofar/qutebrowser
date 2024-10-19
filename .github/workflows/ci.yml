@@ -101,6 +101,8 @@ jobs:
             image: archlinux-webengine-qt6
           - testenv: py
             image: archlinux-webengine-unstable-qt6
+          - testenv: py
+            image: archlinux-webengine-unstable-qt6-patched
     container:
       image: "qutebrowser/ci:${{ matrix.image }}"
       env:
@@ -118,6 +120,9 @@ jobs:
           persist-credentials: false
       - name: Set up problem matchers
         run: "python scripts/dev/ci/problemmatchers.py tests ${{ runner.temp }}"
+      - name: Check for pyqt patches to run tests against
+        run: "bash -x scripts/dev/ci/docker/pyqt_patches/ci_apply_patches.bash -t"
+        if: "endsWith(matrix.image, '-patched')"
       - name: Run tox
         run: "dbus-run-session -- tox -e ${{ matrix.testenv }}"
       - name: Gather info

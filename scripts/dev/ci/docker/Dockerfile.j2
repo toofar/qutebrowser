@@ -34,7 +34,10 @@ RUN pacman -Su --noconfirm \
     ttf-bitstream-vera \
     gcc \
     libyaml \
-    xorg-xdpyinfo
+    xorg-xdpyinfo \
+    make \
+    pyqt-builder \
+    sip
 
 RUN useradd user -u 1001 && \
     mkdir /home/user && \
@@ -63,6 +66,11 @@ RUN cd ~ && \
 USER root
 RUN python3.10 -m ensurepip
 RUN python3.10 -m pip install tox pyqt5-sip
+{% endif %}
+
+{% if patch %}
+COPY scripts/dev/ci/docker/pyqt_patches/ pyqt_patches/
+RUN CI=y bash -x pyqt_patches/ci_apply_patches.bash
 {% endif %}
 
 {% if qt6 %}

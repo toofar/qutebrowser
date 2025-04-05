@@ -1371,6 +1371,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3895
             log.misc.debug("run_js_async called on deleted tab")
+            # XXX
             return
 
         world_id_type = Union[QWebEngineScript.ScriptWorldId, int]
